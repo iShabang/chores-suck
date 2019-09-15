@@ -1,0 +1,60 @@
+[
+    {
+        "arguments": [
+            "c++",
+            "-c",
+            "-pipe",
+            "-O2",
+            "-Wall",
+            "-W",
+            "-D_REENTRANT",
+            "-fPIC",
+            "-DQT_NO_DEBUG",
+            "-DQT_GUI_LIB",
+            "-DQT_CORE_LIB",
+            "-I../../FairMate",
+            "-I.",
+            "-I../../../Qt5.12.3/5.12.3/gcc_64/include",
+            "-I../../../Qt5.12.3/5.12.3/gcc_64/include/QtGui",
+            "-I../../../Qt5.12.3/5.12.3/gcc_64/include/QtCore",
+            "-I.",
+            "-isystem",
+            "/usr/include/libdrm",
+            "-I../../../Qt5.12.3/5.12.3/gcc_64/mkspecs/linux-g++",
+            "-o",
+            "ItemHandler.o",
+            "../sources/ItemHandler.cpp"
+        ],
+        "directory": "/home/shabang/projects/FairMate/build",
+        "file": "../sources/ItemHandler.cpp"
+    },
+    {
+        "arguments": [
+            "c++",
+            "-c",
+            "-pipe",
+            "-O2",
+            "-Wall",
+            "-W",
+            "-D_REENTRANT",
+            "-fPIC",
+            "-DQT_NO_DEBUG",
+            "-DQT_GUI_LIB",
+            "-DQT_CORE_LIB",
+            "-I../../FairMate",
+            "-I.",
+            "-I../../../Qt5.12.3/5.12.3/gcc_64/include",
+            "-I../../../Qt5.12.3/5.12.3/gcc_64/include/QtGui",
+            "-I../../../Qt5.12.3/5.12.3/gcc_64/include/QtCore",
+            "-I.",
+            "-isystem",
+            "/usr/include/libdrm",
+            "-I../../../Qt5.12.3/5.12.3/gcc_64/mkspecs/linux-g++",
+            "-o",
+            "main.o",
+            "../main.cpp"
+        ],
+        "directory": "/home/shabang/projects/FairMate/build",
+        "file": "../main.cpp"
+    }
+]
