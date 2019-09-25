@@ -1,0 +1,3 @@
+qmake command
+in the build directory:
+qmake -o Makefile ../FairMate.pro
