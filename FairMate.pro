@@ -4,6 +4,6 @@ HEADERS += headers/ItemInterface.h \
 
 SOURCES += main.cpp \
            sources/ItemHandler.cpp \
-           server/Socket.cpp
+           server/PassiveSocket.cpp
 
 TARGET = fairmate

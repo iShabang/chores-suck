@@ -3,19 +3,18 @@
 
 #include <string>
 
+#include "Socket.h"
+
 namespace fairmate { namespace server {
 
-class Socket
+class PassiveSocket : public Socket
 {
 public:
-    Socket(std::string address);
-    ~Socket();
+    PassiveSocket(std::string address);
+    ~PassiveSocket();
     bool create(std::string address);
     bool close();
     int listen();
-    int send(const std::string &buffer, int bytes);
-    int recv(std::string &buffer, int bytes);
-
 private:
     int m_sockFd;
     std::string m_address;

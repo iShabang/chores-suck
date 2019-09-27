@@ -1,15 +1,15 @@
 #include <sys/socket.h>
 
-#include "Socket.h"
+#include "PassiveSocket.h"
 
 namespace fairmate { namespace server {
 
-Socket::Socket(std::string address):
+PassiveSocket::PassiveSocket(std::string address):
     m_sockFd(-1),
     m_address(address)
 {}
 
-bool Socket::create(std::string address)
+bool PassiveSocket::create(std::string address)
 {
     m_sockFd = socket(AF_INET, SOCK_STREAM, 0);
     if (!m_sockFd)
