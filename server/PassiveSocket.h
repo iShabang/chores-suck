@@ -1,5 +1,5 @@
-#ifndef _SOCKET_H_
-#define _SOCKET_H_
+#ifndef _PASSIVE_SOCKET_H_
+#define _PASSIVE_SOCKET_H_
 
 #include <string>
 
@@ -23,5 +23,5 @@ private:
 }// namespace server
 }// namespace fairmate
 
-#endif // _SOCKET_H_
+#endif // _PASSIVE_SOCKET_H_
 
