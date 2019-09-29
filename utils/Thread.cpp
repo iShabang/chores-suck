@@ -8,20 +8,15 @@ Thread::Thread()
 
 Thread::~Thread()
 {
+    void *status;
+    pthread_join(m_thread,&status);
 }
 
 void *Thread::threadFcn(void *t)
 {
     Thread *thread = static_cast<Thread *>(t);
     (*thread)();
-    thread->join();
     return t;
-}
-
-void Thread::join()
-{
-    void *status;
-    pthread_join(m_thread,&status);
 }
 
 void Thread::start()

@@ -12,7 +12,6 @@ public:
     ~Socket();
     bool create(std::string address);
     bool close();
-    int listen();
     int send(const std::string &buffer, int bytes);
     int recv(std::string &buffer, int bytes);
 

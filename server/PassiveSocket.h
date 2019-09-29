@@ -2,15 +2,13 @@
 #define _PASSIVE_SOCKET_H_
 
 #include <string>
-
-#include "Socket.h"
+#include "utils/Thread.h"
 
 namespace fairmate { namespace server {
 
-class PassiveSocket : public Socket
-{
+class PassiveSocket {
 public:
-    PassiveSocket(std::string address);
+    PassiveSocket(std::string address, const long long &queueSize);
     ~PassiveSocket();
     bool create(std::string address);
     bool close();
@@ -18,6 +16,24 @@ public:
 private:
     int m_sockFd;
     std::string m_address;
+
+private:
+    class SocketThread : public utils::Thread {
+    public:
+        SocketThread(long long queueSize);
+        void operator()() override;
+        void shutdown() override;
+        void enable();
+        void setSocket(int fd);
+    private:
+        bool m_shutdown;
+        long long m_queueSize;
+        int m_sockFd;
+    };
+
+private:
+    SocketThread m_thread;
+
 };
 
 }// namespace server
