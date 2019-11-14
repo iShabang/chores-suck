@@ -1,10 +1,14 @@
+/*
+TODO: Add a login method that creates and returns a jason web token after successfull login. The key will
+need to be generated separately from the jwt-go package.
+*/
 package main
 
 import (
 	//"golang.org/x/crypto/bcrypt"
+	//"github.com/dgrijalva/jwt-go"
 	"encoding/json"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
 	"net/http"
 )
 
