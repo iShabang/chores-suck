@@ -1,0 +1,8 @@
+Host: http://localhost:8080
+
+GET /users
+
+POST /users
+{"name":"Jason", "password":"1234"}
+
+GET /login
