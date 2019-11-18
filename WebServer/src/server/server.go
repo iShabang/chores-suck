@@ -32,13 +32,13 @@ func (h App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	var app App
-	var userHandler user.UserHandler
-	var loginHandler login.LoginHandler
-	app.UserHandler = &userHandler
-	app.LoginHandler = &loginHandler
 	user.Users = []user.User{
 		{Name: "Shannon", Password: "password1"},
 		{Name: "Bee", Password: "password2"},
 	}
+	var userHandler user.UserHandler
+	loginHandler := login.NewLogin(user.Users)
+	app.UserHandler = &userHandler
+	app.LoginHandler = loginHandler
 	http.ListenAndServe(":8080", app)
 }

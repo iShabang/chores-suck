@@ -6,6 +6,7 @@ import (
 	//"encoding/json"
 	//"fmt"
 	"net/http"
+	"users"
 )
 
 func (h LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -20,7 +21,16 @@ func (h LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 }
 
-type LoginHandler struct{}
+type LoginHandler struct {
+	users []user.User // Are slices always passed by reference?
+}
+
+// FYI: This is how you do dependency injection in Go
+func NewLogin(u []user.User) *LoginHandler {
+	return &LoginHandler{
+		users: u,
+	}
+}
 
 func (h LoginHandler) handleGET(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Status", "200")
