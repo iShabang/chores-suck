@@ -32,9 +32,9 @@ func (h App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	var app App
-	user.Users = []user.User{
-		{Name: "Shannon", Password: "password1"},
-		{Name: "Bee", Password: "password2"},
+	user.Users = map[string]string{
+		"Shannon": "password1",
+		"Bee":     "password2",
 	}
 	var userHandler user.UserHandler
 	loginHandler := login.NewLogin(user.Users)

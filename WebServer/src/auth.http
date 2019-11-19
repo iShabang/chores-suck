@@ -6,3 +6,9 @@ POST /users
 {"name":"Jason", "password":"1234"}
 
 GET /login
+
+POST /login
+{"name":"Shannon", "password":"password1"}
+
+POST /login
+{"name":"Shannon", "password":"password"}

@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	Users []User
+	Users = map[string]string{}
 )
 
 type User struct {
@@ -36,9 +36,9 @@ func (h UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (h UserHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("UserHandler handleGet")
 	w.Header().Set("Content-Type", "application/json")
-	names := make([]string, len(Users))
-	for i, v := range Users {
-		names[i] = v.Name
+	var names []string
+	for i, _ := range Users {
+		names = append(names, i)
 	}
 	json.NewEncoder(w).Encode(names)
 }
@@ -47,6 +47,6 @@ func (h UserHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("UserHandler handlePost")
 	var newUser User
 	json.NewDecoder(r.Body).Decode(&newUser)
-	Users = append(Users, newUser)
+	Users[newUser.Name] = newUser.Password
 	w.Header().Set("Status", "201")
 }
