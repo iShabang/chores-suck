@@ -1,14 +1,14 @@
 Host: http://localhost:8080
 
-GET /users
-
 POST /users
 {"name":"Jason", "password":"1234"}
 
 GET /login
 
-POST /login
-{"name":"Shannon", "password":"password1"}
+TEMPLATE cookies
+${set_cookies()}
 
-POST /login
-{"name":"Shannon", "password":"password"}
+POST /login | cookies
+{"name":"Shannon", "password":"password1"} 
+
+GET /users
