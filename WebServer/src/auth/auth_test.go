@@ -5,9 +5,12 @@ import (
 )
 
 func TestAuthToken(t *testing.T) {
-	tkStr, _, _ := GenToken("Shannon")
-	ok, _, _ := AuthToken(tkStr)
-	if !ok {
-		t.Errorf("Token Invalid")
+	tkStr, e, _ := GenToken("Shannon")
+	if e != nil {
+		t.Error(e)
+	}
+	_, err, _ := AuthToken(tkStr)
+	if err != nil {
+		t.Error(err)
 	}
 }
