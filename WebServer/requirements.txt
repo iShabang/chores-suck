@@ -1,0 +1,45 @@
+Create new user:
+Allow user to create a username and password using a valid email address. Send a verification email?
+*Create user form
+
+User login: username and password
+create jason web token
+*login form
+
+If user requests chores, authorize user with jwt
+send list of chores in jason format
+
+Chore list
+If user requests to add chores
+Open a form that allows the user to enter in as many chores as they want
+When submitted, authorize the user request and add the chores to the database
+*chore list form
+
+Distribute chores
+If user requests to distribute the chores, 
+authorize the request, run chores through the matching algorithm, commit chore assignments to the database
+return the chore assignemtns to the user
+
+Manual chore assign
+authorize request, add chore mapping to the database.
+
+Chore distribution algorithm
+evenly distribute the chores amongst the roommates based on difficulty of chores
+    if the distribution is uneven, then the roommate(s) who had the higher difficulty will not have that next time. Make some kind of entry in the database stating the fact
+    If there are less chores than roommates, throw an error
+1. randomize the chores
+2. order the roommates by score. Lowest score goes first.
+3. add up the difficulties of all the chores and divide it by the number of roommates, call this minScore
+4. loop through the roommates. if the roommates total score is less than minScore, then add another chore from the list that doesn't put it over the min score.
+5. if there are still chores remaining, loop over the roommates again and add one chore to each roommate until all the chores are gone.
+
+
+**** 1. Randomize Chores ****
+In place randomization?
+
+Database
+User table - id, username, password, households
+household table - id, name, 
+chores table - id, name, difficulty, household
+assignment table
+

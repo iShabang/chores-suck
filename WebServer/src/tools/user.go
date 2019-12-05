@@ -1,8 +1,7 @@
-package user
+package tools
 
 import (
 	//"golang.org/x/crypto/bcrypt"
-	"auth"
 	"encoding/json"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
@@ -21,8 +20,6 @@ type User struct {
 type UserHandler struct{}
 
 func (h UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("UserHandler ServeHTTP")
-	fmt.Println(r.Method)
 	switch r.Method {
 	case "GET":
 		h.handleGet(w, r)
@@ -46,7 +43,7 @@ func (h UserHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	ok, err, claims := auth.AuthToken(c.Value)
+	ok, err, claims := AuthToken(c.Value)
 	if !ok || err == jwt.ErrSignatureInvalid {
 		w.WriteHeader(http.StatusUnauthorized)
 		return

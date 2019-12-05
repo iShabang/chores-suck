@@ -7,14 +7,13 @@ package main
 import (
 	//"golang.org/x/crypto/bcrypt"
 	"fmt"
-	"login"
 	"net/http"
-	"users"
+	"tools"
 )
 
 type App struct {
-	UserHandler  *user.UserHandler
-	LoginHandler *login.LoginHandler
+	UserHandler  *tools.UserHandler
+	LoginHandler *tools.LoginHandler
 }
 
 func (h App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -31,12 +30,12 @@ func (h App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	var app App
-	user.Users = map[string]string{
+	tools.Users = map[string]string{
 		"Shannon": "password1",
 		"Bee":     "password2",
 	}
-	var userHandler user.UserHandler
-	loginHandler := login.NewLogin(user.Users)
+	var userHandler tools.UserHandler
+	loginHandler := tools.NewLogin(tools.Users)
 	app.UserHandler = &userHandler
 	app.LoginHandler = loginHandler
 	http.ListenAndServe(":8080", app)

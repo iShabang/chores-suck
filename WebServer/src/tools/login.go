@@ -1,11 +1,9 @@
-package login
+package tools
 
 import (
 	//"golang.org/x/crypto/bcrypt"
-	"auth"
 	"encoding/json"
 	"net/http"
-	"users"
 )
 
 func (h LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -36,14 +34,14 @@ func (h LoginHandler) handleGET(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h LoginHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
-	var newUser user.User
+	var newUser User
 	json.NewDecoder(r.Body).Decode(&newUser)
 	pass, ok := h.users[newUser.Name]
 	if !ok || pass != newUser.Password {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	tokenString, err, expireTime := auth.GenToken(newUser.Name)
+	tokenString, err, expireTime := GenToken(newUser.Name)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
