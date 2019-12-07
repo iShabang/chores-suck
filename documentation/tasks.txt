@@ -1,0 +1,23 @@
+Create Database
+
+Create Static Webpage for Chore table
+
+Create add chores form
+
+Create add roommate form
+
+Delete chore button
+
+Randomize chore button
+
+Rotate chore button
+
+Create web server to handle static web page requests.
+    REST API for manipulating chores
+
+Phase 2:
+Create user signup web page
+
+Create user login web page
+
+

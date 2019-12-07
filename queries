@@ -1,0 +1,21 @@
+db.users.insert({
+    first_name: "Shannon",
+    last_name: "Curtin",
+    email: "curtin.shannon@gmail.com",
+    password: "1234",
+    username: "iShaBaNg"
+})
+
+db.chores.insert({
+    name: "Bathroom Floor",
+    time: 10,
+    user_id: "5de99963f2902a9269c23036"
+})
+
+db.houses.insert({
+    admin: "5de99963f2902a9269c23036",
+    name: "UNLV House",
+    users: [
+        "5de99963f2902a9269c23036"
+    ]
+})
