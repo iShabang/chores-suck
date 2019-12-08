@@ -29,6 +29,8 @@ func (h App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	conn := tools.NewConnection()
+	conn.Connect("mongodb://localhost:27017")
 	var app App
 	tools.Users = map[string]string{
 		"Shannon": "password1",

@@ -1,3 +1,9 @@
+db.createCollection('users')
+
+db.createCollection('chores')
+
+db.createCollection('groups')
+
 db.users.insert({
     first_name: "Shannon",
     last_name: "Curtin",
@@ -12,7 +18,7 @@ db.chores.insert({
     user_id: "5de99963f2902a9269c23036"
 })
 
-db.houses.insert({
+db.groups.insert({
     admin: "5de99963f2902a9269c23036",
     name: "UNLV House",
     users: [
