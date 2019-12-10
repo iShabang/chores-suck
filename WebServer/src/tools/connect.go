@@ -4,6 +4,7 @@ import (
 	"context"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"log"
 	"time"
 )
@@ -17,19 +18,14 @@ func NewConnection() Connection {
 	return Connection{}
 }
 
-func (c *Connection) Connect(u string) bool {
-	ret := false
+func (c *Connection) Connect(u string) error {
 	client, err := mongo.NewClient(options.Client().ApplyURI(u))
 	if err == nil {
 		ctx, _ := context.WithTimeout(context.Background(), 2*time.Second)
 		err = client.Connect(ctx)
 		if err == nil {
-			ret = true
-		} else {
-			c.logger.Print(err)
+			err = client.Ping(ctx, readpref.Primary())
 		}
-	} else {
-		c.logger.Print(err)
 	}
-	return ret
+	return err
 }

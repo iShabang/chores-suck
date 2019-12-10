@@ -7,6 +7,7 @@ package main
 import (
 	//"golang.org/x/crypto/bcrypt"
 	"fmt"
+	"log"
 	"net/http"
 	"tools"
 )
@@ -30,7 +31,10 @@ func (h App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	conn := tools.NewConnection()
-	conn.Connect("mongodb://localhost:27017")
+	err := conn.Connect("mongodb://127.0.0.1:27017")
+	if err != nil {
+		log.Print(err)
+	}
 	var app App
 	tools.Users = map[string]string{
 		"Shannon": "password1",
