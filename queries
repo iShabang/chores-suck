@@ -15,15 +15,39 @@ db.users.insert({
 db.chores.insert({
     name: "Bathroom Floor",
     time: 10,
-    user_id: "5de99963f2902a9269c23036"
+    user_id: "5df2ae6a0aba119155a01b8c"
 })
 
 db.groups.insert({
-    admin: "5de99963f2902a9269c23036",
+    admin: "5df2ae6a0aba119155a01b8c"
     name: "UNLV House",
     users: [
-        "5de99963f2902a9269c23036"
+        {user_id:"5df2ae6a0aba119155a01b8c"}
     ]
+})
+
+db.chores.update({name: "Bathroom Floor"},
+{
+    $set:{
+        group_id: "5df2ae760aba119155a01b8e"
+    }
+})
+
+db.chores.update({name: "Bathroom Floor"}, {
+$set:{
+user_id: "5df2ae6a0aba119155a01b8c"
+}
+})
+
+db.groups.update({name: "UNLV House"}, {
+$set: {
+admin: "5df2ae6a0aba119155a01b8c"
+}
+}
+
+db.users.find({first_name: "Shannon"},
+{
+   _id: 1 
 })
 
 test

@@ -12,6 +12,7 @@ import (
 type Connection struct {
 	logger *log.Logger
 	url    string
+	client *mongo.Client
 }
 
 func NewConnection() Connection {
@@ -25,6 +26,9 @@ func (c *Connection) Connect(u string) error {
 		err = client.Connect(ctx)
 		if err == nil {
 			err = client.Ping(ctx, readpref.Primary())
+			if err == nil {
+				c.client = client
+			}
 		}
 	}
 	return err
