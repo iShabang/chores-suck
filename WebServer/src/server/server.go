@@ -35,11 +35,17 @@ func main() {
 	if err != nil {
 		log.Print(err)
 	}
-	chores, err := conn.GetGroupChores("5df6b051cc5d561823d8d860")
+	chore := tools.Chore{
+		Name:    "Test Chore",
+		Time:    20,
+		UserId:  "5df6ade4cc5d561823d8d85e",
+		GroupId: "5df6b051cc5d561823d8d860",
+	}
+	id, err := conn.AddChore(&chore)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("got chores %v\n", chores[0].Name)
+	fmt.Printf("got id %v\n", id)
 	var app App
 	tools.Users = map[string]string{
 		"Shannon": "password1",

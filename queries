@@ -53,4 +53,8 @@ db.users.find({first_name: "Shannon"},
    _id: 1 
 })
 
+db.chores.remove({_id: "5df75dfa2887453e2f3edf58"})
+db.chores.remove({name: "Test Chore"})
+db.chores.remove({"_id": ObjectId("5df75fc4c8435bf5824ec026")})
+
 test
