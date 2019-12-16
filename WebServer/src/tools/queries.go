@@ -9,23 +9,24 @@ import (
 )
 
 type UserSmall struct {
-	userId string
-	name   string
+	Id   string
+	name string
 }
 
 type UserLarge struct {
-	firstName string
-	lastName  string
-	email     string
-	password  string
-	username  string
+	Id        string
+	FirstName string
+	LastName  string
+	Email     string
+	Password  string
+	Username  string
 }
 
 type Group struct {
-	id    string
-	admin string
-	name  string
-	users []UserSmall
+	Id    string
+	Admin string
+	Name  string
+	Users []UserSmall
 }
 
 type Chore struct {
@@ -92,11 +93,11 @@ func (c *Connection) AddChore(ch *Chore) (string, error) {
 		"user_id":  ch.UserId,
 		"group_id": ch.GroupId,
 	}
-	return c.addChore(&filter)
+	return c.insert(&filter, "chores")
 }
 
-func (c *Connection) addChore(f *bson.M) (string, error) {
-	collection := c.client.Database("fairmate").Collection("chores")
+func (c *Connection) insert(f *bson.M, coll string) (string, error) {
+	collection := c.client.Database("fairmate").Collection(coll)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	res, err := collection.InsertOne(ctx, f)
@@ -119,6 +120,16 @@ db.users.insert({
     username: "iShaBaNg"
 })
 */
+func (c *Connection) AddUser(u *UserLarge) (string, error) {
+	filter := bson.M{
+		"first_name": u.FirstName,
+		"last_name":  u.LastName,
+		"email":      u.Email,
+		"password":   u.Password,
+		"username":   u.Username,
+	}
+	return c.insert(&filter, "users")
+}
 
 // add user to group
 /*
@@ -131,6 +142,26 @@ db.groups.update({_id: ""},
     }
 })
 */
+func (c *Connection) AddUserToGroup(uId string, gId string) error {
+	groupFilter := bson.M{"_id": gId}
+	updateFilter := bson.M{"$addToSet": bson.M{"users": uId}}
+	return c.updateGroup(&groupFilter, &updateFilter, "groups")
+}
+
+func (c *Connection) updateGroup(gf *bson.M, of *bson.M, coll string) error {
+	collection := c.client.Database("fairmate").Collection(coll)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	res, err := collection.UpdateOne(ctx, gf, of)
+	if err != nil {
+		fmt.Print(err)
+		return err
+	}
+	if res.ModifiedCount < 1 {
+		// create and return new error stating such
+	}
+	return nil
+}
 
 // add group
 /*
