@@ -35,6 +35,11 @@ func main() {
 	if err != nil {
 		log.Print(err)
 	}
+	chores, err := conn.GetGroupChores("5df6b051cc5d561823d8d860")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("got chores %v\n", chores[0].Name)
 	var app App
 	tools.Users = map[string]string{
 		"Shannon": "password1",
@@ -44,5 +49,5 @@ func main() {
 	loginHandler := tools.NewLogin(tools.Users)
 	app.UserHandler = &userHandler
 	app.LoginHandler = loginHandler
-	http.ListenAndServe(":8080", app)
+	log.Fatal(http.ListenAndServe(":8080", app))
 }

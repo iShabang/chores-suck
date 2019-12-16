@@ -15,11 +15,12 @@ db.users.insert({
 db.chores.insert({
     name: "Bathroom Floor",
     time: 10,
-    user_id: "5df2ae6a0aba119155a01b8c"
+    user_id: "5df6ade4cc5d561823d8d85e",
+    group_id: ""
 })
 
 db.groups.insert({
-    admin: "5df2ae6a0aba119155a01b8c"
+    admin: "5df6ade4cc5d561823d8d85e",
     name: "UNLV House",
     users: [
         {user_id:"5df2ae6a0aba119155a01b8c"}
@@ -29,7 +30,7 @@ db.groups.insert({
 db.chores.update({name: "Bathroom Floor"},
 {
     $set:{
-        group_id: "5df2ae760aba119155a01b8e"
+        group_id: "5df6b051cc5d561823d8d860"
     }
 })
 
@@ -38,6 +39,8 @@ $set:{
 user_id: "5df2ae6a0aba119155a01b8c"
 }
 })
+
+db.chores.find({group_id: "5df6b051cc5d561823d8d860"})
 
 db.groups.update({name: "UNLV House"}, {
 $set: {

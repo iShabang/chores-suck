@@ -2,6 +2,7 @@ package tools
 
 import (
 	"context"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"time"
 )
@@ -27,28 +28,40 @@ type Group struct {
 }
 
 type Chore struct {
-	id     string
-	name   string
-	time   uint
-	userId string
+	Id      string `json:"_id"`
+	Name    string `json:"name"`
+	Time    uint   `json:"time"`
+	UserId  string `json:"user_id"`
+	GroupId string `json:"group_id"`
 }
 
 // get chores for a group
 // db.chores.find({group_id: ""})
-func (c *Connection) GetGroupChores(id string) ([]Chore, error) {
+func (c *Connection) GetGroupChores(id string) ([]*Chore, error) {
+	fmt.Printf("looking for id %v\n", id)
 	collection := c.client.Database("fairmate").Collection("chores")
-	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 	filter := bson.M{"group_id": id}
 	cur, err := collection.Find(ctx, filter)
-	defer cur.Close(ctx)
-	for cur.Next(ctx) {
-		var result bson.M
-		err := cur.Decode(&result)
-		if err == nil {
-
-		}
-
+	if err != nil {
+		fmt.Print(err)
+		return nil, err
 	}
+	defer cur.Close(ctx)
+	var chores []*Chore
+	fmt.Print("starting loop\n")
+	for cur.Next(ctx) {
+		var chore Chore
+		err := cur.Decode(&chore)
+		if err != nil {
+			fmt.Print(err)
+			return nil, err
+		}
+		chores = append(chores, &chore)
+		fmt.Printf("got item %v", chore.Name)
+	}
+	return chores, nil
 }
 
 // get chores for a user
