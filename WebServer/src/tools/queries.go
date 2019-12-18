@@ -9,23 +9,22 @@ import (
 )
 
 type UserSmall struct {
-	Id   string
-	name string
+	Id string `json:"user_id"`
 }
 
 type UserLarge struct {
-	Id        string
-	FirstName string
-	LastName  string
-	Email     string
-	Password  string
-	Username  string
+	Id        string `json:"_id"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+	Username  string `json:"username"`
 }
 
 type Group struct {
-	Id    string
-	Admin string
-	Name  string
+	Id    string `json:"_id"`
+	Admin string `json:"admin"`
+	Name  string `json:"name"`
 	Users []UserSmall
 }
 
@@ -35,6 +34,35 @@ type Chore struct {
 	Time    uint   `json:"time"`
 	UserId  string `json:"user_id"`
 	GroupId string `json:"group_id"`
+}
+
+func (c *Chore) BsonM() bson.M {
+	filter := bson.M{
+		"name":     c.Name,
+		"time":     c.Time,
+		"user_id":  c.UserId,
+		"group_id": c.GroupId,
+	}
+	return filter
+}
+
+func (u *UserLarge) BsonM() bson.M {
+	filter := bson.M{
+		"first_name": u.FirstName,
+		"last_name":  u.LastName,
+		"email":      u.Email,
+		"password":   u.Password,
+		"username":   u.Username,
+	}
+	return filter
+}
+
+func (g *Group) BsonM() bson.M {
+	filter := bson.M{
+		"admin": g.Admin,
+		"name":  g.Name,
+	}
+	return filter
 }
 
 // get chores for a group
@@ -87,13 +115,16 @@ db.chores.insertMany([
 ])
 */
 func (c *Connection) AddChore(ch *Chore) (string, error) {
-	filter := bson.M{
-		"name":     ch.Name,
-		"time":     ch.Time,
-		"user_id":  ch.UserId,
-		"group_id": ch.GroupId,
-	}
+	filter := ch.BsonM()
 	return c.insert(&filter, "chores")
+}
+
+func (c *Connection) AddManyChores(ch []Chore) error {
+	temp := make([]bson.M, len(ch))
+	for i, v := range ch {
+		temp[i] = v.BsonM()
+	}
+	return c.insertMany(temp, "chores")
 }
 
 func (c *Connection) insert(f *bson.M, coll string) (string, error) {
@@ -108,6 +139,18 @@ func (c *Connection) insert(f *bson.M, coll string) (string, error) {
 	id := (res.InsertedID).(primitive.ObjectID)
 	fmt.Printf("added new chore with id: %v", id.String())
 	return id.String(), nil
+}
+
+func (c *Connection) insertMany(f []bson.M, coll string) error {
+	ui := make([]interface{}, len(f))
+	for i, v := range f {
+		ui[i] = v
+	}
+	collection := c.client.Database("fairmate").Collection(coll)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	_, err := collection.InsertMany(ctx, ui)
+	return err
 }
 
 // add user
@@ -173,3 +216,8 @@ db.groups.insert({
     ]
 })
 */
+
+func (c *Connection) AddGroup(g *Group) (string, error) {
+	filter := g.BsonM()
+	return c.insert(&filter, "groups")
+}
