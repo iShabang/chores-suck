@@ -1,9 +1,9 @@
 build/
 compile_commands.json
-WebServer/bin/
-WebServer/pkg/
-WebServer/server
-WebServer/src/github.com/
-WebServer/src/go.mongodb.org/
-WebServer/temp
+webserver/bin/
+webserver/pkg/
+webserver/server
+webserver/src/github.com/
+webserver/src/go.mongodb.org/
+webserver/temp
 temp
