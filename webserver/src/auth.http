@@ -1,0 +1,16 @@
+Host: http://localhost:8080
+
+POST /users
+{"name":"Jason", "password":"1234"}
+
+GET /login
+
+TEMPLATE cookies
+${set_cookies()}
+
+POST /login | cookies
+{"name":"Shannon", "password":"password1"} 
+
+Cookie: token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IlNoYW5ub24iLCJleHAiOjE1NzQ0OTA4OTN9.2Iino0J0H-FG5qAvUbXp5hxtjliSUMdNGu-CrWMCvJY
+
+GET /users

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+    <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>FairMate</title>
+    <link rel="stylesheet" href="css/main.css">
+    
+  </head>
+
+  <body>
+      <form id="login-form" method="POST">
+        Username:<br>
+        <input id="uname" type="text" name="username"><br>
+        Password:<br>
+        <input id="pword" type="text" name="password"><br>
+        <input type="submit" value="Submit" onclick="submitLogin(event)"><br>
+        <div id="after-submit"></div>
+      </form>
+  </body>
+
+  <script>
+      function submitLogin(event){
+          event.preventDefault();
+          document.getElementById('after-submit').innerHTML = "Hello World!"
+          var name = document.getElementById('uname').val()
+          var password = document.getElementById('pword').val()
+
+          xhr = new XMLHttpRequest()
+          xhr.onreadystatechange = function(){
+              if(this.readyState == 4 && this.status == 200){
+                  // TODO: go to home page
+                  alert('SUCCESS')
+              } else {
+                  // TODO: Update message and clear password
+                  alert('failure')
+              }
+          }
+          xhr.open('POST', '/login', true)
+          xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
+          xhr.send('name='+name+'&pass='+password)
+      }
+  </script>
