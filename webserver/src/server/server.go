@@ -15,6 +15,7 @@ import (
 type App struct {
 	UserHandler  *tools.UserHandler
 	LoginHandler *tools.LoginHandler
+	fileDir      string
 }
 
 func (h App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -24,8 +25,10 @@ func (h App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.UserHandler.ServeHTTP(w, r)
 	case "/login":
 		h.LoginHandler.ServeHTTP(w, r)
+	case "/":
+		http.ServeFile(w, r, h.fileDir+"index.html")
 	default:
-		http.Error(w, "Not Found", http.StatusNotFound)
+		http.ServeFile(w, r, h.fileDir+r.URL.Path[1:])
 	}
 }
 
@@ -58,5 +61,6 @@ func main() {
 	loginHandler := tools.NewLogin(tools.Users)
 	app.UserHandler = &userHandler
 	app.LoginHandler = loginHandler
+	app.fileDir = "./files/"
 	log.Fatal(http.ListenAndServe(":8080", app))
 }
