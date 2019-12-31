@@ -11,7 +11,7 @@
   </head>
 
   <body>
-      <form id="login-form" method="POST">
+      <form id="login-form" method="POST" action="/login">
         Username:<br>
         <input id="uname" type="text" name="username"><br>
         Password:<br>
@@ -24,22 +24,19 @@
   <script>
       function submitLogin(event){
           event.preventDefault();
-          document.getElementById('after-submit').innerHTML = "Hello World!"
-          var name = document.getElementById('uname').val()
-          var password = document.getElementById('pword').val()
+          var name = document.getElementById('uname').val
+          var password = document.getElementById('pword').val
 
           xhr = new XMLHttpRequest()
           xhr.onreadystatechange = function(){
-              if(this.readyState == 4 && this.status == 200){
+              if(this.status == 200){
                   // TODO: go to home page
                   alert('SUCCESS')
-              } else {
-                  // TODO: Update message and clear password
-                  alert('failure')
               }
           }
           xhr.open('POST', '/login', true)
-          xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
-          xhr.send('name='+name+'&pass='+password)
+          xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8')
+          var user = {name: "iShaBaNg", pass: "1234"}
+          xhr.send(JSON.stringify(user))
       }
   </script>

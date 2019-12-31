@@ -33,24 +33,11 @@ func (h App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	/*
-		conn := tools.NewConnection()
-		err := conn.Connect("mongodb://127.0.0.1:27017")
-		if err != nil {
-			log.Print(err)
-		}
-		chore := tools.Chore{
-			Name:    "Test Chore",
-			Time:    20,
-			UserId:  "5df6ade4cc5d561823d8d85e",
-			GroupId: "5df6b051cc5d561823d8d860",
-		}
-		id, err := conn.AddChore(&chore)
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Printf("got id %v\n", id)
-	*/
+	conn := tools.NewConnection()
+	err := conn.Connect("mongodb://127.0.0.1:27017")
+	if err != nil {
+		log.Print(err)
+	}
 
 	var app App
 	tools.Users = map[string]string{
@@ -58,7 +45,7 @@ func main() {
 		"Bee":     "password2",
 	}
 	var userHandler tools.UserHandler
-	loginHandler := tools.NewLogin(tools.Users)
+	loginHandler := tools.NewLogin(&conn)
 	app.UserHandler = &userHandler
 	app.LoginHandler = loginHandler
 	app.fileDir = "./files/"

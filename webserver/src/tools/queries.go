@@ -108,13 +108,7 @@ db.users.insert({
 })
 */
 func (c *Connection) AddUser(u *UserLarge) (string, error) {
-	filter := bson.M{
-		"first_name": u.FirstName,
-		"last_name":  u.LastName,
-		"email":      u.Email,
-		"password":   u.Password,
-		"username":   u.Username,
-	}
+	filter := u.BsonM()
 	return c.insert(&filter, "users")
 }
 
@@ -132,10 +126,10 @@ db.groups.update({_id: ""},
 func (c *Connection) AddUserToGroup(uId string, gId string) error {
 	groupFilter := bson.M{"_id": gId}
 	updateFilter := bson.M{"$addToSet": bson.M{"users": uId}}
-	return c.updateGroup(&groupFilter, &updateFilter, "groups")
+	return c.update(&groupFilter, &updateFilter, "groups")
 }
 
-func (c *Connection) updateGroup(gf *bson.M, of *bson.M, coll string) error {
+func (c *Connection) update(gf *bson.M, of *bson.M, coll string) error {
 	collection := c.client.Database("fairmate").Collection(coll)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -164,4 +158,35 @@ db.groups.insert({
 func (c *Connection) AddGroup(g *Group) (string, error) {
 	filter := g.BsonM()
 	return c.insert(&filter, "groups")
+}
+
+func (c *Connection) GetUser(username string) (*UserLarge, error) {
+	filter := bson.M{"username": username}
+	return c.getUser(&filter)
+}
+
+func (c *Connection) UpdateUserAttempts(u string, attempts uint8) error {
+	userFilter := bson.M{"username": u}
+	updateFilter := bson.M{"$set": bson.M{"attempts": attempts}}
+	return c.update(&userFilter, &updateFilter, "users")
+}
+
+func (c *Connection) getUser(filter *bson.M) (*UserLarge, error) {
+	collection := c.client.Database("fairmate").Collection("users")
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	cur, err := collection.Find(ctx, filter)
+	if err != nil {
+		return nil, ErrNotFound
+	}
+	defer cur.Close(ctx)
+	var u UserLarge
+	cur.Next(ctx)
+	err = cur.Decode(&u)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	fmt.Printf("got item %v\n", u.FirstName)
+	return &u, nil
 }

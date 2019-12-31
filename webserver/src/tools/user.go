@@ -13,8 +13,8 @@ var (
 )
 
 type User struct {
-	Name     string
-	Password string
+	Name     string `json:"name"`
+	Password string `json:"pass"`
 }
 
 type UserHandler struct{}

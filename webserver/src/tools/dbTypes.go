@@ -1,8 +1,11 @@
 package tools
 
 import (
+	"errors"
 	"go.mongodb.org/mongo-driver/bson"
 )
+
+var ErrNotFound = errors.New("entry not found")
 
 type UserSmall struct {
 	Id string `json:"user_id"`
@@ -15,6 +18,7 @@ type UserLarge struct {
 	Email     string `json:"email"`
 	Password  string `json:"password"`
 	Username  string `json:"username"`
+	Attempts  uint8  `json:"attempts"`
 }
 
 type Group struct {
