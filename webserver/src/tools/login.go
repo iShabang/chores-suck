@@ -1,22 +1,24 @@
 package tools
 
 import (
-	//"golang.org/x/crypto/bcrypt"
 	"encoding/json"
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
 
+type WebToken struct {
+	Token  string `json:"token"`
+	Expire string `json:"expire"`
+}
+
 func (h LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
-	case "GET":
-		h.handleGET(w, r)
 	case "POST":
 		h.handlePOST(w, r)
 	default:
 		http.Error(w, "Invlalid login command", http.StatusMethodNotAllowed)
 	}
-
 }
 
 type LoginHandler struct {
@@ -28,10 +30,6 @@ func NewLogin(conn *Connection) *LoginHandler {
 	return &LoginHandler{
 		c: conn,
 	}
-}
-
-func (h LoginHandler) handleGET(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Status", "200")
 }
 
 func (h LoginHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
@@ -63,13 +61,19 @@ func (h LoginHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("attempts good")
 
-	if u.Password != newUser.Password {
-		h.c.UpdateUserAttempts(u.Username, u.Attempts+1)
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Print("wrong password")
-		return
-	} else if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+	hp := []byte(u.Password)
+	np := []byte(newUser.Password)
+	err = bcrypt.CompareHashAndPassword(hp, np)
+
+	if err != nil {
+		if err == bcrypt.ErrMismatchedHashAndPassword {
+			h.c.UpdateUserAttempts(u.Username, u.Attempts+1)
+			w.WriteHeader(http.StatusUnauthorized)
+			fmt.Print("wrong password")
+		} else {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -88,10 +92,20 @@ func (h LoginHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("got token")
 
-	http.SetCookie(w, &http.Cookie{
-		Name:    "token",
-		Value:   tokenString,
-		Expires: expireTime,
-	})
+	wt := WebToken{
+		Token:  tokenString,
+		Expire: expireTime.String(),
+	}
+
+	js, err := json.Marshal(wt)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
+
 	fmt.Println("login success")
 }
