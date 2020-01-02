@@ -23,12 +23,9 @@ func (h RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (h RegisterHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 	var nu UserLarge
 	json.NewDecoder(r.Body).Decode(&nu)
-	if nu.FirstName == "" ||
-	   nu.LastName == "" ||
-	   nu.Email == "" ||
-	   nu.Password == "" ||
-	   nu.Username == "" || {
-
-	   }
+	if nu.FirstName == "" || nu.LastName == "" || nu.Email == "" || nu.Password == "" || nu.Username == "" {
+		fmt.Println("fields missing")
+		return
+	}
 
 }
