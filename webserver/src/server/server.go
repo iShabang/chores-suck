@@ -13,9 +13,10 @@ import (
 )
 
 type App struct {
-	UserHandler  *tools.UserHandler
-	LoginHandler *tools.LoginHandler
-	fileDir      string
+	UserHandler     *tools.UserHandler
+	LoginHandler    *tools.LoginHandler
+	RegisterHandler *tools.RegisterHandler
+	fileDir         string
 }
 
 func (h App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -25,6 +26,8 @@ func (h App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.UserHandler.ServeHTTP(w, r)
 	case "/login":
 		h.LoginHandler.ServeHTTP(w, r)
+	case "/register":
+		h.RegisterHandler.ServeHTTP(w, r)
 	case "/":
 		http.ServeFile(w, r, h.fileDir+"index.html")
 	default:
@@ -46,8 +49,10 @@ func main() {
 	}
 	var userHandler tools.UserHandler
 	loginHandler := tools.NewLogin(&conn)
+	regHandler := tools.NewRegister(&conn)
 	app.UserHandler = &userHandler
 	app.LoginHandler = loginHandler
+	app.RegisterHandler = regHandler
 	app.fileDir = "./files/"
 	log.Fatal(http.ListenAndServe(":8080", app))
 }

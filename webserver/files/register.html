@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+    <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>FairMate</title>
+    <link rel="stylesheet" href="css/main.css">
+    
+  </head>
+
+  <body>
+      <form id="reg-form" method="POST" action="/register">
+        First Name: <br>
+        <input id="fname" type="text" name="firstname"><br>
+        Last Name: <br>
+        <input id="lname" type="text" name="lastname"><br>
+        Email: <br>
+        <input id="email" type="text" name="email"><br>
+        Username:<br>
+        <input id="uname" type="text" name="username"><br>
+        Password:<br>
+        <input id="pword" type="text" name="password"><br>
+        <input type="submit" value="Submit" onclick="register(event)"><br>
+        <div id="after-submit"></div>
+      </form>
+  </body>
+
+  <script>
+      function register(event) {
+          event.preventDefault()
+          var fname = document.getElementById('fname').value
+          var lname = document.getElementById('lname').value
+          var email = document.getElementById('email').value
+          var uname = document.getElementById('uname').value
+          var pword = document.getElementById('pword').value
+
+          xhr = new XMLHttpRequest()
+          xhr.onreadystatechange = function(){
+              if(this.status == 200){
+                  alert('SUCCESS')
+              }
+          }
+          xhr.open('POST', '/register', true)
+          xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8')
+          var user = {first_name: fname, last_name: lname, email: email, password: pword, username: uname}
+          xhr.send(JSON.stringify(user))
+      }
+  </script>
+

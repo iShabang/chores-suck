@@ -11,6 +11,12 @@ type RegisterHandler struct {
 	c *Connection
 }
 
+func NewRegister(c *Connection) *RegisterHandler {
+	return &RegisterHandler{
+		c: c,
+	}
+}
+
 func (h RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
@@ -28,4 +34,19 @@ func (h RegisterHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	p := []byte(nu.Password)
+	hp, err := bcrypt.GenerateFromPassword(p, 10)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	nu.Password = string(hp)
+	_, err = h.c.AddUser(&nu)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

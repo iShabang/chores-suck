@@ -17,6 +17,7 @@
         Password:<br>
         <input id="pword" type="text" name="password"><br>
         <input type="submit" value="Submit" onclick="submitLogin(event)"><br>
+        <button id="reg-button" ></button>
         <div id="after-submit"></div>
       </form>
   </body>
@@ -24,19 +25,20 @@
   <script>
       function submitLogin(event){
           event.preventDefault();
-          var name = document.getElementById('uname').val
-          var password = document.getElementById('pword').val
+          var name = document.getElementById('uname').value
+          var password = document.getElementById('pword').value
 
           xhr = new XMLHttpRequest()
           xhr.onreadystatechange = function(){
               if(this.status == 200){
                   // TODO: go to home page
-                  alert('SUCCESS')
+                  var json = JSON.parse(xhr.responseText)
+                  alert(json.stringify(json))
               }
           }
           xhr.open('POST', '/login', true)
           xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8')
-          var user = {name: "iShaBaNg", pass: "1234"}
+          var user = {name: name, pass: password}
           xhr.send(JSON.stringify(user))
       }
   </script>
