@@ -83,7 +83,7 @@ func (h LoginHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 		h.c.UpdateUserAttempts(u.Username, 0)
 	}
 
-	tokenString, err, expireTime := GenToken(newUser.Name)
+	tokenString, err, _ := GenToken(newUser.Name)
 	if err != nil {
 		fmt.Print("token failure")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -94,7 +94,7 @@ func (h LoginHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 
 	wt := WebToken{
 		Token:  tokenString,
-		Expire: expireTime.String(),
+		Expire: "test",
 	}
 
 	js, err := json.Marshal(wt)
@@ -104,6 +104,7 @@ func (h LoginHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Print(js)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(js)
 
