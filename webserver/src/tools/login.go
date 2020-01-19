@@ -83,30 +83,18 @@ func (h LoginHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 		h.c.UpdateUserAttempts(u.Username, 0)
 	}
 
-	tokenString, err, _ := GenToken(newUser.Name)
-	if err != nil {
-		fmt.Print("token failure")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	// Generate a session id
 
-	fmt.Println("got token")
+	// store id in a cookie
 
-	wt := WebToken{
-		Token:  tokenString,
-		Expire: "test",
-	}
+	// send the response
+}
 
-	js, err := json.Marshal(wt)
-	if err != nil {
-		fmt.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+func (h LoginHandler) genSesId(u *UserLarge) (string, error) {
+	// generate random session id
 
-	fmt.Print(js)
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(js)
+	// store session id in database
 
-	fmt.Println("login success")
+	// return session id
+	return "", nil
 }

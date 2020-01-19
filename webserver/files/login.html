@@ -13,12 +13,13 @@
   <body>
       <form id="login-form" method="POST" action="/login">
         Username:<br>
-        <input id="uname" type="text" name="username"><br>
+        <input id="uname" type="text" name="username" placeholder="username..."><br>
         Password:<br>
-        <input id="pword" type="text" name="password"><br>
-        <input type="submit" value="Submit" onclick="submitLogin(event)"><br>
+        <input id="pword" type="password" name="password" placeholder="password..."><br>
+        <button type="submit" value="Submit" onclick="submitLogin(event)"><br>
         <div id="after-submit"></div>
       </form>
+      <a href="register.html">Register</a>
   </body>
 
   <script>

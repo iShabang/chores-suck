@@ -13,18 +13,20 @@
   <body>
       <form id="reg-form" method="POST" action="/register">
         First Name: <br>
-        <input id="fname" type="text" name="firstname"><br>
+        <input id="fname" type="text" name="firstname" placeholder="First name..."><br>
         Last Name: <br>
-        <input id="lname" type="text" name="lastname"><br>
+        <input id="lname" type="text" name="lastname" placeholder="Last name ..."><br>
         Email: <br>
-        <input id="email" type="text" name="email"><br>
+        <input id="email" type="text" name="email" placeholder="Email..."><br>
         Username:<br>
-        <input id="uname" type="text" name="username"><br>
+        <input id="uname" type="text" name="username" placeholder="Username..."><br>
         Password:<br>
-        <input id="pword" type="text" name="password"><br>
-        <input type="submit" value="Submit" onclick="register(event)"><br>
+        <input id="pword" type="password" name="password" placeholder="Password..."><br>
+        <input id="pword" type="password" name="cpass" placeholder="Confirm Password..."><br>
+        <button type="submit" value="Submit" onclick="register(event)"><br>
         <div id="after-submit"></div>
       </form>
+      <a href="login.html">Login</a>
   </body>
 
   <script>
