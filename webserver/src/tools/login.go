@@ -3,8 +3,10 @@ package tools
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/rs/xid"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
+	"time"
 )
 
 type WebToken struct {
@@ -84,17 +86,24 @@ func (h LoginHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Generate a session id
+	id := xid.New()
+
+	// Calculate expire time
+	expireTime := time.Now().Add(24 * 7 * time.Hour)
+
+	// store session id and expire time in database
+	h.c.AddSession(u, id.String(), expireTime)
 
 	// store id in a cookie
+	cookie := http.Cookie{
+		Name:     "session",
+		Value:    id.String(),
+		Expires:  expireTime,
+		Secure:   true,
+		HttpOnly: true,
+	}
+	http.SetCookie(w, &cookie)
 
 	// send the response
-}
-
-func (h LoginHandler) genSesId(u *UserLarge) (string, error) {
-	// generate random session id
-
-	// store session id in database
-
-	// return session id
-	return "", nil
+	w.WriteHeader(http.StatusOK)
 }

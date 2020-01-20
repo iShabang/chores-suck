@@ -190,3 +190,8 @@ func (c *Connection) getUser(filter *bson.M) (*UserLarge, error) {
 	fmt.Printf("got item %v\n", u.FirstName)
 	return &u, nil
 }
+
+func (c *Connection) AddSession(u *UserLarge, id string, t time.Time) (string, error) {
+	filter := bson.M{"sid": id, "uid": u.Id, "exp": fmt.Sprintf("%v", t.Unix)}
+	return c.insert(&filter, "session")
+}
