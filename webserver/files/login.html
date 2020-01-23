@@ -36,9 +36,11 @@
               else if (xhr.readyState === 4)
               {
                 if(this.status == 200){
-                    console.log(xhr.responseText)
-                    saveToken(xhr.responseText)
                     window.location.replace('http://localhost:8080')
+                }
+                else{
+                  var msg = "Login failed with status " + this.status.toString()
+                  document.getElementById('after-submit').innerHTML = msg
                 }
               }
           }
@@ -47,9 +49,4 @@
           var user = {name: name, pass: password}
           xhr.send(JSON.stringify(user))
       }
-
-    function saveToken(text){
-        var json = JSON.parse(text)
-        window.sessionStorage.accessToken = json.token
-    }
   </script>

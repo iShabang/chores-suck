@@ -42,6 +42,7 @@ func (h LoginHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 
 	// run query for the user.
 	u, err := h.c.GetUser(newUser.Name)
+	fmt.Printf("id: %v\nfirst_name: %v\nlast_name: %v\nemail: %v\npassword: %v\nusername: %v\nattempts: %v\n", u.Id, u.FirstName, u.LastName, u.Email, u.Password, u.Username, u.Attempts)
 
 	if err == ErrNotFound {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -53,15 +54,11 @@ func (h LoginHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("got user")
-
 	if u.Attempts > 2 {
 		w.WriteHeader(http.StatusUnauthorized)
 		fmt.Printf("attempts = %v", u.Attempts)
 		return
 	}
-
-	fmt.Println("attempts good")
 
 	hp := []byte(u.Password)
 	np := []byte(newUser.Password)
@@ -79,8 +76,6 @@ func (h LoginHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("password good")
-
 	if u.Attempts > 0 {
 		h.c.UpdateUserAttempts(u.Username, 0)
 	}
@@ -92,7 +87,7 @@ func (h LoginHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 	expireTime := time.Now().Add(24 * 7 * time.Hour)
 
 	// store session id and expire time in database
-	h.c.AddSession(u, id.String(), expireTime)
+	h.c.AddSession(&u, id.String(), expireTime)
 
 	// store id in a cookie
 	cookie := http.Cookie{

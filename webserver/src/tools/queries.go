@@ -13,12 +13,12 @@ import (
 // db.chores.find({group_id: ""})
 func (c *Connection) GetGroupChores(id string) ([]*Chore, error) {
 	fmt.Printf("looking for id %v\n", id)
-	filter := bson.M{"group_id": id}
+	filter := bson.D{{Key: "group_id", Value: id}}
 	return c.getChores(&filter)
 
 }
 
-func (c *Connection) getChores(f *bson.M) ([]*Chore, error) {
+func (c *Connection) getChores(f *bson.D) ([]*Chore, error) {
 	collection := c.client.Database("fairmate").Collection("chores")
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -46,7 +46,7 @@ func (c *Connection) getChores(f *bson.M) ([]*Chore, error) {
 // get chores for a user
 // db.chores.find({user_id: ""})
 func (c *Connection) GetUserChores(id string) ([]*Chore, error) {
-	filter := bson.M{"user_id": id}
+	filter := bson.D{{Key: "user_id", Value: id}}
 	return c.getChores(&filter)
 }
 
@@ -59,19 +59,19 @@ db.chores.insertMany([
 ])
 */
 func (c *Connection) AddChore(ch *Chore) (string, error) {
-	filter := ch.BsonM()
+	filter := ch.BsonD()
 	return c.insert(&filter, "chores")
 }
 
 func (c *Connection) AddManyChores(ch []Chore) error {
-	temp := make([]bson.M, len(ch))
+	temp := make([]bson.D, len(ch))
 	for i, v := range ch {
-		temp[i] = v.BsonM()
+		temp[i] = v.BsonD()
 	}
 	return c.insertMany(temp, "chores")
 }
 
-func (c *Connection) insert(f *bson.M, coll string) (string, error) {
+func (c *Connection) insert(f *bson.D, coll string) (string, error) {
 	collection := c.client.Database("fairmate").Collection(coll)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -81,11 +81,10 @@ func (c *Connection) insert(f *bson.M, coll string) (string, error) {
 		return "", err
 	}
 	id := (res.InsertedID).(primitive.ObjectID)
-	fmt.Printf("added new chore with id: %v", id.String())
 	return id.String(), nil
 }
 
-func (c *Connection) insertMany(f []bson.M, coll string) error {
+func (c *Connection) insertMany(f []bson.D, coll string) error {
 	ui := make([]interface{}, len(f))
 	for i, v := range f {
 		ui[i] = v
@@ -108,8 +107,13 @@ db.users.insert({
 })
 */
 func (c *Connection) AddUser(u *UserLarge) (string, error) {
-	filter := u.BsonM()
-	return c.insert(&filter, "users")
+	//filter := u.BsonD()
+	collection := c.client.Database("fairmate").Collection("users")
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	res, err := collection.InsertOne(ctx, u)
+	id := (res.InsertedID).(primitive.ObjectID)
+	return id.String(), err
 }
 
 // add user to group
@@ -124,12 +128,12 @@ db.groups.update({_id: ""},
 })
 */
 func (c *Connection) AddUserToGroup(uId string, gId string) error {
-	groupFilter := bson.M{"_id": gId}
-	updateFilter := bson.M{"$addToSet": bson.M{"users": uId}}
+	groupFilter := bson.D{{Key: "_id", Value: gId}}
+	updateFilter := bson.D{{Key: "$addToSet", Value: bson.D{{Key: "users", Value: uId}}}}
 	return c.update(&groupFilter, &updateFilter, "groups")
 }
 
-func (c *Connection) update(gf *bson.M, of *bson.M, coll string) error {
+func (c *Connection) update(gf *bson.D, of *bson.D, coll string) error {
 	collection := c.client.Database("fairmate").Collection(coll)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -156,42 +160,46 @@ db.groups.insert({
 */
 
 func (c *Connection) AddGroup(g *Group) (string, error) {
-	filter := g.BsonM()
+	filter := g.BsonD()
 	return c.insert(&filter, "groups")
 }
 
-func (c *Connection) GetUser(username string) (*UserLarge, error) {
-	filter := bson.M{"username": username}
+func (c *Connection) GetUser(username string) (UserRecv, error) {
+	filter := bson.D{{Key: "username", Value: username}}
 	return c.getUser(&filter)
 }
 
-func (c *Connection) UpdateUserAttempts(u string, attempts uint8) error {
-	userFilter := bson.M{"username": u}
-	updateFilter := bson.M{"$set": bson.M{"attempts": attempts}}
+func (c *Connection) UpdateUserAttempts(u string, attempts int32) error {
+	userFilter := bson.D{{Key: "username", Value: u}}
+	updateFilter := bson.D{{Key: "$set", Value: bson.D{{Key: "attempts", Value: attempts}}}}
 	return c.update(&userFilter, &updateFilter, "users")
 }
 
-func (c *Connection) getUser(filter *bson.M) (*UserLarge, error) {
+func (c *Connection) getUser(filter *bson.D) (UserRecv, error) {
 	collection := c.client.Database("fairmate").Collection("users")
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	cur, err := collection.Find(ctx, filter)
-	if err != nil {
-		return nil, ErrNotFound
-	}
-	defer cur.Close(ctx)
-	var u UserLarge
-	cur.Next(ctx)
-	err = cur.Decode(&u)
+	var b bson.M
+	err := collection.FindOne(ctx, filter).Decode(&b)
 	if err != nil {
 		fmt.Println(err)
-		return nil, err
+		return UserRecv{}, err
 	}
-	fmt.Printf("got item %v\n", u.FirstName)
-	return &u, nil
+	fmt.Printf("found document %v\n", b)
+	var u UserRecv
+	id := (b["_id"]).(primitive.ObjectID).String()
+	u.Id = id
+	u.FirstName = (b["firstname"]).(string)
+	u.LastName = (b["lastname"]).(string)
+	u.Email = (b["email"]).(string)
+	u.Password = (b["password"]).(string)
+	u.Username = (b["username"]).(string)
+	u.Attempts = (b["attempts"]).(int32)
+	return u, nil
 }
 
-func (c *Connection) AddSession(u *UserLarge, id string, t time.Time) (string, error) {
-	filter := bson.M{"sid": id, "uid": u.Id, "exp": fmt.Sprintf("%v", t.Unix)}
+func (c *Connection) AddSession(u *UserRecv, id string, t time.Time) (string, error) {
+	exp := fmt.Sprintf("%v", t.Unix())
+	filter := bson.D{{Key: "sid", Value: id}, {Key: "uid", Value: u.Id}, {Key: "exp", Value: exp}}
 	return c.insert(&filter, "session")
 }

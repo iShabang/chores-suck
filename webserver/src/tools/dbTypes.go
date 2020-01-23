@@ -12,13 +12,22 @@ type UserSmall struct {
 }
 
 type UserLarge struct {
-	Id        string `json:"_id"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Email     string `json:"email"`
-	Password  string `json:"password"`
-	Username  string `json:"username"`
-	Attempts  uint8  `json:"attempts"`
+	FirstName string
+	LastName  string
+	Email     string
+	Password  string
+	Username  string
+	Attempts  uint8
+}
+
+type UserRecv struct {
+	Id        string
+	FirstName string
+	LastName  string
+	Email     string
+	Password  string
+	Username  string
+	Attempts  int32
 }
 
 type Group struct {
@@ -36,31 +45,32 @@ type Chore struct {
 	GroupId string `json:"group_id"`
 }
 
-func (c *Chore) BsonM() bson.M {
-	filter := bson.M{
-		"name":     c.Name,
-		"time":     c.Time,
-		"user_id":  c.UserId,
-		"group_id": c.GroupId,
+func (c *Chore) BsonD() bson.D {
+	filter := bson.D{
+		{Key: "name", Value: c.Name},
+		{Key: "time", Value: c.Time},
+		{Key: "user_id", Value: c.UserId},
+		{Key: "group_id", Value: c.GroupId},
 	}
 	return filter
 }
 
-func (u *UserLarge) BsonM() bson.M {
-	filter := bson.M{
-		"first_name": u.FirstName,
-		"last_name":  u.LastName,
-		"email":      u.Email,
-		"password":   u.Password,
-		"username":   u.Username,
+func (u *UserLarge) BsonD() bson.D {
+	filter := bson.D{
+		{Key: "first_name", Value: u.FirstName},
+		{Key: "last_name", Value: u.LastName},
+		{Key: "email", Value: u.Email},
+		{Key: "password", Value: u.Password},
+		{Key: "username", Value: u.Username},
+		{Key: "attempts", Value: u.Attempts},
 	}
 	return filter
 }
 
-func (g *Group) BsonM() bson.M {
-	filter := bson.M{
-		"admin": g.Admin,
-		"name":  g.Name,
+func (g *Group) BsonD() bson.D {
+	filter := bson.D{
+		{Key: "admin", Value: g.Admin},
+		{Key: "name", Value: g.Name},
 	}
 	return filter
 }

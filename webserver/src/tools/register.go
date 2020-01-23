@@ -41,6 +41,7 @@ func (h RegisterHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 	}
 
 	nu.Password = string(hp)
+	nu.Attempts = 0
 	_, err = h.c.AddUser(&nu)
 
 	if err != nil {
