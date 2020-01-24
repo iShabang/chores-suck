@@ -5,10 +5,14 @@ import (
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
+	"tools/database"
 )
 
+/********************************************************
+TYPES
+********************************************************/
 type RegisterHandler struct {
-	c *Connection
+	c *db.Connection
 }
 
 type NewUser struct {
@@ -19,38 +23,49 @@ type NewUser struct {
 	Username  string `json:"username"`
 }
 
-func NewRegister(c *Connection) *RegisterHandler {
+/********************************************************
+INITIALIZER
+********************************************************/
+func NewRegister(c *db.Connection) *RegisterHandler {
 	return &RegisterHandler{
 		c: c,
 	}
 }
 
+/********************************************************
+HTTP HANDLERS
+********************************************************/
 func (h RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
 		h.handlePOST(w, r)
 	default:
-		http.Error(w, "Invlalid login command", http.StatusMethodNotAllowed)
+		http.Error(w, "Invlalid register command", http.StatusMethodNotAllowed)
 	}
 }
 
 func (h RegisterHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 	var nu NewUser
 	json.NewDecoder(r.Body).Decode(&nu)
-	fmt.Println(nu)
+
+	// Ideally there should be another backend script that would take care of this before hand.
 	if nu.FirstName == "" || nu.LastName == "" || nu.Email == "" || nu.Password == "" || nu.Username == "" {
 		fmt.Println("fields missing")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
+	// Encrypt the password before saving to the database
+	// There should be another backend script that validates the password before this point
 	p := []byte(nu.Password)
 	hp, err := bcrypt.GenerateFromPassword(p, 10)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
-	ul := User{
+	// We have to convert between types since mongo uses bson and we expect json from the client
+	ul := db.User{
 		FirstName: nu.FirstName,
 		LastName:  nu.LastName,
 		Email:     nu.Email,
@@ -59,14 +74,13 @@ func (h RegisterHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 		Attempts:  0,
 	}
 
-	id, err := h.c.AddUser(&ul)
+	// Add user to the database
+	_, err = h.c.AddUser(&ul)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	fmt.Printf("Register: got an id %v\n", id)
 
 	w.WriteHeader(http.StatusOK)
 }

@@ -1,11 +1,11 @@
 package main
 
 import (
-	//"golang.org/x/crypto/bcrypt"
 	"fmt"
 	"log"
 	"net/http"
 	"tools"
+	"tools/database"
 )
 
 type App struct {
@@ -29,7 +29,7 @@ func (h App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	conn := tools.NewConnection()
+	conn := db.NewConnection()
 	err := conn.Connect("mongodb://127.0.0.1:27017")
 	if err != nil {
 		log.Print(err)

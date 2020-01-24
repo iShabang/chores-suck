@@ -1,12 +1,18 @@
-package tools
+package db
 
 import (
 	"errors"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
+/********************************************************
+ERRORS
+********************************************************/
 var ErrNotFound = errors.New("entry not found")
 
+/********************************************************
+DATABASE OBJECT TYPES
+********************************************************/
 type User struct {
 	Id        string `bson:"_id"`
 	FirstName string `bson:"firstname"`
@@ -32,6 +38,9 @@ type Chore struct {
 	GroupId string `bson:"groupid"`
 }
 
+/********************************************************
+BSON CONVERSION METHODS
+********************************************************/
 func (c *Chore) BsonD() bson.D {
 	filter := bson.D{
 		{Key: "name", Value: c.Name},

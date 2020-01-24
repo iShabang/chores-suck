@@ -7,18 +7,34 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"time"
+	"tools/database"
 )
 
-type WebToken struct {
-	Token  string `json:"token"`
-	Expire string `json:"expire"`
-}
-
+/********************************************************
+TYPES
+********************************************************/
 type Credentials struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
+type LoginHandler struct {
+	c *db.Connection
+}
+
+/********************************************************
+INITIALIZER
+********************************************************/
+// FYI: This is how you do dependency injection in Go
+func NewLogin(conn *db.Connection) *LoginHandler {
+	return &LoginHandler{
+		c: conn,
+	}
+}
+
+/********************************************************
+HTTP
+********************************************************/
 func (h LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
@@ -28,36 +44,21 @@ func (h LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type LoginHandler struct {
-	c *Connection
-}
-
-// FYI: This is how you do dependency injection in Go
-func NewLogin(conn *Connection) *LoginHandler {
-	return &LoginHandler{
-		c: conn,
-	}
-}
-
 func (h LoginHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 	var cred Credentials
 	json.NewDecoder(r.Body).Decode(&cred)
-	fmt.Printf("username: %v password: %v\n", cred.Username, cred.Password)
 
-	// run query for the user.
 	u, err := h.c.GetUser(cred.Username)
 
-	if err == ErrNotFound {
+	if err == db.ErrNotFound {
 		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Print(ErrNotFound)
+		fmt.Print(db.ErrNotFound)
 		return
 	} else if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Println("database error")
 		return
 	}
-
-	fmt.Printf("id: %v\nfirst_name: %v\nlast_name: %v\nemail: %v\npassword: %v\nusername: %v\nattempts: %v\n", u.Id, u.FirstName, u.LastName, u.Email, u.Password, u.Username, u.Attempts)
 
 	if u.Attempts > 2 {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -92,7 +93,7 @@ func (h LoginHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 	expireTime := time.Now().Add(24 * 7 * time.Hour)
 
 	// store session id and expire time in database
-	//h.c.AddSession(u, id.String(), expireTime)
+	h.c.AddSession(u, id.String(), expireTime)
 
 	// store id in a cookie
 	cookie := http.Cookie{
