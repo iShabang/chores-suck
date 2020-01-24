@@ -7,42 +7,29 @@ import (
 
 var ErrNotFound = errors.New("entry not found")
 
-type UserSmall struct {
-	Id string `json:"user_id"`
-}
-
-type UserLarge struct {
-	FirstName string
-	LastName  string
-	Email     string
-	Password  string
-	Username  string
-	Attempts  uint8
-}
-
-type UserRecv struct {
-	Id        string
-	FirstName string
-	LastName  string
-	Email     string
-	Password  string
-	Username  string
-	Attempts  int32
+type User struct {
+	Id        string `bson:"_id"`
+	FirstName string `bson:"firstname"`
+	LastName  string `bson:"lastname"`
+	Email     string `bson:"email"`
+	Password  string `bson:"password"`
+	Username  string `bson:"username"`
+	Attempts  int32  `bson:"attempts"`
 }
 
 type Group struct {
-	Id    string `json:"_id"`
-	Admin string `json:"admin"`
-	Name  string `json:"name"`
-	Users []UserSmall
+	Id    string   `bson:"_id"`
+	Admin string   `bson:"admin"`
+	Name  string   `bson:"name"`
+	Users []string `bson:"users"`
 }
 
 type Chore struct {
-	Id      string `json:"_id"`
-	Name    string `json:"name"`
-	Time    uint   `json:"time"`
-	UserId  string `json:"user_id"`
-	GroupId string `json:"group_id"`
+	Id      string `bson:"_id"`
+	Name    string `bson:"name"`
+	Time    uint   `bson:"time"`
+	UserId  string `bson:"userid"`
+	GroupId string `bson:"groupid"`
 }
 
 func (c *Chore) BsonD() bson.D {
@@ -55,10 +42,10 @@ func (c *Chore) BsonD() bson.D {
 	return filter
 }
 
-func (u *UserLarge) BsonD() bson.D {
+func (u *User) BsonD() bson.D {
 	filter := bson.D{
-		{Key: "first_name", Value: u.FirstName},
-		{Key: "last_name", Value: u.LastName},
+		{Key: "firstname", Value: u.FirstName},
+		{Key: "lastname", Value: u.LastName},
 		{Key: "email", Value: u.Email},
 		{Key: "password", Value: u.Password},
 		{Key: "username", Value: u.Username},

@@ -40,13 +40,23 @@
 
           xhr = new XMLHttpRequest()
           xhr.onreadystatechange = function(){
-              if(this.status == 200){
-                  alert('SUCCESS')
+              if (xhr.readyState < 4){
+                  document.getElementById('after-submit').innerHTML = "Loading ..."
+              }
+              else if (xhr.readyState === 4)
+              {
+                if(this.status == 200){
+                    window.location.replace('http://localhost:8080/login.html')
+                }
+                else{
+                  var msg = "Register failed with status " + this.status.toString()
+                  document.getElementById('after-submit').innerHTML = msg
+                }
               }
           }
           xhr.open('POST', '/register', true)
           xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8')
-          var user = {first_name: fname, last_name: lname, email: email, password: pword, username: uname}
+          var user = {firstname: fname, lastname: lname, email: email, password: pword, username: uname}
           xhr.send(JSON.stringify(user))
       }
   </script>

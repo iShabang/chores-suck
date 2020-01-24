@@ -11,6 +11,14 @@ type RegisterHandler struct {
 	c *Connection
 }
 
+type NewUser struct {
+	FirstName string `json:"firstname"`
+	LastName  string `json:"lastname"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+	Username  string `json:"username"`
+}
+
 func NewRegister(c *Connection) *RegisterHandler {
 	return &RegisterHandler{
 		c: c,
@@ -27,10 +35,12 @@ func (h RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h RegisterHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
-	var nu UserLarge
+	var nu NewUser
 	json.NewDecoder(r.Body).Decode(&nu)
+	fmt.Println(nu)
 	if nu.FirstName == "" || nu.LastName == "" || nu.Email == "" || nu.Password == "" || nu.Username == "" {
 		fmt.Println("fields missing")
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -40,14 +50,23 @@ func (h RegisterHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	nu.Password = string(hp)
-	nu.Attempts = 0
-	_, err = h.c.AddUser(&nu)
+	ul := User{
+		FirstName: nu.FirstName,
+		LastName:  nu.LastName,
+		Email:     nu.Email,
+		Password:  string(hp),
+		Username:  nu.Username,
+		Attempts:  0,
+	}
+
+	id, err := h.c.AddUser(&ul)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	fmt.Printf("Register: got an id %v\n", id)
 
 	w.WriteHeader(http.StatusOK)
 }

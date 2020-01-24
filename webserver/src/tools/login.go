@@ -14,6 +14,11 @@ type WebToken struct {
 	Expire string `json:"expire"`
 }
 
+type Credentials struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 func (h LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
@@ -35,14 +40,12 @@ func NewLogin(conn *Connection) *LoginHandler {
 }
 
 func (h LoginHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("starting login")
-	var newUser User
-	json.NewDecoder(r.Body).Decode(&newUser)
-	fmt.Printf("username: %v password: %v\n", newUser.Name, newUser.Password)
+	var cred Credentials
+	json.NewDecoder(r.Body).Decode(&cred)
+	fmt.Printf("username: %v password: %v\n", cred.Username, cred.Password)
 
 	// run query for the user.
-	u, err := h.c.GetUser(newUser.Name)
-	fmt.Printf("id: %v\nfirst_name: %v\nlast_name: %v\nemail: %v\npassword: %v\nusername: %v\nattempts: %v\n", u.Id, u.FirstName, u.LastName, u.Email, u.Password, u.Username, u.Attempts)
+	u, err := h.c.GetUser(cred.Username)
 
 	if err == ErrNotFound {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -54,6 +57,8 @@ func (h LoginHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Printf("id: %v\nfirst_name: %v\nlast_name: %v\nemail: %v\npassword: %v\nusername: %v\nattempts: %v\n", u.Id, u.FirstName, u.LastName, u.Email, u.Password, u.Username, u.Attempts)
+
 	if u.Attempts > 2 {
 		w.WriteHeader(http.StatusUnauthorized)
 		fmt.Printf("attempts = %v", u.Attempts)
@@ -61,7 +66,7 @@ func (h LoginHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 	}
 
 	hp := []byte(u.Password)
-	np := []byte(newUser.Password)
+	np := []byte(cred.Password)
 	err = bcrypt.CompareHashAndPassword(hp, np)
 
 	if err != nil {
@@ -87,7 +92,7 @@ func (h LoginHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 	expireTime := time.Now().Add(24 * 7 * time.Hour)
 
 	// store session id and expire time in database
-	h.c.AddSession(&u, id.String(), expireTime)
+	//h.c.AddSession(u, id.String(), expireTime)
 
 	// store id in a cookie
 	cookie := http.Cookie{

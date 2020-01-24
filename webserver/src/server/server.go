@@ -9,7 +9,6 @@ import (
 )
 
 type App struct {
-	UserHandler     *tools.UserHandler
 	LoginHandler    *tools.LoginHandler
 	RegisterHandler *tools.RegisterHandler
 	fileDir         string
@@ -18,8 +17,6 @@ type App struct {
 func (h App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(r.URL.Path)
 	switch r.URL.Path {
-	case "/users":
-		h.UserHandler.ServeHTTP(w, r)
 	case "/login":
 		h.LoginHandler.ServeHTTP(w, r)
 	case "/register":
@@ -39,14 +36,8 @@ func main() {
 	}
 
 	var app App
-	tools.Users = map[string]string{
-		"Shannon": "password1",
-		"Bee":     "password2",
-	}
-	var userHandler tools.UserHandler
 	loginHandler := tools.NewLogin(&conn)
 	regHandler := tools.NewRegister(&conn)
-	app.UserHandler = &userHandler
 	app.LoginHandler = loginHandler
 	app.RegisterHandler = regHandler
 	app.fileDir = "./files/"

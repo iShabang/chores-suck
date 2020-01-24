@@ -46,7 +46,7 @@
           }
           xhr.open('POST', '/login', true)
           xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8')
-          var user = {name: name, pass: password}
+          var user = {username: name, password: password}
           xhr.send(JSON.stringify(user))
       }
   </script>

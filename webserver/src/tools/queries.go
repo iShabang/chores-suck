@@ -106,12 +106,12 @@ db.users.insert({
     username: "iShaBaNg"
 })
 */
-func (c *Connection) AddUser(u *UserLarge) (string, error) {
-	//filter := u.BsonD()
+func (c *Connection) AddUser(u *User) (string, error) {
+	filter := u.BsonD()
 	collection := c.client.Database("fairmate").Collection("users")
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	res, err := collection.InsertOne(ctx, u)
+	res, err := collection.InsertOne(ctx, filter)
 	id := (res.InsertedID).(primitive.ObjectID)
 	return id.String(), err
 }
@@ -164,7 +164,7 @@ func (c *Connection) AddGroup(g *Group) (string, error) {
 	return c.insert(&filter, "groups")
 }
 
-func (c *Connection) GetUser(username string) (UserRecv, error) {
+func (c *Connection) GetUser(username string) (*User, error) {
 	filter := bson.D{{Key: "username", Value: username}}
 	return c.getUser(&filter)
 }
@@ -175,30 +175,31 @@ func (c *Connection) UpdateUserAttempts(u string, attempts int32) error {
 	return c.update(&userFilter, &updateFilter, "users")
 }
 
-func (c *Connection) getUser(filter *bson.D) (UserRecv, error) {
+func (c *Connection) getUser(filter *bson.D) (*User, error) {
 	collection := c.client.Database("fairmate").Collection("users")
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	var b bson.M
-	err := collection.FindOne(ctx, filter).Decode(&b)
+	var u User
+	err := collection.FindOne(ctx, filter).Decode(&u)
 	if err != nil {
 		fmt.Println(err)
-		return UserRecv{}, err
+		return nil, err
 	}
-	fmt.Printf("found document %v\n", b)
-	var u UserRecv
-	id := (b["_id"]).(primitive.ObjectID).String()
-	u.Id = id
-	u.FirstName = (b["firstname"]).(string)
-	u.LastName = (b["lastname"]).(string)
-	u.Email = (b["email"]).(string)
-	u.Password = (b["password"]).(string)
-	u.Username = (b["username"]).(string)
-	u.Attempts = (b["attempts"]).(int32)
-	return u, nil
+	fmt.Printf("found document %v\n", u)
+	/*
+		id := (b["_id"]).(primitive.ObjectID).String()
+		u.Id = id
+		u.FirstName = (b["firstname"]).(string)
+		u.LastName = (b["lastname"]).(string)
+		u.Email = (b["email"]).(string)
+		u.Password = (b["password"]).(string)
+		u.Username = (b["username"]).(string)
+		u.Attempts = (b["attempts"]).(int32)
+	*/
+	return &u, nil
 }
 
-func (c *Connection) AddSession(u *UserRecv, id string, t time.Time) (string, error) {
+func (c *Connection) AddSession(u *User, id string, t time.Time) (string, error) {
 	exp := fmt.Sprintf("%v", t.Unix())
 	filter := bson.D{{Key: "sid", Value: id}, {Key: "uid", Value: u.Id}, {Key: "exp", Value: exp}}
 	return c.insert(&filter, "session")
