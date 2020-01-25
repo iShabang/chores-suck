@@ -58,8 +58,8 @@ func (c Chore) BsonD() bson.D {
 	filter := bson.D{
 		{Key: "name", Value: c.Name},
 		{Key: "time", Value: c.Time},
-		{Key: "user_id", Value: c.UserId},
-		{Key: "group_id", Value: c.GroupId},
+		{Key: "uid", Value: c.UserId},
+		{Key: "gid", Value: c.GroupId},
 	}
 	return filter
 }

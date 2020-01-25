@@ -61,9 +61,10 @@ func (c *Connection) UpdateUserAttempts(u string, attempts int32) error {
 }
 
 ///////////////////// FIND ////////////////////////////
-func (c *Connection) GetGroupChores(id string) ([]*Chore, error) {
-	filter := bson.D{{Key: "group_id", Value: id}}
-	return c.getChores(&filter)
+func (c *Connection) GetGroupChores(id string) ([]Chore, error) {
+	filter := bson.D{{Key: "gid", Value: id}}
+	var chs []Chore
+	err := c.findMany(&filter, "chores", chs)
 }
 
 func (c *Connection) GetUserChores(id string) ([]*Chore, error) {
@@ -140,6 +141,7 @@ func (c *Connection) update(gf *bson.D, of *bson.D, coll string) error {
 /********************************************************
 FIND
 ********************************************************/
+// Not Used
 func (c *Connection) getChores(f *bson.D) ([]*Chore, error) {
 	collection := c.client.Database("fairmate").Collection("chores")
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -193,29 +195,28 @@ func (c *Connection) findOne(filter *bson.D, coll string, obj DbType) error {
 	return nil
 }
 
-func (c *Connection) findMany(f *bson.D, coll string, obj []DbType) error {
-	collection := c.client.Database("fairmate").Collection("chores")
+func (c *Connection) findMany(f *bson.D, coll string, objs []DbType) error {
+	collection := c.client.Database("fairmate").Collection(coll)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	cur, err := collection.Find(ctx, f)
 	if err != nil {
 		fmt.Print(err)
-		return nil, err
+		return err
 	}
 	defer cur.Close(ctx)
-	var chores []*Chore
 	fmt.Print("starting loop\n")
 	for cur.Next(ctx) {
-		var chore Chore
-		err := cur.Decode(&chore)
+		var obj DbType
+		err := cur.Decode(&obj)
 		if err != nil {
 			fmt.Print(err)
-			return nil, err
+			return err
 		}
-		chores = append(chores, &chore)
-		fmt.Printf("got item %v\n", chore.Name)
+		objs = append(objs, obj)
+		fmt.Printf("got item %v\n", obj)
 	}
-	return chores, nil
+	return nil
 }
 
 /********************************************************
