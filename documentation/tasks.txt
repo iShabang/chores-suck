@@ -2,9 +2,9 @@ Done: Create Database
 
 Done: Create database interface
 
-Add handler for authorization
+Done: Move tools package into server package
 
-Move tools package into server package
+Add handler for authorization
 
 Create Static Webpage for Chore table
 

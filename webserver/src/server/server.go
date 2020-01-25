@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"tools"
-	"tools/database"
+	"server/tools"
+	"server/tools/database"
 )
 
 type App struct {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
-	"tools/database"
+	"server/tools/database"
 )
 
 /********************************************************
