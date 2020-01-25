@@ -54,7 +54,7 @@ type Session struct {
 /********************************************************
 BSON CONVERSION METHODS
 ********************************************************/
-func (c *Chore) BsonD() bson.D {
+func (c Chore) BsonD() bson.D {
 	filter := bson.D{
 		{Key: "name", Value: c.Name},
 		{Key: "time", Value: c.Time},
@@ -64,7 +64,7 @@ func (c *Chore) BsonD() bson.D {
 	return filter
 }
 
-func (u *User) BsonD() bson.D {
+func (u User) BsonD() bson.D {
 	filter := bson.D{
 		{Key: "firstname", Value: u.FirstName},
 		{Key: "lastname", Value: u.LastName},
@@ -76,7 +76,7 @@ func (u *User) BsonD() bson.D {
 	return filter
 }
 
-func (g *Group) BsonD() bson.D {
+func (g Group) BsonD() bson.D {
 	filter := bson.D{
 		{Key: "admin", Value: g.Admin},
 		{Key: "name", Value: g.Name},
@@ -84,7 +84,7 @@ func (g *Group) BsonD() bson.D {
 	return filter
 }
 
-func (s *Session) BsonD() bson.D {
+func (s Session) BsonD() bson.D {
 	filter := bson.D{
 		{Key: "sid", Value: s.SessionId},
 		{Key: "uid", Value: s.UserId},

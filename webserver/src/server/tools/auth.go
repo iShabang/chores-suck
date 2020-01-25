@@ -3,6 +3,8 @@ package tools
 import (
 	"net/http"
 	"server/tools/database"
+	"strconv"
+	"time"
 )
 
 /********************************************************
@@ -26,11 +28,32 @@ func NewAuthHandler(c *db.Connection) *AuthHandler {
 /********************************************************
 EXPORTED METHODS
 ********************************************************/
-func AuthorizeRequest(r *http.Request) {
-	cookie, _ := r.Cookie("session")
+func (h *AuthHandler) AuthorizeRequest(r *http.Request) (bool, error) {
+	result := true
+	cookie, err := r.Cookie("session")
+	result = (err != nil)
+
+	var sess *db.Session
+	if result {
+		sess, err = h.conn.FindSession(cookie.Value)
+		result = (err != nil) && (sess.SessionId != "" && sess.UserId != "")
+	}
+
+	var expTime int64
+	if result {
+		expTime, err := strconv.Atoi(sess.ExpireTime)
+		result = (err != nil) && (expTime > 0)
+	}
+
+	if result {
+		currentTime := time.Now().Unix()
+		result = (expTime > currentTime)
+	}
+
+	return result, err
 }
 
 /********************************************************
 HTTP
 ********************************************************/
-func (h AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {}
+func (h *AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {}

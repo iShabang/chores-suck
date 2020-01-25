@@ -73,13 +73,16 @@ func (c *Connection) GetUserChores(id string) ([]*Chore, error) {
 
 func (c *Connection) GetUser(username string) (*User, error) {
 	filter := bson.D{{Key: "username", Value: username}}
-	return c.getUser(&filter)
+	var u User
+	err := c.findOne(&filter, "users", u)
+	return &u, err
 }
 
 func (c *Connection) FindSession(sid string) (*Session, error) {
 	filter := bson.D{{Key: "sid", Value: sid}}
 	var sess Session
-	c.findOne(&filter, "session", sess)
+	err := c.findOne(&filter, "session", sess)
+	return &sess, err
 }
 
 ///////////////////// DELETE ////////////////////////////
@@ -162,6 +165,7 @@ func (c *Connection) getChores(f *bson.D) ([]*Chore, error) {
 	return chores, nil
 }
 
+// Not used
 func (c *Connection) getUser(filter *bson.D) (*User, error) {
 	collection := c.client.Database("fairmate").Collection("users")
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -176,7 +180,7 @@ func (c *Connection) getUser(filter *bson.D) (*User, error) {
 	return &u, nil
 }
 
-func (c *Connection) findOne(filter *bson.D, coll string, obj *DbType) error {
+func (c *Connection) findOne(filter *bson.D, coll string, obj DbType) error {
 	collection := c.client.Database("fairmate").Collection(coll)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -187,6 +191,31 @@ func (c *Connection) findOne(filter *bson.D, coll string, obj *DbType) error {
 	}
 	fmt.Printf("found document %v\n", obj)
 	return nil
+}
+
+func (c *Connection) findMany(f *bson.D, coll string, obj []DbType) error {
+	collection := c.client.Database("fairmate").Collection("chores")
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	cur, err := collection.Find(ctx, f)
+	if err != nil {
+		fmt.Print(err)
+		return nil, err
+	}
+	defer cur.Close(ctx)
+	var chores []*Chore
+	fmt.Print("starting loop\n")
+	for cur.Next(ctx) {
+		var chore Chore
+		err := cur.Decode(&chore)
+		if err != nil {
+			fmt.Print(err)
+			return nil, err
+		}
+		chores = append(chores, &chore)
+		fmt.Printf("got item %v\n", chore.Name)
+	}
+	return chores, nil
 }
 
 /********************************************************
