@@ -24,6 +24,13 @@ func NewAuthHandler(c *db.Connection) *AuthHandler {
 }
 
 /********************************************************
+EXPORTED METHODS
+********************************************************/
+func AuthorizeRequest(r *http.Request) {
+	cookie, _ := r.Cookie("session")
+}
+
+/********************************************************
 HTTP
 ********************************************************/
 func (h AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {}

@@ -92,8 +92,14 @@ func (h LoginHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 	// Calculate expire time
 	expireTime := time.Now().Add(24 * 7 * time.Hour)
 
+	session := db.Session{
+		SessionId:  id.String(),
+		UserId:     u.Id,
+		ExpireTime: fmt.Sprintf("%v", expireTime.Unix()),
+	}
+
 	// store session id and expire time in database
-	h.c.AddSession(u, id.String(), expireTime)
+	h.c.AddSession(&session)
 
 	// store id in a cookie
 	cookie := http.Cookie{

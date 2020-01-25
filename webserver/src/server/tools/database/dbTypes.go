@@ -11,6 +11,13 @@ ERRORS
 var ErrNotFound = errors.New("entry not found")
 
 /********************************************************
+INTERFACE TYPES
+********************************************************/
+type DbType interface {
+	BsonD() bson.D
+}
+
+/********************************************************
 DATABASE OBJECT TYPES
 ********************************************************/
 type User struct {
@@ -36,6 +43,12 @@ type Chore struct {
 	Time    uint   `bson:"time"`
 	UserId  string `bson:"userid"`
 	GroupId string `bson:"groupid"`
+}
+
+type Session struct {
+	SessionId  string `bson:"sid"`
+	UserId     string `bson:"uid"`
+	ExpireTime string `bson:"exp"`
 }
 
 /********************************************************
@@ -67,6 +80,15 @@ func (g *Group) BsonD() bson.D {
 	filter := bson.D{
 		{Key: "admin", Value: g.Admin},
 		{Key: "name", Value: g.Name},
+	}
+	return filter
+}
+
+func (s *Session) BsonD() bson.D {
+	filter := bson.D{
+		{Key: "sid", Value: s.SessionId},
+		{Key: "uid", Value: s.UserId},
+		{Key: "exp", Value: s.ExpireTime},
 	}
 	return filter
 }

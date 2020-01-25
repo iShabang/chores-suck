@@ -48,9 +48,8 @@ func (c *Connection) AddGroup(g *Group) (string, error) {
 	return c.insert(&filter, "groups")
 }
 
-func (c *Connection) AddSession(u *User, id string, t time.Time) (string, error) {
-	exp := fmt.Sprintf("%v", t.Unix())
-	filter := bson.D{{Key: "sid", Value: id}, {Key: "uid", Value: u.Id}, {Key: "exp", Value: exp}}
+func (c *Connection) AddSession(s *Session) (string, error) {
+	filter := s.BsonD()
 	return c.insert(&filter, "session")
 }
 
@@ -75,6 +74,12 @@ func (c *Connection) GetUserChores(id string) ([]*Chore, error) {
 func (c *Connection) GetUser(username string) (*User, error) {
 	filter := bson.D{{Key: "username", Value: username}}
 	return c.getUser(&filter)
+}
+
+func (c *Connection) FindSession(sid string) (*Session, error) {
+	filter := bson.D{{Key: "sid", Value: sid}}
+	var sess Session
+	c.findOne(&filter, "session", sess)
 }
 
 ///////////////////// DELETE ////////////////////////////
@@ -169,6 +174,19 @@ func (c *Connection) getUser(filter *bson.D) (*User, error) {
 	}
 	fmt.Printf("found document %v\n", u)
 	return &u, nil
+}
+
+func (c *Connection) findOne(filter *bson.D, coll string, obj *DbType) error {
+	collection := c.client.Database("fairmate").Collection(coll)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	err := collection.FindOne(ctx, filter).Decode(obj)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	fmt.Printf("found document %v\n", obj)
+	return nil
 }
 
 /********************************************************
