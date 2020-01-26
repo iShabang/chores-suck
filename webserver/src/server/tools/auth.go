@@ -28,7 +28,7 @@ func NewAuthHandler(c *db.Connection) *AuthHandler {
 /********************************************************
 EXPORTED METHODS
 ********************************************************/
-func (h *AuthHandler) AuthorizeRequest(r *http.Request) (bool, error) {
+func (h *AuthHandler) AuthorizeRequest(r *http.Request) (string, error) {
 	result := true
 	cookie, err := r.Cookie("session")
 	result = (err != nil)
@@ -50,7 +50,12 @@ func (h *AuthHandler) AuthorizeRequest(r *http.Request) (bool, error) {
 		result = (expTime > currentTime)
 	}
 
-	return result, err
+	userId := ""
+	if result {
+		userId = sess.UserId
+	}
+
+	return userId, err
 }
 
 /********************************************************

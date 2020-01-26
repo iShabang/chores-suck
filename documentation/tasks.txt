@@ -4,6 +4,8 @@ Done: Create database interface
 
 Done: Move tools package into server package
 
+Add a system that holds the current user id ( maybe a parameter for the handler functions)
+
 Add handler for authorization
 
 Create Static Webpage for Chore table

@@ -64,8 +64,8 @@ func (c *Connection) UpdateUserAttempts(u string, attempts int32) error {
 func (c *Connection) GetGroupChores(id string) ([]Chore, error) {
 	result := true
 	filter := bson.D{{Key: "gid", Value: id}}
-	var objs []bson.Raw
-	err := c.findMany(&filter, "chores", objs)
+
+	objs, err := c.findMany(&filter, "chores")
 	result = (err == nil)
 	chs := make([]Chore, len(objs))
 	if result {
@@ -96,6 +96,10 @@ func (c *Connection) FindSession(sid string) (*Session, error) {
 }
 
 ///////////////////// DELETE ////////////////////////////
+func (c *Connection) DeleteSessions(userId string) error {
+	filter := bson.D{{Key: "uid", Value: userId}}
+	return c.deleteMany(&filter, "session")
+}
 
 /********************************************************
 INTERNAL METHODS
@@ -133,23 +137,51 @@ func (c *Connection) insertMany(f []bson.D, coll string) error {
 UPDATE
 ********************************************************/
 func (c *Connection) update(gf *bson.D, of *bson.D, coll string) error {
+	var err error
 	collection := c.client.Database("fairmate").Collection(coll)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	res, err := collection.UpdateOne(ctx, gf, of)
-	if err != nil {
-		fmt.Print(err)
-		return err
+	if err == nil && res.ModifiedCount < 1 {
+		err = errors.New("no objects modified")
 	}
-	if res.ModifiedCount < 1 {
-		return errors.New("no objects modified")
-	}
-	return nil
+	return err
 }
 
 /********************************************************
 FIND
 ********************************************************/
+func (c *Connection) findOne(filter *bson.D, coll string, obj DbType) error {
+	collection := c.client.Database("fairmate").Collection(coll)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	err := collection.FindOne(ctx, filter).Decode(obj)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	fmt.Printf("found document %v\n", obj)
+	return nil
+}
+
+func (c *Connection) findMany(f *bson.D, coll string) ([]bson.Raw, error) {
+	collection := c.client.Database("fairmate").Collection(coll)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	cur, err := collection.Find(ctx, f)
+	if err != nil {
+		fmt.Print(err)
+		return nil, err
+	}
+	defer cur.Close(ctx)
+	var temp []bson.Raw
+	fmt.Print("starting loop\n")
+	for cur.Next(ctx) {
+		temp = append(temp, cur.Current)
+	}
+	return temp, nil
+}
+
 // Not Used
 func (c *Connection) getChores(f *bson.D) ([]*Chore, error) {
 	collection := c.client.Database("fairmate").Collection("chores")
@@ -191,37 +223,17 @@ func (c *Connection) getUser(filter *bson.D) (*User, error) {
 	return &u, nil
 }
 
-func (c *Connection) findOne(filter *bson.D, coll string, obj DbType) error {
-	collection := c.client.Database("fairmate").Collection(coll)
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	err := collection.FindOne(ctx, filter).Decode(obj)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	fmt.Printf("found document %v\n", obj)
-	return nil
-}
-
-func (c *Connection) findMany(f *bson.D, coll string, objs []bson.Raw) error {
-	collection := c.client.Database("fairmate").Collection(coll)
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	cur, err := collection.Find(ctx, f)
-	if err != nil {
-		fmt.Print(err)
-		return err
-	}
-	defer cur.Close(ctx)
-	var temp []bson.Raw
-	fmt.Print("starting loop\n")
-	for cur.Next(ctx) {
-		temp = append(temp, cur.Current)
-	}
-	return nil
-}
-
 /********************************************************
 DELETE
 ********************************************************/
+func (c *Connection) deleteMany(f *bson.D, coll string) error {
+	var err error
+	collection := c.client.Database("fairmate").Collection(coll)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	res, err := collection.DeleteMany(ctx, f)
+	if err == nil && res.DeletedCount < 1 {
+		err = errors.New("No items deleted")
+	}
+	return err
+}

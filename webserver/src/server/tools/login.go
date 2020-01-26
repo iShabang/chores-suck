@@ -35,16 +35,13 @@ func NewLogin(conn *db.Connection) *LoginHandler {
 /********************************************************
 HTTP
 ********************************************************/
-func (h LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "POST":
-		h.handlePOST(w, r)
-	default:
-		http.Error(w, "Invlalid login command", http.StatusMethodNotAllowed)
-	}
-}
+func (h LoginHandler) Login(w http.ResponseWriter, r *http.Request) {
 
-func (h LoginHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Invlalid login command", http.StatusMethodNotAllowed)
+		return
+	}
+
 	var cred Credentials
 	json.NewDecoder(r.Body).Decode(&cred)
 
@@ -113,4 +110,25 @@ func (h LoginHandler) handlePOST(w http.ResponseWriter, r *http.Request) {
 
 	// send the response
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h LoginHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Invlalid login command", http.StatusMethodNotAllowed)
+		return
+	}
+
+	cookie, err := r.Cookie("session")
+	result := (err != nil)
+
+	if result {
+		err = h.c.DeleteSessions()
+		result = (err != nil)
+	}
+
+	if result {
+		w.WriteHeader(http.StatusOK)
+	} else {
+		w.WriteHeader(http.StatusBadRequest)
+	}
 }
