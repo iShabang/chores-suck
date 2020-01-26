@@ -62,9 +62,18 @@ func (c *Connection) UpdateUserAttempts(u string, attempts int32) error {
 
 ///////////////////// FIND ////////////////////////////
 func (c *Connection) GetGroupChores(id string) ([]Chore, error) {
+	result := true
 	filter := bson.D{{Key: "gid", Value: id}}
-	var chs []Chore
-	err := c.findMany(&filter, "chores", chs)
+	var objs []bson.Raw
+	err := c.findMany(&filter, "chores", objs)
+	result = (err == nil)
+	chs := make([]Chore, len(objs))
+	if result {
+		for i, v := range objs {
+			bson.Unmarshal(v, chs[i])
+		}
+	}
+	return chs, err
 }
 
 func (c *Connection) GetUserChores(id string) ([]*Chore, error) {
@@ -195,7 +204,7 @@ func (c *Connection) findOne(filter *bson.D, coll string, obj DbType) error {
 	return nil
 }
 
-func (c *Connection) findMany(f *bson.D, coll string, objs []DbType) error {
+func (c *Connection) findMany(f *bson.D, coll string, objs []bson.Raw) error {
 	collection := c.client.Database("fairmate").Collection(coll)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -205,16 +214,10 @@ func (c *Connection) findMany(f *bson.D, coll string, objs []DbType) error {
 		return err
 	}
 	defer cur.Close(ctx)
+	var temp []bson.Raw
 	fmt.Print("starting loop\n")
 	for cur.Next(ctx) {
-		var obj DbType
-		err := cur.Decode(&obj)
-		if err != nil {
-			fmt.Print(err)
-			return err
-		}
-		objs = append(objs, obj)
-		fmt.Printf("got item %v\n", obj)
+		temp = append(temp, cur.Current)
 	}
 	return nil
 }
