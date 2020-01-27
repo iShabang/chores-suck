@@ -57,8 +57,3 @@ func (h *AuthHandler) AuthorizeRequest(r *http.Request) (string, error) {
 
 	return userId, err
 }
-
-/********************************************************
-HTTP
-********************************************************/
-func (h *AuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {}

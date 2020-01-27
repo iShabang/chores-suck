@@ -11,20 +11,19 @@ import (
 type App struct {
 	LoginHandler    *tools.LoginHandler
 	RegisterHandler *tools.RegisterHandler
-	fileDir         string
+	AuthHandler     *tools.AuthHandler
+	FileHandler     *tools.FileHandler
 }
 
 func (h App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(r.URL.Path)
 	switch r.URL.Path {
 	case "/login":
-		h.LoginHandler.ServeHTTP(w, r)
+		h.LoginHandler.Login(w, r)
 	case "/register":
 		h.RegisterHandler.ServeHTTP(w, r)
-	case "/":
-		http.ServeFile(w, r, h.fileDir+"index.html")
 	default:
-		http.ServeFile(w, r, h.fileDir+r.URL.Path[1:])
+		h.FileHandler.ServeFile(w, r)
 	}
 }
 
@@ -36,10 +35,9 @@ func main() {
 	}
 
 	var app App
-	loginHandler := tools.NewLogin(&conn)
-	regHandler := tools.NewRegister(&conn)
-	app.LoginHandler = loginHandler
-	app.RegisterHandler = regHandler
-	app.fileDir = "./files/"
+	app.LoginHandler = tools.NewLogin(&conn)
+	app.RegisterHandler = tools.NewRegister(&conn)
+	app.AuthHandler = tools.NewAuthHandler(&conn)
+	app.FileHandler = tools.NewFileHandler(&conn, app.AuthHandler, "./files/")
 	log.Fatal(http.ListenAndServe(":8080", app))
 }
