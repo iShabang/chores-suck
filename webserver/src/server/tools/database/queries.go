@@ -101,6 +101,11 @@ func (c *Connection) DeleteSessions(userId string) error {
 	return c.deleteMany(&filter, "session")
 }
 
+func (c *Connection) DeleteSession(sessId string) error {
+	filter := bson.D{{Key: "sid", Value: sessId}}
+	return c.deleteOne(&filter, "session")
+}
+
 /********************************************************
 INTERNAL METHODS
 ********************************************************/
@@ -232,6 +237,18 @@ func (c *Connection) deleteMany(f *bson.D, coll string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	res, err := collection.DeleteMany(ctx, f)
+	if err == nil && res.DeletedCount < 1 {
+		err = errors.New("No items deleted")
+	}
+	return err
+}
+
+func (c *Connection) deleteOne(f *bson.D, coll string) error {
+	var err error
+	collection := c.client.Database("fairmate").Collection(coll)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	res, err := collection.DeleteOne(ctx, f)
 	if err == nil && res.DeletedCount < 1 {
 		err = errors.New("No items deleted")
 	}

@@ -20,6 +20,8 @@ func (h App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/login":
 		h.LoginHandler.Login(w, r)
+	case "/logout":
+		h.LoginHandler.Logout(w, r)
 	case "/register":
 		h.RegisterHandler.ServeHTTP(w, r)
 	default:

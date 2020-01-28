@@ -114,7 +114,7 @@ func (h LoginHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 func (h LoginHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, "Invlalid login command", http.StatusMethodNotAllowed)
+		http.Error(w, "Invalid login command", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -122,7 +122,7 @@ func (h LoginHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	result := (err != nil)
 
 	if result {
-		err = h.c.DeleteSessions()
+		err = h.c.DeleteSession(cookie.Value)
 		result = (err != nil)
 	}
 
