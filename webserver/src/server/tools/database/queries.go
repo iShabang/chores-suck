@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"time"
 )
 
@@ -84,14 +85,22 @@ func (c *Connection) GetUserChores(id string) ([]*Chore, error) {
 func (c *Connection) GetUser(username string) (*User, error) {
 	filter := bson.D{{Key: "username", Value: username}}
 	var u User
-	err := c.findOne(&filter, "users", u)
+	res, err := c.findOne(&filter, "users")
+	if err != nil {
+		return nil, err
+	}
+	err = res.Decode(&u)
 	return &u, err
 }
 
 func (c *Connection) FindSession(sid string) (*Session, error) {
 	filter := bson.D{{Key: "sid", Value: sid}}
 	var sess Session
-	err := c.findOne(&filter, "session", sess)
+	res, err := c.findOne(&filter, "session")
+	if err != nil {
+		return nil, err
+	}
+	res.Decode(&sess)
 	return &sess, err
 }
 
@@ -156,17 +165,16 @@ func (c *Connection) update(gf *bson.D, of *bson.D, coll string) error {
 /********************************************************
 FIND
 ********************************************************/
-func (c *Connection) findOne(filter *bson.D, coll string, obj DbType) error {
+func (c *Connection) findOne(filter *bson.D, coll string) (*mongo.SingleResult, error) {
 	collection := c.client.Database("fairmate").Collection(coll)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	err := collection.FindOne(ctx, filter).Decode(obj)
-	if err != nil {
-		fmt.Println(err)
-		return err
+	res := collection.FindOne(ctx, filter)
+	if res.Err() != nil {
+		fmt.Println(res.Err())
+		return nil, res.Err()
 	}
-	fmt.Printf("found document %v\n", obj)
-	return nil
+	return res, nil
 }
 
 func (c *Connection) findMany(f *bson.D, coll string) ([]bson.Raw, error) {

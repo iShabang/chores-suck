@@ -16,6 +16,7 @@ type App struct {
 }
 
 func (h App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	fmt.Print("serving http\n")
 	fmt.Println(r.URL.Path)
 	switch r.URL.Path {
 	case "/login":
@@ -40,6 +41,6 @@ func main() {
 	app.LoginHandler = tools.NewLogin(&conn)
 	app.RegisterHandler = tools.NewRegister(&conn)
 	app.AuthHandler = tools.NewAuthHandler(&conn)
-	app.FileHandler = tools.NewFileHandler(&conn, app.AuthHandler, "./files/")
+	app.FileHandler = tools.NewFileHandler(&conn, app.AuthHandler, "files/")
 	log.Fatal(http.ListenAndServe(":8080", app))
 }

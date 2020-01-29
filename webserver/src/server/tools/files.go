@@ -29,9 +29,14 @@ func NewFileHandler(c *db.Connection, a *AuthHandler, f string) *FileHandler {
 EXPORTED METHODS
 ********************************************************/
 func (h *FileHandler) ServeFile(w http.ResponseWriter, r *http.Request) {
+	// Check for publicly accessible files
+	public := r.URL.Path == "/login.html" || r.URL.Path == "/register.html"
+	if public {
+		http.ServeFile(w, r, h.fileDir+r.URL.Path[1:])
+	}
 	id, err := h.auth.AuthorizeRequest(r)
 	if id == "" || err != nil {
-		http.ServeFile(w, r, h.fileDir+"login.html")
+		w.WriteHeader(http.StatusUnauthorized)
 	} else {
 		path := r.URL.Path
 		if path == "/" {

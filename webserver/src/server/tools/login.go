@@ -45,6 +45,7 @@ func (h LoginHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var cred Credentials
 	json.NewDecoder(r.Body).Decode(&cred)
 
+	fmt.Printf("getting user: %v\n", cred.Username)
 	u, err := h.c.GetUser(cred.Username)
 
 	if err == db.ErrNotFound {
@@ -56,6 +57,8 @@ func (h LoginHandler) Login(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("database error")
 		return
 	}
+
+	fmt.Println(u)
 
 	if u.Attempts > 2 {
 		w.WriteHeader(http.StatusUnauthorized)
