@@ -48,7 +48,7 @@ type Chore struct {
 type Session struct {
 	SessionId  string `bson:"sid"`
 	UserId     string `bson:"uid"`
-	ExpireTime string `bson:"exp"`
+	ExpireTime int64  `bson:"exp"`
 }
 
 /********************************************************

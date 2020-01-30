@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"server/tools/database"
-	"strconv"
 	"time"
 )
 
@@ -53,16 +52,14 @@ func (h *AuthHandler) AuthorizeRequest(r *http.Request) (string, error) {
 		result = (sess.SessionId != "" && sess.UserId != "")
 	}
 
-	var expTime int64
 	if result {
-		expTime, err := strconv.Atoi(sess.ExpireTime)
-		result = (err == nil) && (expTime > 0)
+		result = (sess.ExpireTime > 0)
 	}
 
 	if result {
-		fmt.Printf("get expire time %v\n", expTime)
+		fmt.Printf("get expire time %v\n", sess.ExpireTime)
 		currentTime := time.Now().Unix()
-		result = (expTime > currentTime)
+		result = (sess.ExpireTime > currentTime)
 	}
 
 	userId := ""

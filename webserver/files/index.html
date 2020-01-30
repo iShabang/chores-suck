@@ -89,7 +89,7 @@
 
           <!-- Send a request to get the table data -->
     
-          <h2>Tracked Items</h2>
+          <h2>RANDOM SHIT</h2>
           <!-- This is just a placeholder for the real table. This should be a javascript function that adds the data from the 
                database to the table.
                The headers are subject to change and so is the position of this table. Keeping it on the dashboard for now since
@@ -116,6 +116,8 @@
               </tbody>
             </table>
           </div>
+          <button type="button" onclick="logout()">Logout</button>
+          <p id="load-text"></p>
         </main>
       </div>
     </div>
@@ -126,4 +128,28 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
   </body>
+
+  <script>
+      function logout() {
+          xhr = new XMLHttpRequest()
+          xhr.onreadystatechange = function(){
+              if (xhr.readyState < 4){
+                  document.getElementById('load-text').innerHTML = "Loading ..."
+              }
+              else if (xhr.readyState === 4)
+              {
+                if(this.status == 200){
+                    window.location.replace('http://localhost:8080/login.html')
+                }
+                else{
+                  var msg = "Logout failed with status " + this.status.toString()
+                  document.getElementById('load-text').innerHTML = msg
+                }
+              }
+          }
+          xhr.open('POST', '/logout', true)
+          xhr.send()
+      }
+
+  </script>
 </html>

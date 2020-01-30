@@ -95,7 +95,7 @@ func (h LoginHandler) Login(w http.ResponseWriter, r *http.Request) {
 	session := db.Session{
 		SessionId:  id.String(),
 		UserId:     u.Id,
-		ExpireTime: fmt.Sprintf("%v", expireTime.Unix()),
+		ExpireTime: expireTime.Unix(),
 	}
 
 	// store session id and expire time in database
@@ -106,7 +106,7 @@ func (h LoginHandler) Login(w http.ResponseWriter, r *http.Request) {
 		Name:     "session",
 		Value:    id.String(),
 		Expires:  expireTime,
-		Secure:   true,
+		Secure:   false,
 		HttpOnly: true,
 	}
 	http.SetCookie(w, &cookie)
@@ -122,11 +122,11 @@ func (h LoginHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cookie, err := r.Cookie("session")
-	result := (err != nil)
+	result := (err == nil)
 
 	if result {
 		err = h.c.DeleteSession(cookie.Value)
-		result = (err != nil)
+		result = (err == nil)
 	}
 
 	if result {

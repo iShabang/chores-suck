@@ -6,58 +6,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <title>FairMate</title>
-    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="">
     
-  </head>
+    </head>
 
-  <body>
-      <form id="reg-form" method="POST" action="/register">
-        First Name: <br>
-        <input id="fname" type="text" name="firstname" placeholder="First name..."><br>
-        Last Name: <br>
-        <input id="lname" type="text" name="lastname" placeholder="Last name ..."><br>
-        Email: <br>
-        <input id="email" type="text" name="email" placeholder="Email..."><br>
-        Username:<br>
-        <input id="uname" type="text" name="username" placeholder="Username..."><br>
-        Password:<br>
-        <input id="pword" type="password" name="password" placeholder="Password..."><br>
-        <input id="pword" type="password" name="cpass" placeholder="Confirm Password..."><br>
-        <button type="submit" value="Submit" onclick="register(event)"><br>
-        <div id="after-submit"></div>
-      </form>
-      <a href="login.html">Login</a>
-  </body>
+    <body>
+        <form id="reg-form" method="POST" action="/register">
+            First Name: <br>
+            <input id="fname" type="text" name="firstname" placeholder="First name..."><br>
+            Last Name: <br>
+            <input id="lname" type="text" name="lastname" placeholder="Last name ..."><br>
+            Email: <br>
+            <input id="email" type="text" name="email" placeholder="Email..."><br>
+            Username:<br>
+            <input id="uname" type="text" name="username" placeholder="Username..."><br>
+            Password:<br>
+            <input id="pword" type="password" name="password" placeholder="Password..."><br>
+            <input id="pword" type="password" name="cpass" placeholder="Confirm Password..."><br>
+            <button type="submit" onclick="register(event)">Submit</button>
+            <div id="after-submit"></div>
+        </form>
+        <button id="login-btn" onclick="login()">Login</button>
+    </body>
 
-  <script>
-      function register(event) {
-          event.preventDefault()
-          var fname = document.getElementById('fname').value
-          var lname = document.getElementById('lname').value
-          var email = document.getElementById('email').value
-          var uname = document.getElementById('uname').value
-          var pword = document.getElementById('pword').value
+    <script>
+    function register(event) {
+        event.preventDefault()
+        var fname = document.getElementById('fname').value
+        var lname = document.getElementById('lname').value
+        var email = document.getElementById('email').value
+        var uname = document.getElementById('uname').value
+        var pword = document.getElementById('pword').value
 
-          xhr = new XMLHttpRequest()
-          xhr.onreadystatechange = function(){
-              if (xhr.readyState < 4){
-                  document.getElementById('after-submit').innerHTML = "Loading ..."
-              }
-              else if (xhr.readyState === 4)
-              {
+        xhr = new XMLHttpRequest()
+        xhr.onreadystatechange = function(){
+            if (xhr.readyState < 4){
+                document.getElementById('after-submit').innerHTML = "Loading ..."
+            }
+            else if (xhr.readyState === 4)
+            {
                 if(this.status == 200){
                     window.location.replace('http://localhost:8080/login.html')
                 }
                 else{
-                  var msg = "Register failed with status " + this.status.toString()
-                  document.getElementById('after-submit').innerHTML = msg
+                    var msg = "Register failed with status " + this.status.toString()
+                    document.getElementById('after-submit').innerHTML = msg
                 }
-              }
-          }
-          xhr.open('POST', '/register', true)
-          xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8')
-          var user = {firstname: fname, lastname: lname, email: email, password: pword, username: uname}
-          xhr.send(JSON.stringify(user))
-      }
-  </script>
+            }
+        }
+        xhr.open('POST', '/register', true)
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8')
+        var user = {firstname: fname, lastname: lname, email: email, password: pword, username: uname}
+        xhr.send(JSON.stringify(user))
+    }
 
+    function login() {
+        window.location.replace('http://localhost:8080/login.html')
+    }
+  </script>
+</html>
