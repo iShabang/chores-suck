@@ -1,155 +1,76 @@
 <!doctype html>
 <html lang="en">
-    <head>
+  <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-
-    <title>FairMate</title>
   </head>
 
   <body>
-    <nav class="navbar navbar-dark bg-dark flex-md-nowrap p-0 shadow">
-      <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="index.html">FairMate</a>
-      <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">
-      <ul class="navbar-nav px-3">
-        <li class="nav-item text-nowrap">
-          <a class="nav-link" href="#">Sign out</a>
-        </li>
-      </ul>
-    </nav>
-    
-    <div class="container-fluid">
-      <div class="row">
-        <nav class="col-md-2 d-none d-md-block bg-light sidebar">
-          <div class="sidebar-sticky">
-            <ul class="nav flex-column">
-              <li class="nav-item">
-                <a class="nav-link" href="roommates.html">
-                  <span data-feather="file"></span>
-                  Roommates
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="households.html">
-                  <span data-feather="file"></span>
-                  Households
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="profile.html">
-                  <span data-feather="file"></span>
-                  Profile
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="account.html">
-                  <span data-feather="file"></span>
-                  Account
-                </a>
-              </li>
-            </ul>
-    
-            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-              <span>Saved reports</span>
-              <a class="d-flex align-items-center text-muted" href="#">
-                <span data-feather="plus-circle"></span>
-              </a>
-            </h6>
-            <ul class="nav flex-column mb-2">
-              <li class="nav-item">
-                <a class="nav-link" href="#">
-                  <span data-feather="file-text"></span>
-                  Current month
-                </a>
-              </li>
-            </ul>
-          </div>
-        </nav>
-    
-        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
-          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-            <h1 class="h2">Dashboard</h1>
-            <div class="btn-toolbar mb-2 mb-md-0">
-              <!--div class="btn-group mr-2">
-                <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
-              </div-->
-              <!--button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
-                <span data-feather="calendar"></span>
-                This week
-              </button-->
-            </div>
-          </div>
-    
-          <!--canvas class="my-4 w-100" id="myChart" width="900" height="380"></canvas> -->
-
-          <!-- Send a request to get the table data -->
-    
-          <h2>RANDOM SHIT</h2>
-          <!-- This is just a placeholder for the real table. This should be a javascript function that adds the data from the 
-               database to the table.
-               The headers are subject to change and so is the position of this table. Keeping it on the dashboard for now since
-               I don't really have anywhere else to put it yet. -->
-          <div class="table-responsive">
-            <table class="table table-striped table-sm">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Name</th>
-                  <th>Status</th>
-                  <th>Last Restock</th>
-                  <th>Restocker</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>1,001</td>
-                  <td>Lorem</td>
-                  <td>ipsum</td>
-                  <td>dolor</td>
-                  <td>sit</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <button type="button" onclick="logout()">Logout</button>
-          <p id="load-text"></p>
-        </main>
-      </div>
-    </div>
-
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+      <table id="chore-table">
+          <tr>
+              <th>Chore</th>
+              <th>Group</th>
+              <th>Due</th>
+          </tr>
+      </table>
+      <button type="button" onclick="logout()">Logout</button>
+      <p id="load-text"></p>
   </body>
 
   <script>
       function logout() {
           xhr = new XMLHttpRequest()
-          xhr.onreadystatechange = function(){
-              if (xhr.readyState < 4){
-                  document.getElementById('load-text').innerHTML = "Loading ..."
-              }
-              else if (xhr.readyState === 4)
-              {
-                if(this.status == 200){
-                    window.location.replace('http://localhost:8080/login.html')
-                }
-                else{
-                  var msg = "Logout failed with status " + this.status.toString()
-                  document.getElementById('load-text').innerHTML = msg
-                }
-              }
-          }
+          xhr.onreadystatechange = (function(x){
+              return function(){responseHandler(x,logoutSuccess,logoutFail,logoutLoad)}
+          })(xhr)
           xhr.open('POST', '/logout', true)
           xhr.send()
       }
+
+    function logoutSuccess() {
+        window.location.replace('http://localhost:8080/login.html')
+    }
+
+    function logoutFail() {
+        var msg = "Logout failed with status " + this.status.toString()
+        document.getElementById('load-text').innerHTML = msg
+    }
+
+    function logoutLoad() {
+        document.getElementById('load-text').innerHTML = "Loading ..."
+    }
+
+    function loadChores() {
+        xhr = new XMLHttpRequest()
+        xhr.onreadystatechange = (function(x) {
+            return function(){responseHandler(xhr,loadChoresSuccess,loadChoresFail,loadChoresLoad)}
+        })(xhr)
+        xhr.open('POST','/chores/user', true)
+        xhr.send()
+    }
+
+    function loadChoresSuccess() {
+        html = document.getElementById('chore-table').innerHtml
+    }
+
+    function loadChoresFail() {
+    }
+
+    function loadChoresLoad() {
+    }
+
+    function responseHandler(xhr,goodFunc,badFunc,loadFunc) {
+        if (xhr.readyState < 4) {
+            loadFunc()
+        } else if ( xhr.readyState == 4) {
+            if (xhr.status == 200) {
+                goodFunc()
+            } else {
+                badFunc()
+            }
+        }
+    }
 
   </script>
 </html>
