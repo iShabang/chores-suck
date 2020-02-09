@@ -34,8 +34,8 @@ func (h *FileHandler) ServeFile(w http.ResponseWriter, r *http.Request) {
 	if public {
 		http.ServeFile(w, r, h.fileDir+r.URL.Path[1:])
 	}
-	id, err := h.auth.AuthorizeRequest(r)
-	if id == "" || err != nil {
+	_, success := h.auth.AuthorizeRequest(r)
+	if !success {
 		w.WriteHeader(http.StatusUnauthorized)
 	} else {
 		path := r.URL.Path

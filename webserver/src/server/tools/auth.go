@@ -28,7 +28,7 @@ func NewAuthHandler(c *db.Connection) *AuthHandler {
 /********************************************************
 EXPORTED METHODS
 ********************************************************/
-func (h *AuthHandler) AuthorizeRequest(r *http.Request) (string, error) {
+func (h *AuthHandler) AuthorizeRequest(r *http.Request) (string, bool) {
 	fmt.Println("call to authorize")
 	result := true
 	cookie, err := r.Cookie("session")
@@ -68,5 +68,5 @@ func (h *AuthHandler) AuthorizeRequest(r *http.Request) (string, error) {
 		userId = sess.UserId
 	}
 
-	return userId, err
+	return userId, result
 }

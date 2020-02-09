@@ -12,6 +12,7 @@ type App struct {
 	LoginHandler    *tools.LoginHandler
 	RegisterHandler *tools.RegisterHandler
 	AuthHandler     *tools.AuthHandler
+	ChoreHandler    *tools.ChoreHandler
 	FileHandler     *tools.FileHandler
 }
 
@@ -41,6 +42,7 @@ func main() {
 	app.LoginHandler = tools.NewLogin(&conn)
 	app.RegisterHandler = tools.NewRegister(&conn)
 	app.AuthHandler = tools.NewAuthHandler(&conn)
+	app.ChoreHandler = tools.NewChoreHandler(&conn, app.AuthHandler)
 	app.FileHandler = tools.NewFileHandler(&conn, app.AuthHandler, "files/")
 	log.Fatal(http.ListenAndServe(":8080", app))
 }
