@@ -37,29 +37,28 @@ func (h *ChoreHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 func (h *ChoreHandler) ChoresUser(w http.ResponseWriter, r *http.Request) {
 	id, success := h.auth.AuthorizeRequest(r)
-
-	var err error
-	var chores []*db.Chore
-	if success {
-		chores, err = h.conn.GetUserChores(id)
-		success = (err == nil) && (len(chores) > 0)
-	} else {
+	if !success {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	var cj []byte
-	if success {
-		cj, err = json.Marshal(chores)
-		success = (err == nil)
+	var err error
+	var chores []*db.Chore
+	chores, err = h.conn.GetUserChores(id)
+	if !((err == nil) && (len(chores) > 0)) {
+		w.WriteHeader(http.StatusNotFound)
+		return
 	}
 
-	if success {
-		w.Header().Set("content-type", "application/json")
-		w.Write(cj)
-	} else {
+	var cj []byte
+	cj, err = json.Marshal(chores)
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+
+	w.Header().Set("content-type", "application/json")
+	w.Write(cj)
 }
 
 func (h *ChoreHandler) ChoresGroup(w http.ResponseWriter, r *http.Request) {

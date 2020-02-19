@@ -4,15 +4,24 @@ Done: Create database interface
 
 Done: Move tools package into server package
 
-Add a system that holds the current user id ( maybe a parameter for the handler functions)
+Done: Add a system that holds the current user id ( maybe a parameter for the handler functions)
 
-Add handler for authorization
+Done: Add handler for authorization
 
-Create Static Webpage for Chore table
+Feature - Create Group
+Feature - Edit Group
+Feature - Find Group
+Feature - Join Group
+Feature - Create Chore
+Feature - Edit Chore
 
-Create add chores form
+UI
 
-Create add roommate form
+Chore table
+
+add chores form
+
+add roommate form
 
 Delete chore button
 
