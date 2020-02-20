@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+
+    <title>FairMate</title>
+    <link rel="stylesheet" href="" />
+  </head>
+
+  <body>
+    <form id="login-form" method="POST" action="/login">
+      Username:<br />
+      <input
+        id="uname"
+        type="text"
+        name="username"
+        placeholder="username..."
+      /><br />
+      Password:<br />
+      <input
+        id="pword"
+        type="password"
+        name="password"
+        placeholder="password..."
+      /><br />
+      <button type="submit" onclick="submitLogin(event)">Submit</button>
+      <div id="after-submit"></div>
+    </form>
+    <button type="button" onclick="register()">Register</button>
+  </body>
+
+  <script>
+    function submitLogin(event) {
+      event.preventDefault();
+      var name = document.getElementById("uname").value;
+      var password = document.getElementById("pword").value;
+      xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState < 4) {
+          document.getElementById("after-submit").innerHTML = "Loading ...";
+        } else if (xhr.readyState === 4) {
+          if (this.status == 200) {
+            window.location.replace("http://localhost:8080");
+          } else {
+            var msg = "Login failed with status " + this.status.toString();
+            document.getElementById("after-submit").innerHTML = msg;
+          }
+        }
+      };
+      xhr.open("POST", "/login", true);
+      xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+      var user = { username: name, password: password };
+      xhr.send(JSON.stringify(user));
+    }
+
+    function register() {
+      window.location.replace("http://localhost:8080/register.html");
+    }
+  </script>
+</html>

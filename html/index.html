@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+  </head>
+
+  <body>
+    <table id="chore-table"></table>
+
+    <button type="button" onclick="logout()">Logout</button>
+    <p id="load-text"></p>
+  </body>
+
+  <script>
+    function logout() {
+      xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = (function(x) {
+        return function() {
+          responseHandler(x, logoutSuccess, logoutFail, logoutLoad);
+        };
+      })(xhr);
+      xhr.open("POST", "/logout", true);
+      xhr.send();
+    }
+
+    function logoutSuccess() {
+      window.location.replace("http://localhost:8080/login.html");
+    }
+
+    function logoutFail() {
+      var msg = "Logout failed with status " + this.status.toString();
+      document.getElementById("load-text").innerHTML = msg;
+    }
+
+    function logoutLoad() {
+      document.getElementById("load-text").innerHTML = "Loading ...";
+    }
+
+    function loadChores() {
+      xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = (function(x) {
+        return function() {
+          responseHandler(
+            xhr,
+            loadChoresSuccess.bind(obj, x),
+            loadChoresFail,
+            loadChoresLoad
+          );
+        };
+      })(xhr);
+      xhr.open("POST", "/chores/user", true);
+      xhr.send();
+    }
+
+    function loadChoresSuccess(xhr) {
+      table = document.getElementById("chore-table");
+    }
+
+    function loadChoresFail() {}
+
+    function loadChoresLoad() {}
+
+    function responseHandler(xhr, goodFunc, badFunc, loadFunc) {
+      if (xhr.readyState < 4) {
+        loadFunc();
+      } else if (xhr.readyState == 4) {
+        if (xhr.status == 200) {
+          goodFunc();
+        } else {
+          badFunc();
+        }
+      }
+    }
+
+    function generateTableHeader(table, data) {
+      let thead = table.createTHead();
+      let row = thead.insertRow();
+      for (let key of data) {
+        let th = document.createElement("th");
+        let text = document.createTextNode(key);
+        th.appendChild(text);
+        row.appendChild(th);
+      }
+    }
+
+    function generateTableBody(table, data) {
+      for (let section of data) {
+        let row = table.insertRow();
+        for (let key in section) {
+          let cell = row.insertCell();
+          let text = document.createTextNode(section[key]);
+          cell.appendChild(text);
+        }
+      }
+    }
+  </script>
+</html>
