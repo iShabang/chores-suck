@@ -104,6 +104,17 @@ func (c *Connection) FindSession(sid string) (*Session, error) {
 	return &sess, err
 }
 
+func (c *Connection) FindUserGroup(uid string, groupName string) (*Group, error) {
+	filter := bson.D{{Key: "name", Value: groupName}, {Key: "users", Value: uid}}
+	var group Group
+	res, err := c.findOne(&filter, "groups")
+	if err != nil {
+		return nil, err
+	}
+	res.Decode(&group)
+	return &group, err
+}
+
 ///////////////////// DELETE ////////////////////////////
 func (c *Connection) DeleteSessions(userId string) error {
 	filter := bson.D{{Key: "uid", Value: userId}}
