@@ -1,0 +1,125 @@
+Home Page 
+If an unauthorized user requests the home page (index.html) 
+The application shall show the login page 
+If an authorized user requests the home page (index.html) 
+The application shall show the Home Page 
+The Home page shall show the following 
+The users chores organized in a table - received from Get User Chores Request 
+The users groups organized in a table – received from Get User Groups Request 
+A button to create a new group 
+Button for Settings
+If one of the groups in the table is clicked, the application shall show the Group Info Popup Window 
+If the create new group button is clicked, the application shall show the Create Group Popup Window 
+If the Settings button is clicked, the application shall a drop down menu with the following options:
+    Edit Account
+If the Edit Account drop down option is clicked, the application shall transition to the Edit Account Page
+
+Edit Account Page
+A Label for username
+A text entry for Email
+A button for Edit Email
+A button for Change Password
+ 
+Login Page 
+The application shall show the following: 
+A text field for username 
+A text field for password 
+A button to login 
+A button to register 
+If the user enters a username and password and selects the login button, the application shall send a Login Request. 
+If the request is valid, the application shall transition to the Home Page. 
+If the request is invalid, the application shall show an invalid username/password error message.  
+If the user presses the register button, the application shall show the Register Page 
+ 
+Create Group Popup Window 
+Returns: Group 
+The window shall show the following: 
+Text entry field for group name 
+List of Users 
+Button for Add User 
+List of Administrators 
+Button for Add Administrator 
+Button for Cancel 
+Button for Create 
+If the Add User button is clicked, the application shall show the Add User Popup Window. 
+If a user was successfully entered, the application shall add the new user to the user list. 
+If the Add Administrator button is clicked, the application shall show the Add User Popup Window 
+If the admin was successfully entered, the application shall add the user to the admin list 
+If the Cancel button is clicked, the application shall close the Create Group Popup Window and return to the parent window 
+If the Create button is clicked, the application shall send a Create Group Request 
+If the request was valid and succeeded, the application shall return to the parent window. 
+If the request was invalid or unsuccessful, the application shall show an error message describing the issue. 
+ 
+Group Info Popup Window 
+The window shall show the following: 
+Group Name 
+Table containing the chores and assignees 
+If the user is an administrator of the group, the window shall show an Edit button 
+If the Edit button is clicked, the application shall transition to the Group Edit Page 
+ 
+Add User Popup Window 
+Returns: User 
+The window shall show the following: 
+Text entry field for username or email 
+Button for Add 
+If the Add button is clicked or the ENTER key is pressed in the text entry field, the application shall send a Lookup User Request. 
+If the request was valid and a user was found, the application shall return to the parent window 
+If the request was valid and no users were found, the application shall show a "no users found" message 
+If the request was invalid, the application shall show a general error message 
+ 
+Register Page 
+The window shall show the following: 
+Username Text Entry 
+First name text entry 
+Last name text entry 
+Email text entry 
+Password text entry 
+Button for submit 
+Button for logon 
+If the submit button is clicked, the application shall send a Register Request 
+If the  request was valid, the application shall return to the Login Page 
+If the request was invalid, the application shall show an error message 
+If the logon button is clicked, the application shall return to the Login Page 
+ 
+Group Edit Page 
+The window shall show the following 
+Group Name 
+Table of Administrators 
+Each entry will show the username and a button for Remove Administrator 
+Table of Users 
+Each entry will show the username and a button for Remove User 
+Table of Chores 
+Each entry will show the chore name and time to complete, and a button for Remove Chore 
+Button for Add Chore 
+Button for Add User 
+Button for Add Administrator 
+Button for Edit Group Name 
+Button for Save 
+If the Edit Group Name button is clicked, the application shall show a New Text Entry Popup Window. 
+If new text was entered, the application shall show the new name in Group Name 
+If the Add Chore button is clicked, the application shall show the Add Chore Popup Window 
+If a chore was added, the application shall show the new chore in the Chore table 
+If the Add Administrator button is clicked, the application shall show the Add User Popup Window 
+If a new admin was added, the application shall show the new user in the Admin table 
+If the Add User button is clicked, the application shall show the Add User Popup Window. 
+If the Remove button is clicked on any of the table entries, the application shall grey out the entry. 
+If the Save button is clicked, the application shall send a Group Update Request 
+If the request was valid, the application shall return to the Home Page 
+If the request was invalid, the application shall show an error message 
+ 
+New Text Entry Popup Window 
+Returns: text value 
+The window shall show the following 
+Text entry field showing the original value 
+Button for submit 
+If the submit button is clicked the application shall return to the parent window 
+ 
+Add Chore Popup Window 
+Returns: chore 
+The window shall show the following: 
+Text entry for name 
+Drop down for time 
+Button for submit 
+Button for cancel 
+If the submit button is clicked, the application shall return to the parent window 
+If the cancel button is clicked, the application shall return to the parent window 
