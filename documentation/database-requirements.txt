@@ -2,9 +2,9 @@ API Request handlers will need access to the database via an API. The goal is
 wrap all database objects and raw database calls in an interface to separate the
 server from the database implementation. If we were to move to a different
 database manager, there should be no changes required on the handler code. Only
-the database integration layer should be changed.  
- 
-Requests based of current needs. 
+the database integration layer should be changed.
+
+Requests based of current needs.
 NAME                        RETURN          ARGUMENTS
 Add Group (no chores)       group_id        group_struct
 Add User                    user_id         user_struct
@@ -12,6 +12,6 @@ Add Chore (no assignee)     chore_id        chore_struct
 Add Session                 session_id      session_struct
 Get Group                   group_struct    group_name
 Get Groups                  group_struct[]  user_id
-Get User                    user_struct     user_name 
+Get User                    user_struct     user_name
 Get Chores                  chore_struct[]  object_type, object_id (user or group)
-Update Group                                group_struct 
+Update Group                                group_struct

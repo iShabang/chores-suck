@@ -29,6 +29,7 @@
         <button id="login-btn" onclick="login()">Login</button>
     </body>
 
+    <script src="js/response.js">
     <script>
     function register(event) {
         event.preventDefault()
@@ -39,19 +40,13 @@
         var pword = document.getElementById('pword').value
 
         xhr = new XMLHttpRequest()
-        xhr.onreadystatechange = function(){
-            if (xhr.readyState < 4){
-                document.getElementById('after-submit').innerHTML = "Loading ..."
-            }
-            else if (xhr.readyState === 4)
-            {
-                if(this.status == 200){
-                    window.location.replace('http://localhost:8080/login.html')
-                }
-                else{
-                    var msg = "Register failed with status " + this.status.toString()
-                    document.getElementById('after-submit').innerHTML = msg
-                }
+        xhr.onreadystatechange = function(x){
+            return function() {
+                responseHandler(
+                    xhr,
+                    goToLogin,
+                    failMsg,
+                    loadMsg
             }
         }
         xhr.open('POST', '/register', true)
@@ -60,8 +55,24 @@
         xhr.send(JSON.stringify(user))
     }
 
+    function loadMsg()
+    {
+        document.getElementById('after-submit').innerHTML = "Loading ..."
+    }
+
     function login() {
         window.location.replace('http://localhost:8080/login.html')
+    }
+
+    function goToLogin()
+    {
+        window.location.replace('http://localhost:8080/login.html')
+    }
+
+    function failMsg()
+    {
+        var msg = "Register failed with status " + this.status.toString()
+        document.getElementById('after-submit').innerHTML = msg
     }
   </script>
 </html>

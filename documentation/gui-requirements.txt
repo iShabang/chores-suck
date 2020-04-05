@@ -15,10 +15,11 @@ If the Settings button is clicked, the application shall a drop down menu with t
 If the Edit Account drop down option is clicked, the application shall transition to the Edit Account Page
 
 Edit Account Page
-A Label for username
-A text entry for Email
-A button for Edit Email
-A button for Change Password
+Label for username
+Label for email
+Button for Change Password
+Button for Cancel
+If the cancel button is clicked, the application shall return to the home page.
  
 Login Page 
 The application shall show the following: 
