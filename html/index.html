@@ -17,16 +17,23 @@
             <li style="float: right;"><a href="">Settings</a></li>
         </ul>
     </div>
-    <table id="chore-table"></table>
-    <table id="group-table"></table>
-    <button id="group-create-btn">Create Group</table>
 
-    <button type="button" onclick="logout()">Logout</button>
+    <div class="table1" id="chore-table-div">
+      <table id="chore-table"></table>
+    </div>
+
+    <div class="table1" id="group-table-div">
+      <table id="group-table"></table>
+    </div>
+
+    <button id="group-create-btn" class="button1" type="button">Create Group</button>
+    <button class ="button1" type="button" onclick="logout()">Logout</button>
+
     <p id="load-text"></p>
   </body>
 
-  <script src="js/response.js">
-  <script src="js/session.js">
+  <script src="js/response.js"></script>
+  <script src="js/session.js"></script>
   <script>
 
     function loadChores() {
