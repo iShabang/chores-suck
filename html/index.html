@@ -1,64 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
-    <link rel="stylesheet" type="text/css" href="css/main.css">
-  </head>
 
-  <body>
-    <div id="nav-bar">
-        <ul>
-            <li><a href="index.html">Home</a></li>
-            <li style="float: right;"><a href="">Settings</a></li>
-        </ul>
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <link rel="stylesheet" type="text/css" href="css/main.css">
+</head>
+
+<body>
+  <div class="nav-bar">
+    <a href="index.html">Home</a>
+    <div class="dropdown1">
+      <button class="dropbtn">Actions</button>
+      <div class="dropdown-content">
+        <a href="">Groups</a>
+        <a href="">Chores</a>
+      </div>
     </div>
-
-    <div class="table1" id="chore-table-div">
-      <table id="chore-table"></table>
+    <a href="">About</a>
+    <div class="dropdown1">
+      <button class="dropbtn">Settings</button>
+      <div class="dropdown-content">
+        <a href="">Account Settings</a>
+        <button class="drop-content-btn" type="button" onclick="logout()">Logout</button>
+      </div>
     </div>
+  </div>
 
-    <div class="table1" id="group-table-div">
-      <table id="group-table"></table>
-    </div>
+  <div class="table1" id="chore-table-div">
+    <table id="chore-table"></table>
+  </div>
 
-    <button id="group-create-btn" class="button1" type="button">Create Group</button>
-    <button class ="button1" type="button" onclick="logout()">Logout</button>
+  <div class="table1" id="group-table-div">
+    <table id="group-table"></table>
+  </div>
 
-    <p id="load-text"></p>
-  </body>
+  <button id="group-create-btn" class="button1" type="button">Create Group</button>
 
-  <script src="js/response.js"></script>
-  <script src="js/session.js"></script>
-  <script>
+  <p id="load-text"></p>
+</body>
 
-    function loadChores() {
-      xhr = new XMLHttpRequest();
-      xhr.onreadystatechange = (function(x) {
-        return function() {
-          responseHandler(
-            xhr,
-            loadChoresSuccess.bind(obj, x),
-            loadChoresFail,
-            loadChoresLoad
-          );
-        };
-      })(xhr);
-      xhr.open("POST", "/chores/user", true);
-      xhr.send();
-    }
+<script src="js/response.js"></script>
+<script src="js/session.js"></script>
+<script>
 
-    function loadChoresSuccess(xhr) {
-      table = document.getElementById("chore-table");
-    }
+  function loadChores() {
+    xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = (function (x) {
+      return function () {
+        responseHandler(
+          xhr,
+          loadChoresSuccess.bind(obj, x),
+          loadChoresFail,
+          loadChoresLoad
+        );
+      };
+    })(xhr);
+    xhr.open("POST", "/chores/user", true);
+    xhr.send();
+  }
 
-    function loadChoresFail() {}
+  function loadChoresSuccess(xhr) {
+    table = document.getElementById("chore-table");
+  }
 
-    function loadChoresLoad() {}
+  function loadChoresFail() { }
 
-  </script>
+  function loadChoresLoad() { }
+
+</script>
+
 </html>
