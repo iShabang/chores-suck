@@ -1,65 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
 
-    <title>Chores Suck</title>
-    <link rel="stylesheet" href="" />
-  </head>
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 
-  <body>
-    <form id="login-form" method="POST" action="/login">
-      Username:<br />
-      <input
-        id="uname"
-        type="text"
-        name="username"
-        placeholder="username..."
-      /><br />
-      Password:<br />
-      <input
-        id="pword"
-        type="password"
-        name="password"
-        placeholder="password..."
-      /><br />
-      <button type="submit" onclick="submitLogin(event)">Submit</button>
-      <div id="after-submit"></div>
-    </form>
-    <button type="button" onclick="register()">Register</button>
-  </body>
+  <title>Chores Suck</title>
+  <link rel="stylesheet" type="text/css" href="css/main.css">
+  <link rel="stylesheet" type="text/css" href="css/login.css">
+</head>
 
-  <script>
-    function submitLogin(event) {
-      event.preventDefault();
-      var name = document.getElementById("uname").value;
-      var password = document.getElementById("pword").value;
-      xhr = new XMLHttpRequest();
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState < 4) {
-          document.getElementById("after-submit").innerHTML = "Loading ...";
-        } else if (xhr.readyState === 4) {
-          if (this.status == 200) {
-            window.location.replace("http://localhost:8080");
-          } else {
-            var msg = "Login failed with status " + this.status.toString();
-            document.getElementById("after-submit").innerHTML = msg;
-          }
+<body>
+  <div class="nav-bar">
+    <a href="index.html">Home</a>
+    <div class="dropdown1">
+      <button class="dropbtn">Actions</button>
+      <div class="dropdown-content">
+        <a href="">Groups</a>
+        <a href="">Chores</a>
+      </div>
+    </div>
+    <a href="">About</a>
+    <div class="dropdown1">
+      <button class="dropbtn">Settings</button>
+      <div class="dropdown-content">
+        <a href="">Account Settings</a>
+        <button class="drop-content-btn" type="button" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrapper1">
+    <div class="login-box">
+      <form id="login-form" method="POST" action="/login">
+        <div class="form-section">
+          <input class="input1" id="uname" type="text" name="username" placeholder="Username ..." />
+        </div>
+        <div class="form-section">
+          <input class="input1" id="pword" type="password" name="password" placeholder="Password ..." />
+        </div>
+        <button class="button1" type="submit" onclick="submitLogin(event)">Submit</button>
+        <div id="after-submit"></div>
+      </form>
+      <button class="button1" type="button" onclick="register()">Register</button>
+    </div>
+  </div>
+
+</body>
+
+<script>
+  function submitLogin(event) {
+    event.preventDefault();
+    var name = document.getElementById("uname").value;
+    var password = document.getElementById("pword").value;
+    xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState < 4) {
+        document.getElementById("after-submit").innerHTML = "Loading ...";
+      } else if (xhr.readyState === 4) {
+        if (this.status == 200) {
+          window.location.replace("http://localhost:8080");
+        } else {
+          var msg = "Login failed with status " + this.status.toString();
+          document.getElementById("after-submit").innerHTML = msg;
         }
-      };
-      xhr.open("POST", "/login", true);
-      xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
-      var user = { username: name, password: password };
-      xhr.send(JSON.stringify(user));
-    }
+      }
+    };
+    xhr.open("POST", "/login", true);
+    xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+    var user = { username: name, password: password };
+    xhr.send(JSON.stringify(user));
+  }
 
-    function register() {
-      window.location.replace("http://localhost:8080/register.html");
-    }
-  </script>
+  function register() {
+    window.location.replace("http://localhost:8080/register.html");
+  }
+</script>
+
 </html>
