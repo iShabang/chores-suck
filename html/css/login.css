@@ -1,7 +1,13 @@
-.login-box form {
-    height: 50%;
-    width: 100%;
+.login-box {
+    height: 20%;
+    margin-top: 25%;
     background-color: #999;
-    display: block;
+}
 
+.login-box form {
+    width: 100%;
+    height: auto;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
 }
