@@ -15,27 +15,27 @@
 <body>
     <div class="wrapper-30 h-wrapper">
         <div class="small-box">
-        <div class="h-wrapper wrapper-50">
-        <form class="form1" id="reg-form" method="POST" action="/register">
-            <input class="input1" id="fname" type="text" name="firstname" placeholder="First name...">
-            <input class="input1" id="lname" type="text" name="lastname" placeholder="Last name ...">
-            <input class="input1" id="email" type="text" name="email" placeholder="Email...">
-            <input class="input1" id="uname" type="text" name="username" placeholder="Username...">
-            <input class="input1" id="pword" type="password" name="password" placeholder="Password...">
-            <input class="input1" id="pword" type="password" name="cpass" placeholder="Confirm Password...">
-            <button class="button1 fill-btn" type="submit" onclick="register(event)">Submit</button>
-            <div id="after-submit"></div>
-            <button class="button1 fill-btn" id="login-btn" onclick="login()">Login</button>
-        </form>
-        </div>
+            <div class="h-wrapper wrapper-50">
+                <form class="form1" id="reg-form" method="POST" action="/register">
+                    <input class="input1" id="fname" type="text" name="firstname" placeholder="First name...">
+                    <input class="input1" id="lname" type="text" name="lastname" placeholder="Last name ...">
+                    <input class="input1" id="email" type="text" name="email" placeholder="Email...">
+                    <input class="input1" id="uname" type="text" name="username" placeholder="Username...">
+                    <input class="input1" id="pword" type="password" name="password" placeholder="Password...">
+                    <input class="input1" id="pword" type="password" name="cpass" placeholder="Confirm Password...">
+                    <button class="button1 fill-btn" type="submit" onclick="register(event)">Submit</button>
+                    <div id="after-submit"></div>
+                    <button class="button1 fill-btn" id="login-btn" onclick="login()">Login</button>
+                </form>
+            </div>
         </div>
     </div>
 </body>
 
-<script src="js/response.js">
-    <script>
-        function register(event) {
-            event.preventDefault()
+<script src="js/response.js"></script>
+<script>
+    function register(event) {
+        event.preventDefault()
         var fname = document.getElementById('fname').value
         var lname = document.getElementById('lname').value
         var email = document.getElementById('email').value
@@ -43,37 +43,34 @@
         var pword = document.getElementById('pword').value
 
         xhr = new XMLHttpRequest()
-        xhr.onreadystatechange = function(x){
-            return function() {
-            responseHandler(
-                xhr,
-                goToLogin,
-                failMsg,
-                loadMsg
+        xhr.onreadystatechange = function (x) {
+            return function () {
+                responseHandler(
+                    xhr,
+                    goToLogin,
+                    failMsg,
+                    loadMsg
             }
         }
         xhr.open('POST', '/register', true)
         xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8')
-        var user = {firstname: fname, lastname: lname, email: email, password: pword, username: uname}
+        var user = { firstname: fname, lastname: lname, email: email, password: pword, username: uname }
         xhr.send(JSON.stringify(user))
     }
 
-    function loadMsg()
-    {
-            document.getElementById('after-submit').innerHTML = "Loading ..."
-        }
+    function loadMsg() {
+        document.getElementById('after-submit').innerHTML = "Loading ..."
+    }
 
     function login() {
-            window.location.replace('http://localhost:8080/login.html')
-        }
+        window.location.replace('http://localhost:8080/login.html')
+    }
 
-    function goToLogin()
-    {
-            window.location.replace('http://localhost:8080/login.html')
-        }
+    function goToLogin() {
+        window.location.replace('http://localhost:8080/login.html')
+    }
 
-    function failMsg()
-    {
+    function failMsg() {
         var msg = "Register failed with status " + this.status.toString()
         document.getElementById('after-submit').innerHTML = msg
     }
