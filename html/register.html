@@ -1,38 +1,41 @@
 <!doctype html>
 <html lang="en">
-    <head>
+
+<head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <title>FairMate</title>
-    <link rel="stylesheet" href="">
-    
-    </head>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/register.css">
 
-    <body>
-        <form id="reg-form" method="POST" action="/register">
-            First Name: <br>
-            <input id="fname" type="text" name="firstname" placeholder="First name..."><br>
-            Last Name: <br>
-            <input id="lname" type="text" name="lastname" placeholder="Last name ..."><br>
-            Email: <br>
-            <input id="email" type="text" name="email" placeholder="Email..."><br>
-            Username:<br>
-            <input id="uname" type="text" name="username" placeholder="Username..."><br>
-            Password:<br>
-            <input id="pword" type="password" name="password" placeholder="Password..."><br>
-            <input id="pword" type="password" name="cpass" placeholder="Confirm Password..."><br>
-            <button type="submit" onclick="register(event)">Submit</button>
+</head>
+
+<body>
+    <div class="wrapper-30 h-wrapper">
+        <div class="small-box">
+        <div class="h-wrapper wrapper-50">
+        <form class="form1" id="reg-form" method="POST" action="/register">
+            <input class="input1" id="fname" type="text" name="firstname" placeholder="First name...">
+            <input class="input1" id="lname" type="text" name="lastname" placeholder="Last name ...">
+            <input class="input1" id="email" type="text" name="email" placeholder="Email...">
+            <input class="input1" id="uname" type="text" name="username" placeholder="Username...">
+            <input class="input1" id="pword" type="password" name="password" placeholder="Password...">
+            <input class="input1" id="pword" type="password" name="cpass" placeholder="Confirm Password...">
+            <button class="button1 fill-btn" type="submit" onclick="register(event)">Submit</button>
             <div id="after-submit"></div>
+            <button class="button1 fill-btn" id="login-btn" onclick="login()">Login</button>
         </form>
-        <button id="login-btn" onclick="login()">Login</button>
-    </body>
+        </div>
+        </div>
+    </div>
+</body>
 
-    <script src="js/response.js">
+<script src="js/response.js">
     <script>
-    function register(event) {
-        event.preventDefault()
+        function register(event) {
+            event.preventDefault()
         var fname = document.getElementById('fname').value
         var lname = document.getElementById('lname').value
         var email = document.getElementById('email').value
@@ -42,11 +45,11 @@
         xhr = new XMLHttpRequest()
         xhr.onreadystatechange = function(x){
             return function() {
-                responseHandler(
-                    xhr,
-                    goToLogin,
-                    failMsg,
-                    loadMsg
+            responseHandler(
+                xhr,
+                goToLogin,
+                failMsg,
+                loadMsg
             }
         }
         xhr.open('POST', '/register', true)
@@ -57,22 +60,23 @@
 
     function loadMsg()
     {
-        document.getElementById('after-submit').innerHTML = "Loading ..."
-    }
+            document.getElementById('after-submit').innerHTML = "Loading ..."
+        }
 
     function login() {
-        window.location.replace('http://localhost:8080/login.html')
-    }
+            window.location.replace('http://localhost:8080/login.html')
+        }
 
     function goToLogin()
     {
-        window.location.replace('http://localhost:8080/login.html')
-    }
+            window.location.replace('http://localhost:8080/login.html')
+        }
 
     function failMsg()
     {
         var msg = "Register failed with status " + this.status.toString()
         document.getElementById('after-submit').innerHTML = msg
     }
-  </script>
+</script>
+
 </html>

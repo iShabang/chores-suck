@@ -36,11 +36,9 @@ body {
 .button1 {
     background-color: #333;
     color: white;
-    height: 30px;
-    width: 20%;
     border: none;
     outline: none;
-    margin: 0px;
+    margin: 0 0 5% 0;
 }
 
 .right-btn {
@@ -49,6 +47,7 @@ body {
 
 .fill-btn {
     width: 100%;
+    height: 30px;
 }
 
 .table1 {
@@ -152,4 +151,18 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.small-box {
+    padding: 18% 0;
+    margin-top: 25%;
+    background-color: #999;
+}
+
+.form1 {
+    width: 100%;
+    height: auto;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
 }
