@@ -117,6 +117,10 @@ body {
     width: 30%;
 }
 
+.wrapper-90 {
+    width: 90%;
+}
+
 .label1 {
     background-color: red;
     height: 20px;
