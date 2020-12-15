@@ -1,7 +1,7 @@
-package tools
+package auth
 
 import (
-	"fmserver/tools/database"
+	"database"
 	"fmt"
 	"net/http"
 	"time"
