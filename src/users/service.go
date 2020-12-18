@@ -7,6 +7,7 @@ import (
 // Service provides functionality for user types
 type Service interface {
 	Authenticate(string, string) (User, error)
+	Authorize(SessionID) (Session, error)
 	StartSession(User) (Session, error)
 }
 
@@ -16,7 +17,7 @@ type service struct {
 
 func (s service) Authenticate(username string, password string) (User, error) {
 
-	u, e := s.repo.FetchUser(username)
+	u, e := s.repo.GetUser(username)
 
 	if e != nil {
 		//TODO: Handle error
@@ -29,6 +30,21 @@ func (s service) Authenticate(username string, password string) (User, error) {
 	}
 
 	return u, nil
+}
+
+func (s service) Authorize(sid SessionID) (Session, error) {
+	ses, e := s.repo.GetSession(string(sid))
+
+	if e != nil {
+		// TODO: Handle error
+		// Session not found or database issue
+	}
+
+	if ses.ExpireTime <= time.Now().Unix() {
+		// TODO: Handle expired session
+	}
+
+	return ses, nil
 }
 
 func (s service) StartSession(user User) (Session, error) {

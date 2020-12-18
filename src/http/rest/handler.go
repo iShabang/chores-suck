@@ -5,12 +5,20 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/julienschmidt/httprouter"
+
 	"chores-suck/users"
 )
 
-// Login function that handles http login requests
-func Login(service users.Service) func(writer http.ResponseWriter, request *http.Request) {
-	return func(writer http.ResponseWriter, request *http.Request) {
+//Handler creates and returns a new http.Handler with the request handlers and functions pre-registered/routed
+func Handler(u users.Service) http.Handler {
+	ro := httprouter.New()
+	ro.POST("/login", login(u))
+	return ro
+}
+
+func login(service users.Service) func(writer http.ResponseWriter, request *http.Request, ps httprouter.Params) {
+	return func(writer http.ResponseWriter, request *http.Request, ps httprouter.Params) {
 		if request.Method != "POST" {
 			http.Error(writer, "Invlalid login command", http.StatusMethodNotAllowed)
 			return
