@@ -7,7 +7,7 @@ import (
 // Service provides functionality for user types
 type Service interface {
 	Authenticate(string, string) (User, error)
-	Authorize(SessionID) (Session, error)
+	Authorize(string) (Session, error)
 	StartSession(User) (Session, error)
 }
 
@@ -32,8 +32,8 @@ func (s service) Authenticate(username string, password string) (User, error) {
 	return u, nil
 }
 
-func (s service) Authorize(sid SessionID) (Session, error) {
-	ses, e := s.repo.GetSession(string(sid))
+func (s service) Authorize(sid string) (Session, error) {
+	ses, e := s.repo.GetSession(sid)
 
 	if e != nil {
 		// TODO: Handle error

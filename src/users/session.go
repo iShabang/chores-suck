@@ -6,5 +6,3 @@ type Session struct {
 	UserID     uint64
 	ExpireTime int64
 }
-
-type SessionID string
