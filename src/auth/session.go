@@ -1,4 +1,4 @@
-package users
+package auth
 
 // Session type containing user session information
 type Session struct {
