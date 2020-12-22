@@ -2,12 +2,10 @@ package rest
 
 import (
 	"net/http"
-	"strconv"
-	"time"
 
 	"github.com/julienschmidt/httprouter"
 
-	"chores-suck/auth"
+	"chores-suck/http/auth"
 )
 
 //Handler creates and returns a new http.Handler with the request handlers and functions pre-registered/routed
@@ -17,39 +15,19 @@ func Handler(a auth.Service) http.Handler {
 	return ro
 }
 
-func login(service auth.Service) func(writer http.ResponseWriter, request *http.Request, ps httprouter.Params) {
-	return func(writer http.ResponseWriter, request *http.Request, ps httprouter.Params) {
-		if request.Method != "POST" {
-			http.Error(writer, "Invlalid login command", http.StatusMethodNotAllowed)
-			return
+func login(service auth.Service) func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+	return func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+		a, e := service.Authenticate(wr, req)
+
+		if !a {
+			// TODO: Inform client that login failed (wrong username/password)
+			if e == nil {
+				http.Error(wr, e.Error(), http.StatusUnauthorized)
+			} else {
+				wr.WriteHeader(http.StatusUnauthorized)
+			}
 		}
 
-		n := request.FormValue("username")
-		p := request.FormValue("password")
-
-		u, e := service.Authenticate(n, p)
-
-		// TODO: error check
-		if e != nil {
-			return
-		}
-
-		s, e := service.StartSession(u)
-
-		// TODO: error check
-		if e != nil {
-			return
-		}
-
-		c := http.Cookie{
-			Name:     "session",
-			Value:    strconv.FormatUint(s.ID, 10),
-			Expires:  time.Unix(s.ExpireTime, 0),
-			Secure:   false,
-			HttpOnly: true,
-		}
-		http.SetCookie(writer, &c)
-
-		writer.WriteHeader(http.StatusOK)
+		http.Redirect(wr, req, "/", 302)
 	}
 }
