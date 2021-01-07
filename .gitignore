@@ -1,10 +1,2 @@
-build/
-compile_commands.json
-webserver/bin/
-webserver/pkg/
-webserver/server
-webserver/src/github.com/
-webserver/src/go.mongodb.org/
-webserver/src/golang.org/
-webserver/temp
-temp
+*.exe
+*.http
