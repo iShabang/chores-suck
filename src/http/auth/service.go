@@ -14,8 +14,6 @@ type Service interface {
 
 // Repository defines storage functionality for a service
 type Repository interface {
-	//AddUser(User) error
-	//UpdateUser(User, string, string) error
 	GetUser(string) (User, error)
 }
 
