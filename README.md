@@ -1,1 +1,1 @@
-# FairMate
+# chores-suck
