@@ -1,29 +1,35 @@
 package auth
 
 import (
-	"chores-suck/users"
 	"net/http"
 
 	"github.com/gorilla/sessions"
 )
 
-// Service provides functionality for user types
+// Service provides functionality for authentication and authorization
 type Service interface {
 	Authenticate(http.ResponseWriter, *http.Request) (bool, error)
 	Authorize(http.ResponseWriter, *http.Request) bool
 }
 
-// NewService creates and returns a new auth Service
-func NewService(ur users.Repository, ses sessions.Store) Service {
-	return &service{
-		userRepo: ur,
-		store:    ses,
-	}
+// Repository defines storage functionality for a service
+type Repository interface {
+	//AddUser(User) error
+	//UpdateUser(User, string, string) error
+	GetUser(string) (User, error)
 }
 
 type service struct {
-	userRepo users.Repository
-	store    sessions.Store
+	repo  Repository
+	store sessions.Store
+}
+
+// NewService creates and returns a new auth Service
+func NewService(rep Repository, ses sessions.Store) Service {
+	return &service{
+		repo:  rep,
+		store: ses,
+	}
 }
 
 func (s service) Authenticate(wr http.ResponseWriter, req *http.Request) (bool, error) {
@@ -32,7 +38,7 @@ func (s service) Authenticate(wr http.ResponseWriter, req *http.Request) (bool, 
 	}
 
 	n := req.FormValue("username")
-	u, e := s.userRepo.Get(n)
+	u, e := s.repo.GetUser(n)
 
 	if e != nil {
 		return false, nil
