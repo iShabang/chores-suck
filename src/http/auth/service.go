@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"chores-suck/types"
 	"net/http"
 
 	"github.com/gorilla/sessions"
@@ -14,7 +15,7 @@ type Service interface {
 
 // Repository defines storage functionality for a service
 type Repository interface {
-	GetUser(string) (User, error)
+	GetUserByName(string) (types.User, error)
 }
 
 type service struct {
@@ -30,13 +31,13 @@ func NewService(rep Repository, ses sessions.Store) Service {
 	}
 }
 
-func (s service) Authenticate(wr http.ResponseWriter, req *http.Request) (bool, error) {
+func (s *service) Authenticate(wr http.ResponseWriter, req *http.Request) (bool, error) {
 	if s.isLoggedIn(req) {
 		return true, nil
 	}
 
 	n := req.FormValue("username")
-	u, e := s.repo.GetUser(n)
+	u, e := s.repo.GetUserByName(n)
 
 	if e != nil {
 		return false, nil
@@ -60,7 +61,7 @@ func (s service) Authenticate(wr http.ResponseWriter, req *http.Request) (bool, 
 	return true, nil
 }
 
-func (s service) Authorize(wr http.ResponseWriter, req *http.Request) bool {
+func (s *service) Authorize(wr http.ResponseWriter, req *http.Request) bool {
 	return s.isLoggedIn(req)
 }
 
