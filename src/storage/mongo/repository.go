@@ -19,7 +19,7 @@ type Storage struct {
 
 // GetUserByName fetches a user from the database by unique username
 func (s *Storage) GetUserByName(name string) (types.User, error) {
-	filter := bson.D{{Key: "username", Value: name}}
+	filter := bson.M{"username": name}
 	var u types.User
 	res, err := s.findOne(&filter, "users")
 	if err == nil {
@@ -30,7 +30,7 @@ func (s *Storage) GetUserByName(name string) (types.User, error) {
 
 // GetSession fetches a session frm the database by session id
 func (s *Storage) GetSession(ses *sessions.Session) error {
-	filter := bson.D{{Key: "sid", Value: ses.ID}}
+	filter := bson.M{"sid": ses.ID}
 	r, e := s.findOne(&filter, "sessions")
 	if e == nil {
 		e = r.Decode(ses)
@@ -40,7 +40,7 @@ func (s *Storage) GetSession(ses *sessions.Session) error {
 
 // DeleteSession deletes a session from the database by ID
 func (s *Storage) DeleteSession(ses *sessions.Session) error {
-	filter := bson.D{{Key: "sid", Value: ses.ID}}
+	filter := bson.M{"sid": ses.ID}
 	e := s.deleteOne(&filter, "sessions")
 	return e
 }
@@ -67,7 +67,7 @@ func (s *Storage) upsert(query *bson.M, update []byte, options *options.UpdateOp
 
 }
 
-func (s *Storage) findOne(filter *bson.D, coll string) (*mongo.SingleResult, error) {
+func (s *Storage) findOne(filter *bson.M, coll string) (*mongo.SingleResult, error) {
 	collection := s.cl.Database("chores-suck").Collection(coll)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -79,12 +79,12 @@ func (s *Storage) findOne(filter *bson.D, coll string) (*mongo.SingleResult, err
 	return res, nil
 }
 
-func (s *Storage) deleteOne(f *bson.D, coll string) error {
+func (s *Storage) deleteOne(filter *bson.M, coll string) error {
 	var err error
 	collection := s.cl.Database("chores-suck").Collection(coll)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	res, err := collection.DeleteOne(ctx, f)
+	res, err := collection.DeleteOne(ctx, filter)
 	if err == nil && res.DeletedCount < 1 {
 		err = errors.New("No items deleted")
 	}
