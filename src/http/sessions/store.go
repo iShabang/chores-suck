@@ -1,9 +1,7 @@
 package sessions
 
 import (
-	"encoding/base32"
 	"net/http"
-	"strings"
 
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
@@ -64,7 +62,6 @@ func (s *Store) New(req *http.Request, name string) (*sessions.Session, error) {
 // Save should persist session to the underlying store implementation.
 func (s *Store) Save(req *http.Request, w http.ResponseWriter, ses *sessions.Session) error {
 	if ses.Options.MaxAge < 0 {
-		// TODO: Delete session from database
 		if err := s.repo.DeleteSession(ses); err != nil {
 			return err
 		}
@@ -73,11 +70,7 @@ func (s *Store) Save(req *http.Request, w http.ResponseWriter, ses *sessions.Ses
 	}
 
 	if ses.ID == "" {
-		// Because the ID is used in the filename, encode it to
-		// use alphanumeric characters only.
-		ses.ID = strings.TrimRight(
-			base32.StdEncoding.EncodeToString(
-				securecookie.GenerateRandomKey(32)), "=")
+		ses.ID = string(securecookie.GenerateRandomKey(32))
 	}
 
 	if err := s.repo.UpsertSession(ses); err != nil {
