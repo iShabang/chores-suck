@@ -5,7 +5,7 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 
-	"chores-suck/http/auth"
+	"chores-suck/rest/auth"
 	"chores-suck/rest/errors"
 )
 
@@ -28,7 +28,7 @@ func requiresLogin(handler func(wr http.ResponseWriter, req *http.Request, ps ht
 func logout(service auth.Service) func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	return func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 		err := service.Logout(wr, req)
-		handleError(err)
+		handleError(err, wr)
 		http.Redirect(wr, req, "/", 302)
 	}
 }
@@ -36,7 +36,7 @@ func logout(service auth.Service) func(wr http.ResponseWriter, req *http.Request
 func login(service auth.Service) func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	return func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 		err := service.Login(wr, req)
-		handleError(err)
+		handleError(err, wr)
 		http.Redirect(wr, req, "/", 302)
 	}
 }
