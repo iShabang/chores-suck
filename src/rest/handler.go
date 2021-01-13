@@ -25,18 +25,29 @@ func requiresLogin(handler func(wr http.ResponseWriter, req *http.Request, ps ht
 	}
 }
 
+func logout(service auth.Service) func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+	return func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+		err := service.Logout(wr, req)
+		handleError(err)
+		http.Redirect(wr, req, "/", 302)
+	}
+}
+
 func login(service auth.Service) func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	return func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 		err := service.Login(wr, req)
-		if err != nil {
-			switch e := err.(type) {
-			case errors.Error:
-				http.Error(wr, e.Error(), e.Status())
-			default:
-				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			}
-		}
-
+		handleError(err)
 		http.Redirect(wr, req, "/", 302)
+	}
+}
+
+func handleError(err error, wr http.ResponseWriter) {
+	if err != nil {
+		switch e := err.(type) {
+		case errors.Error:
+			http.Error(wr, e.Error(), e.Status())
+		default:
+			http.Error(wr, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		}
 	}
 }
