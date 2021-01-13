@@ -46,9 +46,9 @@ func NewService(rep Repository, ses sessions.Store) Service {
 }
 
 func (s *service) Login(wr http.ResponseWriter, req *http.Request) error {
-	ses, e := s.store.Get(req, "session")
+	ses, e := s.getSession(req)
 	if e != nil {
-		return cerror.StatusError{Code: http.StatusInternalServerError, Err: e}
+		return e
 	}
 	if e = checkAuthValue(ses); e == nil {
 		return nil
@@ -79,7 +79,7 @@ func (s *service) Login(wr http.ResponseWriter, req *http.Request) error {
 }
 
 func (s *service) Logout(wr http.ResponseWriter, req *http.Request) error {
-	ses, e := s.store.Get(req, "session")
+	ses, e := s.getSession(req)
 	if e != nil {
 		return e
 	}
@@ -90,7 +90,7 @@ func (s *service) Logout(wr http.ResponseWriter, req *http.Request) error {
 }
 
 func (s *service) Authorize(wr http.ResponseWriter, req *http.Request) (string, error) {
-	ses, e := s.store.Get(req, "session")
+	ses, e := s.getSession(req)
 	if e != nil {
 		return "", e
 	}
@@ -99,20 +99,28 @@ func (s *service) Authorize(wr http.ResponseWriter, req *http.Request) (string, 
 		return "", e
 	}
 
-	u, ok := ses.Values["username"].(string)
-	if !ok || u == "" {
-		// TODO: return an error
+	var u string
+	if u, e = getUsernameValue(ses); e != nil {
+		return "", e
 	}
 
 	return u, nil
 }
 
-func (s service) isLoggedIn(r *http.Request) bool {
+func (s *service) isLoggedIn(r *http.Request) bool {
 	ses, e := s.store.Get(r, "session")
 	if e != nil {
 		return false
 	}
 	return ses.Values["auth"] == "true"
+}
+
+func (s *service) getSession(req *http.Request) (*sessions.Session, error) {
+	ses, e := s.store.Get(req, "session")
+	if e != nil {
+		return nil, cerror.StatusError{Code: http.StatusInternalServerError, Err: e}
+	}
+	return ses, nil
 }
 
 func checkAuthValue(s *sessions.Session) error {
