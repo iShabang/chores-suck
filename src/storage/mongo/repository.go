@@ -30,10 +30,7 @@ func NewStorage(c *mongo.Client, ttl int32) *Storage {
 func (s *Storage) GetUserByName(name string) (types.User, error) {
 	filter := bson.M{"username": name}
 	var u types.User
-	res, err := s.findOne(&filter, "users")
-	if err == nil {
-		err = res.Decode(&u)
-	}
+	err := s.findOne(&filter, u, "users")
 	return u, err
 }
 
@@ -73,19 +70,19 @@ func (s *Storage) upsert(query *bson.M, update []byte, options *options.UpdateOp
 		err = errors.New("no objects modified")
 	}
 	return err
-
 }
 
-func (s *Storage) findOne(filter *bson.M, coll string) (*mongo.SingleResult, error) {
+//func (s *Storage) findOne(filter *bson.M, object interface{}, coll string) (*mongo.SingleResult, error) {
+func (s *Storage) findOne(filter *bson.M, object interface{}, coll string) error {
 	collection := s.cl.Database("chores-suck").Collection(coll)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	res := collection.FindOne(ctx, filter)
-	if res.Err() != nil {
-		return nil, res.Err()
+	e := res.Decode(object)
+	if e != nil && e != mongo.ErrNoDocuments {
+		return e
 	}
-
-	return res, nil
+	return nil
 }
 
 func (s *Storage) deleteOne(filter *bson.M, coll string) error {
