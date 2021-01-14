@@ -37,10 +37,7 @@ func (s *Storage) GetUserByName(name string) (types.User, error) {
 // GetSession fetches a session frm the database by session id
 func (s *Storage) GetSession(ses *sessions.Session) error {
 	filter := bson.M{"ID": ses.ID}
-	r, e := s.findOne(&filter, "sessions")
-	if e == nil {
-		e = r.Decode(ses)
-	}
+	e := s.findOne(&filter, ses, "sessions")
 	return e
 }
 
