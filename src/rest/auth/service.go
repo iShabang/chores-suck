@@ -69,7 +69,7 @@ func (s *service) Login(wr http.ResponseWriter, req *http.Request) error {
 		return cerror.StatusError{Code: http.StatusUnauthorized, Err: ErrNotAuthorized}
 	}
 
-	ses.Values["username"] = n
+	ses.Values["userid"] = u.ID
 	ses.Values["auth"] = true
 	if e = ses.Save(req, wr); e != nil {
 		return cerror.StatusError{Code: http.StatusInternalServerError, Err: e}
@@ -100,7 +100,7 @@ func (s *service) Authorize(wr http.ResponseWriter, req *http.Request) (string, 
 	}
 
 	var u string
-	if u, e = getUsernameValue(ses); e != nil {
+	if u, e = getUserIdValue(ses); e != nil {
 		return "", e
 	}
 
@@ -133,8 +133,8 @@ func checkAuthValue(s *sessions.Session) error {
 	return nil
 }
 
-func getUsernameValue(s *sessions.Session) (string, error) {
-	u, ok := s.Values["username"].(string)
+func getUserIdValue(s *sessions.Session) (string, error) {
+	u, ok := s.Values["userid"].(string)
 	if !ok {
 		return "", cerror.StatusError{Code: http.StatusInternalServerError, Err: ErrSessionType}
 	} else if u == "" {
