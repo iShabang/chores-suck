@@ -1,8 +1,9 @@
 package types
 
-// User defines properties of a user to be authorized/authenticated
+// User defines properties of a user
 type User struct {
 	ID       uint64
-	Name     string
+	Username string
 	Password string
+	Email    string
 }

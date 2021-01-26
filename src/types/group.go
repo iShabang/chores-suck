@@ -1,3 +1,7 @@
 package types
 
-type Group struct{}
+// Group defines properties for a group
+type Group struct {
+	ID   string
+	Name string
+}
