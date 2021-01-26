@@ -7,38 +7,60 @@ import (
 
 	"chores-suck/rest/auth"
 	"chores-suck/rest/errors"
+	"chores-suck/rest/views"
 )
 
+// Services holds references to services that handlers utilize to carry out requests
+type Services struct {
+	auth  auth.Service
+	views views.Service
+}
+
+// NewServices creates a new Services object
+func NewServices(a auth.Service, v views.Service) *Services {
+	return &Services{
+		auth:  a,
+		views: v,
+	}
+}
+
 //Handler creates and returns a new http.Handler with the request handlers and functions pre-registered/routed
-func Handler(a auth.Service) http.Handler {
+func Handler(s *Services) http.Handler {
 	ro := httprouter.New()
-	ro.POST("/login", login(a))
+	ro.HandlerFunc("POST", "/login", s.login)
+	ro.HandlerFunc("POST", "/logout", s.requiresLogin(s.logout))
+	ro.HandlerFunc("GET", "/dashboard", s.requiresLogin(s.dashboard))
 	return ro
 }
 
 // Create middleware for authentication
-func requiresLogin(handler func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params)) func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params) {
-	return func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params) {
-		// Do Login logic
+func (s *Services) requiresLogin(handler func(wr http.ResponseWriter, req *http.Request, uid string)) http.HandlerFunc {
+	return func(wr http.ResponseWriter, req *http.Request) {
+		uid, err := s.auth.Authorize(wr, req)
+		if err != nil {
+			handleError(err, wr)
+			http.Redirect(wr, req, "/", 302)
+			return
+		}
 
-		handler(wr, req, ps)
+		handler(wr, req, uid)
 	}
 }
 
-func logout(service auth.Service) func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params) {
-	return func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params) {
-		err := service.Logout(wr, req)
-		handleError(err, wr)
-		http.Redirect(wr, req, "/", 302)
-	}
+func (s *Services) dashboard(wr http.ResponseWriter, req *http.Request, uid string) {
+	s.views.BuildDashboard(wr, req, uid)
 }
 
-func login(service auth.Service) func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params) {
-	return func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params) {
-		err := service.Login(wr, req)
-		handleError(err, wr)
-		http.Redirect(wr, req, "/", 302)
-	}
+func (s *Services) logout(wr http.ResponseWriter, req *http.Request, uid string) {
+	err := s.auth.Logout(wr, req)
+	handleError(err, wr)
+	http.Redirect(wr, req, "/", 302)
+}
+
+func (s *Services) login(wr http.ResponseWriter, req *http.Request) {
+	err := s.auth.Login(wr, req)
+	handleError(err, wr)
+	http.Redirect(wr, req, "/", 302)
 }
 
 func handleError(err error, wr http.ResponseWriter) {
