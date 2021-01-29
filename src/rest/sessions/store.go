@@ -1,7 +1,9 @@
 package sessions
 
 import (
+	"chores-suck/types"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
@@ -9,9 +11,9 @@ import (
 
 // Repository defines storage functionality for sessions
 type Repository interface {
-	GetSession(ses *sessions.Session) error
-	DeleteSession(ses *sessions.Session) error
-	UpsertSession(ses *sessions.Session) error
+	GetSession(ID string) (types.Session, error)
+	DeleteSession(ID string) error
+	UpsertSession(ses *types.Session) error
 }
 
 // Store defines properties of a session store
@@ -51,8 +53,9 @@ func (s *Store) New(req *http.Request, name string) (*sessions.Session, error) {
 	var err error
 	if cookie, errCookie := req.Cookie(name); errCookie == nil {
 		if err = securecookie.DecodeMulti(name, cookie.Value, &session.ID, s.codecs...); err == nil {
-			if err = s.repo.GetSession(session); err != nil {
+			if ts, err := s.repo.GetSession(session.ID); err == nil {
 				session.IsNew = false
+				err = securecookie.DecodeMulti(name, ts.Values, &session.Values, s.codecs...)
 			}
 		}
 	}
@@ -62,7 +65,7 @@ func (s *Store) New(req *http.Request, name string) (*sessions.Session, error) {
 // Save should persist session to the underlying store implementation.
 func (s *Store) Save(req *http.Request, w http.ResponseWriter, ses *sessions.Session) error {
 	if ses.Options.MaxAge < 0 {
-		if err := s.repo.DeleteSession(ses); err != nil {
+		if err := s.repo.DeleteSession(ses.ID); err != nil {
 			return err
 		}
 		http.SetCookie(w, sessions.NewCookie(ses.Name(), "", ses.Options))
@@ -73,7 +76,15 @@ func (s *Store) Save(req *http.Request, w http.ResponseWriter, ses *sessions.Ses
 		ses.ID = string(securecookie.GenerateRandomKey(32))
 	}
 
-	if err := s.repo.UpsertSession(ses); err != nil {
+	var err error
+	ts := types.Session{}
+	ts.SesID = ses.ID
+	ts.Created = time.Now()
+	if ts.Values, err = securecookie.EncodeMulti(ses.Name(), ses.Values, s.codecs...); err != nil {
+		return err
+	}
+
+	if err = s.repo.UpsertSession(&ts); err != nil {
 		return err
 	}
 
