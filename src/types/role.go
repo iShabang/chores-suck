@@ -5,7 +5,7 @@ type Role struct {
 	ID          string
 	Name        string
 	Permissions int
-	GroupID     int
+	Group       *Group
 }
 
 type PermBit int

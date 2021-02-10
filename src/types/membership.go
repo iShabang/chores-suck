@@ -6,7 +6,8 @@ import (
 
 // Membership relates a User to a specific group
 type Membership struct {
-	JoinedAt time.Time
-	UserID   int
-	GroupID  int
+	JoinedAt    time.Time
+	User        *User
+	Group       *Group
+	Assignments []ChoreAssignment
 }
