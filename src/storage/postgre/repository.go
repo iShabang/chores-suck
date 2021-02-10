@@ -43,6 +43,79 @@ func (s *Storage) GetUserByID(ID string) (types.User, error) {
 	return user, err
 }
 
+// GetUserChoreList fetches a list of chore data
+func (s *Storage) GetUserChoreList(userID int) ([]types.ChoreListItem, error) {
+	rows, err := s.Db.Query("SELECT chore_assignments.date_due, chores.name, group.name FROM chore_assignments WHERE chore_assignments.user_id = $1 INNER JOIN chores ON chores.chore_id = chore_assignments.chore_id INNER JOIN groups ON groups.group_id = chores.group_id", userID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var chores []types.ChoreListItem
+	defer rows.Close()
+	for rows.Next() {
+		ch := types.ChoreListItem{}
+		err = rows.Scan(&ch.DateDue, &ch.ChoreName, &ch.GroupName)
+		if err != nil {
+			return nil, err
+		}
+		chores = append(chores, ch)
+	}
+
+	return chores, err
+}
+
+func (s *Storage) GetUserMemberships(user *types.User) error {
+	rows, err := s.Db.Query("SELECT memberships.joined_at, memberships.group_id, groups.name FROM memberships WHERE memberships.user_id = $1 INNER JOIN groups ON groups.group_id = memberships.group_id", user.ID)
+
+	if err != nil {
+		return err
+	}
+
+	user.Memberships = []types.Membership{}
+	defer rows.Close()
+	for rows.Next() {
+		mem := types.Membership{
+			User:  user,
+			Group: &types.Group{},
+		}
+		err := rows.Scan(&mem.JoinedAt, &mem.Group.ID, &mem.Group.Name)
+		if err != nil {
+			return err
+		}
+		user.Memberships = append(user.Memberships, mem)
+	}
+
+	return nil
+}
+
+// GetMemberChores fetches the list of chores assigned to a member
+func (s *Storage) GetMemberChores(member *types.Membership) error {
+	rows, err := s.Db.Query("SELECT chores.chore_id, chores.description, chores.name, chores.duration, chore_assignments.complete, chore_assignments.date_assigned, chore_assignments.date_complete FROM chores WHERE chores.group_id = $1 INNER JOIN chore_assignment ON chore_assignment.chore_id = chores.chore_id", member.Group.ID)
+
+	if err != nil {
+		return err
+	}
+
+	member.Assignments = []types.ChoreAssignment{}
+	defer rows.Close()
+	for rows.Next() {
+		ca := types.ChoreAssignment{
+			User:  member.User,
+			Chore: &types.Chore{Group: member.Group},
+		}
+		err := rows.Scan(&ca.Chore.ID, &ca.Chore.Description, &ca.Chore.Name, &ca.Chore.Duration, &ca.Complete, &ca.DateAssigned, &ca.DateComplete)
+
+		if err != nil {
+			return err
+		}
+
+		member.Assignments = append(member.Assignments, ca)
+	}
+
+	return nil
+}
+
 // GetSession fetches a session frm the database by session id
 func (s *Storage) GetSession(ID string) (types.Session, error) {
 	p := types.Session{}
