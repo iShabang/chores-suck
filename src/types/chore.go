@@ -1,12 +1,18 @@
 package types
 
+import "time"
+
 // Chore describes properties of a chore
 type Chore struct {
-	ID          string
+	ID          int
 	Description string
 	Name        string
-	GroupID     string
+	Duration    int
+	Group       *Group
+}
 
-	// Estimated time in minutes it takes to complete the task
-	TimeToComplete int
+type ChoreListItem struct {
+	GroupName string
+	ChoreName string
+	DateDue   time.Time
 }

@@ -1,2 +1,5 @@
 *.exe
 *.http
+documentation/
+*.txt
+queries
