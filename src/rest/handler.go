@@ -7,6 +7,7 @@ import (
 
 	"chores-suck/rest/auth"
 	"chores-suck/rest/errors"
+	"chores-suck/rest/messages"
 	"chores-suck/rest/views"
 )
 
@@ -59,8 +60,25 @@ func (s *Services) logout(wr http.ResponseWriter, req *http.Request, uid string)
 
 func (s *Services) login(wr http.ResponseWriter, req *http.Request) {
 	err := s.auth.Login(wr, req)
-	handleError(err, wr)
+	if err != nil {
+		handleError(err, wr)
+		return
+	}
 	http.Redirect(wr, req, "/", 302)
+}
+
+func (s *Services) createUser(wr http.ResponseWriter, req *http.Request) {
+	msg := messages.RegisterMessage{}
+	err := s.auth.Create(wr, req, &msg)
+	if err != nil {
+		if err == auth.ErrInvalidFormData {
+			s.views.RegisterForm(wr, req, &msg)
+		} else {
+			handleError(err, wr)
+		}
+		return
+	}
+	http.Redirect(wr, req, "/login", 302)
 }
 
 func handleError(err error, wr http.ResponseWriter) {
