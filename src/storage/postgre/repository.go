@@ -36,6 +36,25 @@ func NewStorage() *Storage {
 	return s
 }
 
+// GetUserByName fetches a user from the database by unique username
+func (s *Storage) GetUserByName(user *types.User) error {
+	query := `
+	SELECT user.user_id, user.email, user.pword, user.created_at 
+	FROM users 
+	WHERE user.uname = $1`
+	err := s.Db.QueryRow(query, user.Username).Scan(&user.ID, &user.Email, &user.Password, &user.CreatedAt)
+	return err
+}
+
+func (s *Storage) GetUserByEmail(user *types.User) error {
+	query := `
+	SELECT user.user_id, user.uname, user.pword, user.created_at 
+	FROM users 
+	WHERE user.email = $1`
+	err := s.Db.QueryRow(query, user.Email).Scan(&user.ID, &user.Username, &user.Password, &user.CreatedAt)
+	return err
+}
+
 // GetUserByID fetches a user from the database by unique ID
 func (s *Storage) GetUserByID(ID string) (types.User, error) {
 	user := types.User{}
