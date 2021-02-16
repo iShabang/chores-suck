@@ -58,7 +58,7 @@ func (s *Storage) GetUserByEmail(user *types.User) error {
 // GetUserByID fetches a user from the database by unique ID
 func (s *Storage) GetUserByID(ID string) (types.User, error) {
 	user := types.User{}
-	err := s.Db.QueryRow("SELECT id, uuid, name, email, created_at FROM users WHERE id = $1", ID).Scan(&user.ID, &user.UUID, &user.Username, &user.Email, &user.CreatedAt)
+	err := s.Db.QueryRow("SELECT id, uname, email, pword, created_at FROM users WHERE id = $1", ID).Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.CreatedAt)
 	return user, err
 }
 
