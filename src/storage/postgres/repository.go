@@ -1,4 +1,4 @@
-package postgre
+package postgres
 
 import (
 	"chores-suck/types"
@@ -26,7 +26,7 @@ type Storage struct {
 
 // NewStorage creates and returns a new storage object
 func NewStorage() *Storage {
-	db, err := sql.Open("postgres", "dbname=choressuck sslmode=disable")
+	db, err := sql.Open("postgres", "hostaddr=192.168.1.202 username=pi password=CorkstCork12 dbname=choressuck sslmode=disable")
 	s := &Storage{
 		Db: db,
 	}
@@ -60,6 +60,17 @@ func (s *Storage) GetUserByID(ID string) (types.User, error) {
 	user := types.User{}
 	err := s.Db.QueryRow("SELECT id, uuid, name, email, created_at FROM users WHERE id = $1", ID).Scan(&user.ID, &user.UUID, &user.Username, &user.Email, &user.CreatedAt)
 	return user, err
+}
+
+// CreateUser adds a new user to the database
+func (s *Storage) CreateUser(user *types.User) error {
+	ca := time.Now().Unix()
+	query := `INSERT INTO users (uname, email, pword, created_at) VALUES ($1,$2,$3,$4) RETURNING user_id`
+	err := s.Db.QueryRow(query, user.Username, user.Email, user.Password, ca).Scan(&user.ID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // GetUserChoreList fetches a list of chore data

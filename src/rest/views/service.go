@@ -31,6 +31,13 @@ type service struct {
 	repo  Repository
 }
 
+func NewService(s *sessions.Store, r Repository) Service {
+	return &service{
+		store: s,
+		repo:  r,
+	}
+}
+
 func (s *service) BuildDashboard(wr http.ResponseWriter, req *http.Request, uid string) error {
 	// Get User
 	// Get Memberships
@@ -41,7 +48,7 @@ func (s *service) BuildDashboard(wr http.ResponseWriter, req *http.Request, uid 
 
 func (s *service) RegisterForm(wr http.ResponseWriter, req *http.Request, msg *messages.RegisterMessage) error {
 	var t *template.Template
-	t, err := template.ParseFiles("register.html", "navbar.html", "head.html")
+	t, err := template.ParseFiles("../html/register.html", "../html/navbar.html", "../html/head.html")
 	if err != nil {
 		return internalError(err)
 	}

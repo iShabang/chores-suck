@@ -31,6 +31,7 @@ func Handler(s *Services) http.Handler {
 	ro.HandlerFunc("POST", "/login", s.login)
 	ro.HandlerFunc("POST", "/logout", s.requiresLogin(s.logout))
 	ro.HandlerFunc("GET", "/dashboard", s.requiresLogin(s.dashboard))
+	ro.HandlerFunc("GET", "/register", s.register)
 	return ro
 }
 
@@ -65,6 +66,14 @@ func (s *Services) login(wr http.ResponseWriter, req *http.Request) {
 		return
 	}
 	http.Redirect(wr, req, "/", 302)
+}
+
+func (s *Services) register(wr http.ResponseWriter, req *http.Request) {
+	msg := messages.RegisterMessage{}
+	err := s.views.RegisterForm(wr, req, &msg)
+	if err != nil {
+		handleError(err, wr)
+	}
 }
 
 func (s *Services) createUser(wr http.ResponseWriter, req *http.Request) {
