@@ -10,7 +10,7 @@ func validateInput(username string, p1 string, p2 string, email string, msg *mes
 	valid := true
 
 	regEmail := regexp.MustCompile(`.+@.+\..+`)
-	regName := regexp.MustCompile(`^(?:[0-9a-zA-Z]+-)+[0-9a-zA-Z]+$`)
+	regName := regexp.MustCompile(`^(?:[0-9a-zA-Z]+-)*[0-9a-zA-Z]+$`)
 
 	if strings.TrimSpace(username) == "" {
 		msg.Username = "Must enter a valid username"

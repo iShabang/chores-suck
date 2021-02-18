@@ -26,10 +26,15 @@ type Storage struct {
 
 // NewStorage creates and returns a new storage object
 func NewStorage() *Storage {
-	db, err := sql.Open("postgres", "hostaddr=192.168.1.202 username=pi password=CorkstCork12 dbname=choressuck sslmode=disable")
+	db, err := sql.Open("postgres", "host=192.168.1.202 port=5432 user=pi password=CorkstCork12 dbname=choressuck")
 	s := &Storage{
 		Db: db,
 	}
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = db.Ping()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,33 +44,32 @@ func NewStorage() *Storage {
 // GetUserByName fetches a user from the database by unique username
 func (s *Storage) GetUserByName(user *types.User) error {
 	query := `
-	SELECT user.user_id, user.email, user.pword, user.created_at 
+	SELECT users.id, users.email, users.pword, users.created_at 
 	FROM users 
-	WHERE user.uname = $1`
+	WHERE users.uname = $1`
 	err := s.Db.QueryRow(query, user.Username).Scan(&user.ID, &user.Email, &user.Password, &user.CreatedAt)
 	return err
 }
 
 func (s *Storage) GetUserByEmail(user *types.User) error {
 	query := `
-	SELECT user.user_id, user.uname, user.pword, user.created_at 
+	SELECT users.id, users.uname, users.pword, users.created_at 
 	FROM users 
-	WHERE user.email = $1`
+	WHERE users.email = $1`
 	err := s.Db.QueryRow(query, user.Email).Scan(&user.ID, &user.Username, &user.Password, &user.CreatedAt)
 	return err
 }
 
 // GetUserByID fetches a user from the database by unique ID
-func (s *Storage) GetUserByID(ID string) (types.User, error) {
-	user := types.User{}
-	err := s.Db.QueryRow("SELECT id, uname, email, pword, created_at FROM users WHERE id = $1", ID).Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.CreatedAt)
-	return user, err
+func (s *Storage) GetUserByID(user *types.User) error {
+	err := s.Db.QueryRow("SELECT uname, email, pword, created_at FROM users WHERE id = $1", user.ID).Scan(&user.Username, &user.Email, &user.Password, &user.CreatedAt)
+	return err
 }
 
 // CreateUser adds a new user to the database
 func (s *Storage) CreateUser(user *types.User) error {
-	ca := time.Now().Unix()
-	query := `INSERT INTO users (uname, email, pword, created_at) VALUES ($1,$2,$3,$4) RETURNING user_id`
+	ca := time.Now().UTC()
+	query := `INSERT INTO users (uname, email, pword, created_at) VALUES ($1,$2,$3,$4) RETURNING id`
 	err := s.Db.QueryRow(query, user.Username, user.Email, user.Password, ca).Scan(&user.ID)
 	if err != nil {
 		return err
@@ -74,8 +78,15 @@ func (s *Storage) CreateUser(user *types.User) error {
 }
 
 // GetUserChoreList fetches a list of chore data
-func (s *Storage) GetUserChoreList(userID int) ([]types.ChoreListItem, error) {
-	rows, err := s.Db.Query("SELECT chore_assignments.date_due, chores.name, group.name FROM chore_assignments WHERE chore_assignments.user_id = $1 INNER JOIN chores ON chores.chore_id = chore_assignments.chore_id INNER JOIN groups ON groups.group_id = chores.group_id", userID)
+func (s *Storage) GetUserChoreList(user *types.User) ([]types.ChoreListItem, error) {
+	query := `
+	SELECT ca.date_due, c.name, g.name
+	FROM chore_assignments ca
+	INNER JOIN chores c ON c.id = ca.chore_id
+	INNER JOIN groups g ON g.id = c.group_id
+	WHERE ca.user_id = $1`
+
+	rows, err := s.Db.Query(query, user.ID)
 
 	if err != nil {
 		return nil, err
@@ -87,6 +98,11 @@ func (s *Storage) GetUserChoreList(userID int) ([]types.ChoreListItem, error) {
 		ch := types.ChoreListItem{}
 		err = rows.Scan(&ch.DateDue, &ch.ChoreName, &ch.GroupName)
 		if err != nil {
+			// An empty list is a valid value
+			if err == sql.ErrNoRows {
+				return chores, nil
+			}
+
 			return nil, err
 		}
 		chores = append(chores, ch)
@@ -96,7 +112,13 @@ func (s *Storage) GetUserChoreList(userID int) ([]types.ChoreListItem, error) {
 }
 
 func (s *Storage) GetUserMemberships(user *types.User) error {
-	rows, err := s.Db.Query("SELECT memberships.joined_at, memberships.group_id, groups.name FROM memberships WHERE memberships.user_id = $1 INNER JOIN groups ON groups.group_id = memberships.group_id", user.ID)
+	query := `
+	SELECT m.joined_at, m.group_id, g.name
+	FROM memberships m
+	INNER JOIN groups g ON g.id = m.group_id
+	WHERE m.user_id = $1`
+
+	rows, err := s.Db.Query(query, user.ID)
 
 	if err != nil {
 		return err
@@ -111,6 +133,9 @@ func (s *Storage) GetUserMemberships(user *types.User) error {
 		}
 		err := rows.Scan(&mem.JoinedAt, &mem.Group.ID, &mem.Group.Name)
 		if err != nil {
+			if err == sql.ErrNoRows {
+				return nil
+			}
 			return err
 		}
 		user.Memberships = append(user.Memberships, mem)
@@ -121,7 +146,7 @@ func (s *Storage) GetUserMemberships(user *types.User) error {
 
 // GetMemberChores fetches the list of chores assigned to a member
 func (s *Storage) GetMemberChores(member *types.Membership) error {
-	rows, err := s.Db.Query("SELECT chores.chore_id, chores.description, chores.name, chores.duration, chore_assignments.complete, chore_assignments.date_assigned, chore_assignments.date_complete FROM chores WHERE chores.group_id = $1 INNER JOIN chore_assignment ON chore_assignment.chore_id = chores.chore_id", member.Group.ID)
+	rows, err := s.Db.Query("SELECT chores.id, chores.description, chores.name, chores.duration, chore_assignments.complete, chore_assignments.date_assigned, chore_assignments.date_complete FROM chores WHERE chores.group_id = $1 INNER JOIN chore_assignment ON chore_assignment.chore_id = chores.id", member.Group.ID)
 
 	if err != nil {
 		return err
@@ -147,32 +172,31 @@ func (s *Storage) GetMemberChores(member *types.Membership) error {
 }
 
 // GetSession fetches a session frm the database by session id
-func (s *Storage) GetSession(ID string) (types.Session, error) {
-	p := types.Session{}
-	err := s.Db.QueryRow("SELECT id, ses_id, values, created, expires, modified FROM sessions WHERE ses_id = ?", ID).Scan(&p.ID, &p.SesID, &p.Values, &p.Created)
+func (s *Storage) GetSession(ses *types.Session) error {
+	err := s.Db.QueryRow("SELECT values, created FROM sessions WHERE uuid = $1", ses.UUID).Scan(&ses.Values, &ses.Created)
 
-	return p, err
+	return err
 }
 
 // DeleteSession removes a session from the database
-func (s *Storage) DeleteSession(ID string) error {
-	statement, err := s.Db.Prepare("DELETE FROM sessions where ses_id = $1")
+func (s *Storage) DeleteSession(UUID string) error {
+	statement, err := s.Db.Prepare("DELETE FROM sessions WHERE uuid = $1")
 	if err != nil {
 		return err
 	}
 	defer statement.Close()
-	_, err = statement.Exec(ID)
+	_, err = statement.Exec(UUID)
 	return err
 }
 
 // UpsertSession inserts or updates a session in the database. If the session does not exist
 // it is created otherwise the existing session is updated.
 func (s *Storage) UpsertSession(ses *types.Session) error {
-	statement, err := s.Db.Prepare("INSERT INTO sessions (ses_id, values, created) VALUES ($1,$2,$3) ON CONFLICT ses_id UPDATE SET values = $2")
+	statement, err := s.Db.Prepare("INSERT INTO sessions (uuid, values, created) VALUES ($1,$2,$3) ON CONFLICT (uuid) DO UPDATE SET values = $2")
 	if err != nil {
 		return err
 	}
 	defer statement.Close()
-	_, err = statement.Exec(ses.SesID, ses.Values, ses.Created)
+	_, err = statement.Exec(ses.UUID, ses.Values, ses.Created)
 	return err
 }

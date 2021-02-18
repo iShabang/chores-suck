@@ -5,7 +5,9 @@ import (
 	"chores-suck/rest/messages"
 	"chores-suck/types"
 	"errors"
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/sessions"
 )
@@ -22,13 +24,16 @@ var (
 
 	// ErrInvalidFormData occurs when a form is submitted but the data is not valid
 	ErrInvalidFormData = errors.New("one or more form values was invalid")
+
+	// Name of the session cookie that will be sent to clients
+	SessionName = os.Getenv("SESSION_NAME")
 )
 
 // Service provides functionality for authentication and authorization
 type Service interface {
 	Login(http.ResponseWriter, *http.Request) error
 	Logout(http.ResponseWriter, *http.Request) error
-	Authorize(http.ResponseWriter, *http.Request) (string, error)
+	Authorize(http.ResponseWriter, *http.Request) (uint64, error)
 	Create(http.ResponseWriter, *http.Request, *messages.RegisterMessage) error
 }
 
@@ -65,13 +70,15 @@ func (s *service) Login(wr http.ResponseWriter, req *http.Request) error {
 	u := types.User{Username: n}
 	e = s.repo.GetUserByName(&u)
 	if e != nil {
+		log.Print(e)
 		return authError(ErrNotAuthorized)
 	}
 
-	p := req.FormValue("password")
+	p := req.FormValue("pword")
 	r := checkpword(p, u.Password)
 
 	if !r {
+		log.Printf("Incorrect Password. Passed-In: %s, Database: %s", p, u.Password)
 		return authError(ErrNotAuthorized)
 	}
 
@@ -95,19 +102,22 @@ func (s *service) Logout(wr http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 
-func (s *service) Authorize(wr http.ResponseWriter, req *http.Request) (string, error) {
+func (s *service) Authorize(wr http.ResponseWriter, req *http.Request) (uint64, error) {
 	ses, e := s.getSession(req)
 	if e != nil {
-		return "", e
+		return 0, e
 	}
 
 	if e = checkAuthValue(ses); e != nil {
-		return "", e
+		log.Print("Failed to get auth value")
+		log.Print(ses.Values)
+		return 0, e
 	}
 
-	var u string
+	var u uint64
 	if u, e = getUserIdValue(ses); e != nil {
-		return "", e
+		log.Print("Failed to get user id")
+		return 0, e
 	}
 
 	return u, nil
@@ -142,11 +152,14 @@ func (s *service) Create(wr http.ResponseWriter, req *http.Request, msg *message
 	}
 
 	err = s.repo.CreateUser(&user)
-	return err
+	if err != nil {
+		return internalError(err)
+	}
+	return nil
 }
 
 func (s *service) isLoggedIn(r *http.Request) bool {
-	ses, e := s.store.Get(r, "session")
+	ses, e := s.store.Get(r, SessionName)
 	if e != nil {
 		return false
 	}
@@ -154,7 +167,7 @@ func (s *service) isLoggedIn(r *http.Request) bool {
 }
 
 func (s *service) getSession(req *http.Request) (*sessions.Session, error) {
-	ses, e := s.store.Get(req, "session")
+	ses, e := s.store.Get(req, SessionName)
 	if e != nil {
 		return nil, internalError(e)
 	}
@@ -162,7 +175,9 @@ func (s *service) getSession(req *http.Request) (*sessions.Session, error) {
 }
 
 func checkAuthValue(s *sessions.Session) error {
-	auth, ok := s.Values["auth"].(bool)
+	val := s.Values["auth"]
+	var auth bool
+	auth, ok := val.(bool)
 	if !ok {
 		return internalError(ErrSessionType)
 	} else if !auth {
@@ -171,12 +186,15 @@ func checkAuthValue(s *sessions.Session) error {
 	return nil
 }
 
-func getUserIdValue(s *sessions.Session) (string, error) {
-	u, ok := s.Values["userid"].(string)
+func getUserIdValue(s *sessions.Session) (uint64, error) {
+	//u, ok := s.Values["userid"].(uint64)
+	val := s.Values["userid"]
+	var u uint64
+	u, ok := val.(uint64)
 	if !ok {
-		return "", internalError(ErrSessionType)
-	} else if u == "" {
-		return "", authError(ErrNotAuthorized)
+		return 0, internalError(ErrSessionType)
+	} else if u == 0 {
+		return 0, authError(ErrNotAuthorized)
 	}
 
 	return u, nil

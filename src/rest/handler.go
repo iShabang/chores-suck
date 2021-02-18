@@ -28,20 +28,23 @@ func NewServices(a auth.Service, v views.Service) *Services {
 //Handler creates and returns a new http.Handler with the request handlers and functions pre-registered/routed
 func Handler(s *Services) http.Handler {
 	ro := httprouter.New()
-	ro.HandlerFunc("POST", "/login", s.login)
-	ro.HandlerFunc("POST", "/logout", s.requiresLogin(s.logout))
+	ro.HandlerFunc("GET", "/login", s.loginGet)
+	ro.HandlerFunc("POST", "/login", s.loginPost)
+	ro.HandlerFunc("GET", "/logout", s.logout)
+	ro.HandlerFunc("POST", "/createuser", s.createUser)
 	ro.HandlerFunc("GET", "/dashboard", s.requiresLogin(s.dashboard))
 	ro.HandlerFunc("GET", "/register", s.register)
+	ro.HandlerFunc("GET", "/", s.index)
 	return ro
 }
 
 // Create middleware for authentication
-func (s *Services) requiresLogin(handler func(wr http.ResponseWriter, req *http.Request, uid string)) http.HandlerFunc {
+func (s *Services) requiresLogin(handler func(wr http.ResponseWriter, req *http.Request, uid uint64)) http.HandlerFunc {
 	return func(wr http.ResponseWriter, req *http.Request) {
 		uid, err := s.auth.Authorize(wr, req)
 		if err != nil {
 			handleError(err, wr)
-			http.Redirect(wr, req, "/", 302)
+			http.Redirect(wr, req, "/login", 302)
 			return
 		}
 
@@ -49,23 +52,40 @@ func (s *Services) requiresLogin(handler func(wr http.ResponseWriter, req *http.
 	}
 }
 
-func (s *Services) dashboard(wr http.ResponseWriter, req *http.Request, uid string) {
-	s.views.BuildDashboard(wr, req, uid)
+func (s *Services) index(wr http.ResponseWriter, req *http.Request) {
+	err := s.views.Index(wr, req)
+	if err != nil {
+		handleError(err, wr)
+	}
 }
 
-func (s *Services) logout(wr http.ResponseWriter, req *http.Request, uid string) {
+func (s *Services) dashboard(wr http.ResponseWriter, req *http.Request, uid uint64) {
+	err := s.views.BuildDashboard(wr, req, uid)
+	if err != nil {
+		handleError(err, wr)
+	}
+}
+
+func (s *Services) logout(wr http.ResponseWriter, req *http.Request) {
 	err := s.auth.Logout(wr, req)
 	handleError(err, wr)
 	http.Redirect(wr, req, "/", 302)
 }
 
-func (s *Services) login(wr http.ResponseWriter, req *http.Request) {
+func (s *Services) loginPost(wr http.ResponseWriter, req *http.Request) {
 	err := s.auth.Login(wr, req)
 	if err != nil {
 		handleError(err, wr)
 		return
 	}
-	http.Redirect(wr, req, "/", 302)
+	http.Redirect(wr, req, "/dashboard", 302)
+}
+
+func (s *Services) loginGet(wr http.ResponseWriter, req *http.Request) {
+	err := s.views.LoginForm(wr, req)
+	if err != nil {
+		handleError(err, wr)
+	}
 }
 
 func (s *Services) register(wr http.ResponseWriter, req *http.Request) {

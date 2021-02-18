@@ -5,13 +5,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 )
 
 // Repository defines storage functionality for sessions
 type Repository interface {
-	GetSession(ID string) (types.Session, error)
+	GetSession(ses *types.Session) error
 	DeleteSession(ID string) error
 	UpsertSession(ses *types.Session) error
 }
@@ -53,9 +54,13 @@ func (s *Store) New(req *http.Request, name string) (*sessions.Session, error) {
 	var err error
 	if cookie, errCookie := req.Cookie(name); errCookie == nil {
 		if err = securecookie.DecodeMulti(name, cookie.Value, &session.ID, s.codecs...); err == nil {
-			if ts, err := s.repo.GetSession(session.ID); err == nil {
+			var ts = types.Session{}
+			ts.UUID = session.ID
+			if err := s.repo.GetSession(&ts); err == nil {
 				session.IsNew = false
 				err = securecookie.DecodeMulti(name, ts.Values, &session.Values, s.codecs...)
+			} else {
+				return session, err
 			}
 		}
 	}
@@ -73,13 +78,17 @@ func (s *Store) Save(req *http.Request, w http.ResponseWriter, ses *sessions.Ses
 	}
 
 	if ses.ID == "" {
-		ses.ID = string(securecookie.GenerateRandomKey(32))
+		uuid, err := uuid.NewRandom()
+		if err != nil {
+			return err
+		}
+		ses.ID = uuid.String()
 	}
 
 	var err error
 	ts := types.Session{}
-	ts.SesID = ses.ID
-	ts.Created = time.Now()
+	ts.UUID = ses.ID
+	ts.Created = time.Now().UTC()
 	if ts.Values, err = securecookie.EncodeMulti(ses.Name(), ses.Values, s.codecs...); err != nil {
 		return err
 	}

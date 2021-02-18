@@ -1,12 +1,16 @@
 package auth
 
 import (
+	"log"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
 func checkpword(plain string, hashed string) bool {
 	e := bcrypt.CompareHashAndPassword([]byte(hashed), []byte(plain))
-
+	if e != nil {
+		log.Print(e)
+	}
 	return e == nil
 }
 

@@ -1,0 +1,32 @@
+{{ define "index" }}
+<!DOCTYPE html>
+<html lang="en">
+{{ template "head" }}
+<body>
+    {{ template "navbar" .User }}
+    <h2>Chores</h2>
+    {{ range .Chores }}
+    <div class="choreListRow">
+        <ul class="choreList" style="list-style: none;">
+            <li style="display: inline">.ChoreName</li>
+            <li style="display: inline">.GroupName</li>
+            <li style="display: inline">.DateDue</li>
+        </ul>
+    </div>
+    {{ else }}
+    <p>No more chores to do. Nice!</p>
+    {{ end }}
+    <h2>Groups</h2>
+    {{ range .User.Memberships }}
+    <div class="groupListRow">
+        <ul class="groupList" style="list-style:none;">
+            <li>.Group.Name</li>
+        </ul>
+    </div>
+    {{ else }}
+    <p>Oh no! Looks like you aren't a member of any groups.</p>
+    {{ end }}
+    <button>CreateGroup</button>
+</body>
+</html>
+{{ end }}
