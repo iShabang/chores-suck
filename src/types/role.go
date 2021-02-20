@@ -24,22 +24,7 @@ const (
 3 - DeleteGroup
 */
 
-func (role *Role) CanEditMembers() bool {
-	mask := 1 << EditMembers
-	return role.Permissions&mask != 0
-}
-
-func (role *Role) CanEditChores() bool {
-	mask := 1 << EditChores
-	return role.Permissions&mask != 0
-}
-
-func (role *Role) CanEditGroup() bool {
-	mask := 1 << EditGroup
-	return role.Permissions&mask != 0
-}
-
-func (role *Role) CanDeleteGroup() bool {
-	mask := 1 << DeleteGroup
+func (role *Role) Can(bit PermBit) bool {
+	mask := 1 << bit
 	return role.Permissions&mask != 0
 }
