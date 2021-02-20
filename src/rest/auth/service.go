@@ -154,6 +154,7 @@ func (s *service) Authorize(wr http.ResponseWriter, req *http.Request) (uint64, 
 	return uid, nil
 }
 
+// TODO: Move this method to a new User service
 func (s *service) Create(wr http.ResponseWriter, req *http.Request, msg *messages.RegisterMessage) error {
 	username := req.FormValue("username")
 	email := req.FormValue("email")

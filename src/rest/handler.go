@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -99,6 +100,15 @@ func (s *Services) createUser(wr http.ResponseWriter, req *http.Request) {
 	http.Redirect(wr, req, "/login", 302)
 }
 
+func (s *Services) createGroup(wr http.ResponseWriter, req *http.Request, uid uint64) {
+	// create group message struct
+	// use group service to add form data to the database (pass in the message struct for errors)
+	// if there was an error, send message struct to views to show in the create group form
+	// if successfull, redirect to the group page
+
+	// Need a group service that extracts http form data from requests and uses another internal group service to interact with the group objects
+}
+
 /////////////////////////////////////////////////////////////////
 // Middleware methods
 /////////////////////////////////////////////////////////////////
@@ -107,6 +117,7 @@ func (s *Services) requiresLogin(handler func(wr http.ResponseWriter, req *http.
 		// TODO: Save the requested url in a cookie that can be redirected to after logging in successfully
 		uid, err := s.auth.Authorize(wr, req)
 		if err != nil {
+			log.Print(err)
 			http.Redirect(wr, req, "/login", 302)
 			return
 		}
