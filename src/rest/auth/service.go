@@ -124,24 +124,30 @@ func (s *service) Logout(wr http.ResponseWriter, req *http.Request) error {
 func (s *service) Authorize(wr http.ResponseWriter, req *http.Request) (uint64, error) {
 	ses, e := s.store.Get(req, SessionName)
 	if e != nil {
+		log.Printf("Get session: %s", e.Error())
 		return 0, internalError(e)
 	} else if ses.IsNew {
+		log.Print("New session not authorized")
 		return 0, authError(ErrNotAuthorized)
 	}
 
 	var authorized bool
-	if e = getSessionValue("auth", authorized, ses); e != nil {
+	if e = getSessionValue("auth", &authorized, ses); e != nil {
+		log.Printf("Auth value: %s", e.Error())
 		return 0, internalError(e)
 	}
 	if !authorized {
+		log.Print("session not authorized")
 		return 0, authError(ErrNotAuthorized)
 	}
 
 	var uid uint64
-	if e = getSessionValue("userid", uid, ses); e != nil {
+	if e = getSessionValue("userid", &uid, ses); e != nil {
+		log.Printf("UserID value: %s", e.Error())
 		return 0, internalError(e)
 	}
 	if uid == 0 {
+		log.Printf("Invalid user id: %v", uid)
 		return 0, authError(ErrNotAuthorized)
 	}
 
@@ -201,11 +207,11 @@ func getSessionValue(name string, result interface{}, ses *sessions.Session) err
 	}
 
 	var ok bool
-	switch result.(type) {
-	case uint64:
-		result, ok = ses.Values[name].(uint64)
-	case bool:
-		result, ok = ses.Values[name].(bool)
+	switch v := result.(type) {
+	case *uint64:
+		*v, ok = ses.Values[name].(uint64)
+	case *bool:
+		*v, ok = ses.Values[name].(bool)
 	}
 
 	if !ok {
