@@ -25,6 +25,9 @@ var (
 	// ErrInvalidFormData occurs when a form is submitted but the data is not valid
 	ErrInvalidFormData = errors.New("one or more form values was invalid")
 
+	// ErrValueName occurs when attempting to access an invalid session value
+	ErrValueName = errors.New("invalid session value name")
+
 	// Name of the session cookie that will be sent to clients
 	SessionName = os.Getenv("SESSION_NAME")
 )
@@ -58,12 +61,17 @@ func NewService(rep Repository, ses sessions.Store) Service {
 }
 
 func (s *service) Login(wr http.ResponseWriter, req *http.Request) error {
-	ses, e := s.getSession(req)
+	ses, e := s.store.Get(req, SessionName)
 	if e != nil {
-		return e
-	}
-	if e = checkAuthValue(ses); e == nil {
-		return nil
+		return internalError(e)
+	} else if !ses.IsNew {
+		var authorized bool
+		e = getSessionValue("auth", authorized, ses)
+		if e != nil {
+			return internalError(e)
+		} else if authorized {
+			return nil
+		}
 	}
 
 	n := req.FormValue("username")
@@ -92,10 +100,21 @@ func (s *service) Login(wr http.ResponseWriter, req *http.Request) error {
 }
 
 func (s *service) Logout(wr http.ResponseWriter, req *http.Request) error {
-	ses, e := s.getSession(req)
+	ses, e := s.store.Get(req, SessionName)
 	if e != nil {
-		return e
+		return internalError(e)
+	} else if ses.IsNew {
+		return nil
 	}
+
+	var authorized bool
+	e = getSessionValue("auth", authorized, ses)
+	if e != nil {
+		return internalError(e)
+	} else if !authorized {
+		return authError(ErrNotAuthorized)
+	}
+
 	ses.Values["auth"] = false
 	ses.Options.MaxAge = -1
 	ses.Save(req, wr)
@@ -103,24 +122,30 @@ func (s *service) Logout(wr http.ResponseWriter, req *http.Request) error {
 }
 
 func (s *service) Authorize(wr http.ResponseWriter, req *http.Request) (uint64, error) {
-	ses, e := s.getSession(req)
+	ses, e := s.store.Get(req, SessionName)
 	if e != nil {
-		return 0, e
+		return 0, internalError(e)
+	} else if ses.IsNew {
+		return 0, authError(ErrNotAuthorized)
 	}
 
-	if e = checkAuthValue(ses); e != nil {
-		log.Print("Failed to get auth value")
-		log.Print(ses.Values)
-		return 0, e
+	var authorized bool
+	if e = getSessionValue("auth", authorized, ses); e != nil {
+		return 0, internalError(e)
+	}
+	if !authorized {
+		return 0, authError(ErrNotAuthorized)
 	}
 
-	var u uint64
-	if u, e = getUserIdValue(ses); e != nil {
-		log.Print("Failed to get user id")
-		return 0, e
+	var uid uint64
+	if e = getSessionValue("userid", uid, ses); e != nil {
+		return 0, internalError(e)
+	}
+	if uid == 0 {
+		return 0, authError(ErrNotAuthorized)
 	}
 
-	return u, nil
+	return uid, nil
 }
 
 func (s *service) Create(wr http.ResponseWriter, req *http.Request, msg *messages.RegisterMessage) error {
@@ -158,6 +183,10 @@ func (s *service) Create(wr http.ResponseWriter, req *http.Request, msg *message
 	return nil
 }
 
+/////////////////////////////////////////////////////////////////
+// Helper methods
+/////////////////////////////////////////////////////////////////
+
 func (s *service) isLoggedIn(r *http.Request) bool {
 	ses, e := s.store.Get(r, SessionName)
 	if e != nil {
@@ -166,38 +195,24 @@ func (s *service) isLoggedIn(r *http.Request) bool {
 	return ses.Values["auth"] == "true"
 }
 
-func (s *service) getSession(req *http.Request) (*sessions.Session, error) {
-	ses, e := s.store.Get(req, SessionName)
-	if e != nil {
-		return nil, internalError(e)
+func getSessionValue(name string, result interface{}, ses *sessions.Session) error {
+	if name == "" {
+		return ErrValueName
 	}
-	return ses, nil
-}
 
-func checkAuthValue(s *sessions.Session) error {
-	val := s.Values["auth"]
-	var auth bool
-	auth, ok := val.(bool)
-	if !ok {
-		return internalError(ErrSessionType)
-	} else if !auth {
-		return authError(ErrNotAuthorized)
+	var ok bool
+	switch result.(type) {
+	case uint64:
+		result, ok = ses.Values[name].(uint64)
+	case bool:
+		result, ok = ses.Values[name].(bool)
 	}
+
+	if !ok {
+		return ErrSessionType
+	}
+
 	return nil
-}
-
-func getUserIdValue(s *sessions.Session) (uint64, error) {
-	//u, ok := s.Values["userid"].(uint64)
-	val := s.Values["userid"]
-	var u uint64
-	u, ok := val.(uint64)
-	if !ok {
-		return 0, internalError(ErrSessionType)
-	} else if u == 0 {
-		return 0, authError(ErrNotAuthorized)
-	}
-
-	return u, nil
 }
 
 func internalError(e error) cerror.StatusError {

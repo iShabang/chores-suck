@@ -38,20 +38,6 @@ func Handler(s *Services) http.Handler {
 	return ro
 }
 
-// Create middleware for authentication
-func (s *Services) requiresLogin(handler func(wr http.ResponseWriter, req *http.Request, uid uint64)) http.HandlerFunc {
-	return func(wr http.ResponseWriter, req *http.Request) {
-		uid, err := s.auth.Authorize(wr, req)
-		if err != nil {
-			handleError(err, wr)
-			http.Redirect(wr, req, "/login", 302)
-			return
-		}
-
-		handler(wr, req, uid)
-	}
-}
-
 func (s *Services) index(wr http.ResponseWriter, req *http.Request) {
 	err := s.views.Index(wr, req)
 	if err != nil {
@@ -68,7 +54,9 @@ func (s *Services) dashboard(wr http.ResponseWriter, req *http.Request, uid uint
 
 func (s *Services) logout(wr http.ResponseWriter, req *http.Request) {
 	err := s.auth.Logout(wr, req)
-	handleError(err, wr)
+	if err != nil {
+		handleError(err, wr)
+	}
 	http.Redirect(wr, req, "/", 302)
 }
 
@@ -78,6 +66,7 @@ func (s *Services) loginPost(wr http.ResponseWriter, req *http.Request) {
 		handleError(err, wr)
 		return
 	}
+	// TODO: Check cookie for a redirect url
 	http.Redirect(wr, req, "/dashboard", 302)
 }
 
@@ -109,6 +98,26 @@ func (s *Services) createUser(wr http.ResponseWriter, req *http.Request) {
 	}
 	http.Redirect(wr, req, "/login", 302)
 }
+
+/////////////////////////////////////////////////////////////////
+// Middleware methods
+/////////////////////////////////////////////////////////////////
+func (s *Services) requiresLogin(handler func(wr http.ResponseWriter, req *http.Request, uid uint64)) http.HandlerFunc {
+	return func(wr http.ResponseWriter, req *http.Request) {
+		// TODO: Save the requested url in a cookie that can be redirected to after logging in successfully
+		uid, err := s.auth.Authorize(wr, req)
+		if err != nil {
+			http.Redirect(wr, req, "/login", 302)
+			return
+		}
+
+		handler(wr, req, uid)
+	}
+}
+
+/////////////////////////////////////////////////////////////////
+// Helper methods
+/////////////////////////////////////////////////////////////////
 
 func handleError(err error, wr http.ResponseWriter) {
 	if err != nil {
