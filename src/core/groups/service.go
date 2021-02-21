@@ -2,14 +2,23 @@ package groups
 
 import (
 	"chores-suck/core/types"
+	"time"
 )
 
 type Repository interface {
+	// CreateGroup adds a new group object to storage
 	CreateGroup(group *types.Group) error
+
+	// CreateRole adds a new role object to storage
 	CreateRole(role *types.Role) error
+
+	// CreateMembership adds a new membership object to storage
+	CreateMembership(mem *types.Membership) error
 }
 
 type Service interface {
+	// CreateGroup creates a new group with the default roles (owner, admin, default) and creates a new membership
+	// for the owner (passed in user)
 	CreateGroup(name string, user *types.User) error
 }
 
@@ -23,10 +32,6 @@ func (s *service) CreateGroup(name string, user *types.User) error {
 	if e != nil {
 		return e
 	}
-	// When creating the group, the user creating the group will be the owner role
-	// create owner role, assign role to the current authenticated user
-	// create the default role, assign to the current authenticated user
-	// create the admin role, assign to the current authenticated user
 	users := make([]*types.User, 1)
 	users[0] = user
 
@@ -50,5 +55,11 @@ func (s *service) CreateGroup(name string, user *types.User) error {
 		return e
 	}
 
-	// Create a membership for the current authenticated user
+	mem := types.Membership{JoinedAt: time.Now().UTC(), User: user, Group: &group}
+	e = s.repo.CreateMembership(&mem)
+	if e != nil {
+		return e
+	}
+
+	return nil
 }

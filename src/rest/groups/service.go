@@ -2,6 +2,7 @@ package groups
 
 import (
 	"chores-suck/core/groups"
+	"chores-suck/core/types"
 	ce "chores-suck/rest/errors"
 	"chores-suck/rest/messages"
 	"errors"
@@ -27,6 +28,9 @@ func (s *service) CreateGroup(wr http.ResponseWriter, req *http.Request, uid uin
 	if !validateName(groupName, msg) {
 		return ErrInvalidFormData
 	}
+
+	var user types.User
+	// TODO: Use user service to grab a new user object
 
 	e := s.gs.CreateGroup(groupName, uid)
 	if e != nil {
