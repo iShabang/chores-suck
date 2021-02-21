@@ -1,9 +1,13 @@
 package sessions
 
 import (
-	"chores-suck/types"
+	"errors"
+	"log"
 	"net/http"
 	"time"
+
+	se "chores-suck/core/storage/errors"
+	"chores-suck/core/types"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/securecookie"
@@ -59,7 +63,7 @@ func (s *Store) New(req *http.Request, name string) (*sessions.Session, error) {
 			if err := s.repo.GetSession(&ts); err == nil {
 				session.IsNew = false
 				err = securecookie.DecodeMulti(name, ts.Values, &session.Values, s.codecs...)
-			} else {
+			} else if err != se.ErrNotFound {
 				return session, err
 			}
 		}
@@ -92,6 +96,13 @@ func (s *Store) Save(req *http.Request, w http.ResponseWriter, ses *sessions.Ses
 	if ts.Values, err = securecookie.EncodeMulti(ses.Name(), ses.Values, s.codecs...); err != nil {
 		return err
 	}
+	var userID uint64
+	userID, ok := ses.Values["userid"].(uint64)
+	if !ok || userID == 0 {
+		log.Printf("Store.Save: user id failure. ok: %v, id: %v", ok, userID)
+		return errors.New("Store.Save: Failed to get user id from session")
+	}
+	ts.UserID = userID
 
 	if err = s.repo.UpsertSession(&ts); err != nil {
 		return err
