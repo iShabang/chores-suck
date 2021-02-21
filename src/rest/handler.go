@@ -64,6 +64,7 @@ func (s *Services) logout(wr http.ResponseWriter, req *http.Request) {
 func (s *Services) loginPost(wr http.ResponseWriter, req *http.Request) {
 	err := s.auth.Login(wr, req)
 	if err != nil {
+		// TODO: Resend login form with error message
 		handleError(err, wr)
 		return
 	}
@@ -72,9 +73,14 @@ func (s *Services) loginPost(wr http.ResponseWriter, req *http.Request) {
 }
 
 func (s *Services) loginGet(wr http.ResponseWriter, req *http.Request) {
-	err := s.views.LoginForm(wr, req)
-	if err != nil {
-		handleError(err, wr)
+	_, err := s.auth.Authorize(wr, req)
+	if err == nil {
+		http.Redirect(wr, req, "/dashboard", 302)
+	} else {
+		err = s.views.LoginForm(wr, req)
+		if err != nil {
+			handleError(err, wr)
+		}
 	}
 }
 
@@ -90,7 +96,7 @@ func (s *Services) createUser(wr http.ResponseWriter, req *http.Request) {
 	msg := messages.RegisterMessage{}
 	err := s.auth.Create(wr, req, &msg)
 	if err != nil {
-		if err == auth.ErrInvalidFormData {
+		if err == auth.ErrInvalidInput {
 			s.views.RegisterForm(wr, req, &msg)
 		} else {
 			handleError(err, wr)

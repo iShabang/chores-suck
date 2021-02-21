@@ -1,7 +1,8 @@
 package postgres
 
 import (
-	"chores-suck/types"
+	"chores-suck/core/storage/errors"
+	"chores-suck/core/types"
 	"database/sql"
 	"time"
 
@@ -48,6 +49,9 @@ func (s *Storage) GetUserByName(user *types.User) error {
 	FROM users 
 	WHERE users.uname = $1`
 	err := s.Db.QueryRow(query, user.Username).Scan(&user.ID, &user.Email, &user.Password, &user.CreatedAt)
+	if err == sql.ErrNoRows {
+		return errors.ErrNotFound
+	}
 	return err
 }
 
@@ -57,6 +61,9 @@ func (s *Storage) GetUserByEmail(user *types.User) error {
 	FROM users 
 	WHERE users.email = $1`
 	err := s.Db.QueryRow(query, user.Email).Scan(&user.ID, &user.Username, &user.Password, &user.CreatedAt)
+	if err == sql.ErrNoRows {
+		return errors.ErrNotFound
+	}
 	return err
 }
 
@@ -173,7 +180,11 @@ func (s *Storage) GetMemberChores(member *types.Membership) error {
 
 // GetSession fetches a session frm the database by session id
 func (s *Storage) GetSession(ses *types.Session) error {
-	err := s.Db.QueryRow("SELECT values, created FROM sessions WHERE uuid = $1", ses.UUID).Scan(&ses.Values, &ses.Created)
+	err := s.Db.QueryRow("SELECT values, created, user_id FROM sessions WHERE uuid = $1", ses.UUID).Scan(&ses.Values, &ses.Created, &ses.UserID)
+
+	if err == sql.ErrNoRows {
+		return errors.ErrNotFound
+	}
 
 	return err
 }
@@ -192,11 +203,11 @@ func (s *Storage) DeleteSession(UUID string) error {
 // UpsertSession inserts or updates a session in the database. If the session does not exist
 // it is created otherwise the existing session is updated.
 func (s *Storage) UpsertSession(ses *types.Session) error {
-	statement, err := s.Db.Prepare("INSERT INTO sessions (uuid, values, created) VALUES ($1,$2,$3) ON CONFLICT (uuid) DO UPDATE SET values = $2")
+	statement, err := s.Db.Prepare("INSERT INTO sessions (uuid, values, created, user_id) VALUES ($1,$2,$3,$4) ON CONFLICT (uuid) DO UPDATE SET values = $2")
 	if err != nil {
 		return err
 	}
 	defer statement.Close()
-	_, err = statement.Exec(ses.UUID, ses.Values, ses.Created)
+	_, err = statement.Exec(ses.UUID, ses.Values, ses.Created, ses.UserID)
 	return err
 }

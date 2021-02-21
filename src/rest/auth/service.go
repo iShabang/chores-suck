@@ -1,13 +1,15 @@
 package auth
 
 import (
-	cerror "chores-suck/rest/errors"
-	"chores-suck/rest/messages"
-	"chores-suck/types"
 	"errors"
 	"log"
 	"net/http"
 	"os"
+
+	"chores-suck/core/types"
+	"chores-suck/core/users"
+	cerror "chores-suck/rest/errors"
+	"chores-suck/rest/messages"
 
 	"github.com/gorilla/sessions"
 )
@@ -22,8 +24,8 @@ var (
 	// ErrInvalidValue occurs when an invalid session value is retrieved from the current session
 	ErrInvalidValue = errors.New("invalid session value")
 
-	// ErrInvalidFormData occurs when a form is submitted but the data is not valid
-	ErrInvalidFormData = errors.New("one or more form values was invalid")
+	// ErrInvalidInput occurs when a form is submitted but the data is not valid
+	ErrInvalidInput = errors.New("one or more form values was invalid")
 
 	// ErrValueName occurs when attempting to access an invalid session value
 	ErrValueName = errors.New("invalid session value name")
@@ -40,22 +42,15 @@ type Service interface {
 	Create(http.ResponseWriter, *http.Request, *messages.RegisterMessage) error
 }
 
-// Repository defines storage functionality for a service
-type Repository interface {
-	GetUserByName(*types.User) error
-	GetUserByEmail(*types.User) error
-	CreateUser(*types.User) error
-}
-
 type service struct {
-	repo  Repository
+	users users.Service
 	store sessions.Store
 }
 
 // NewService creates and returns a new auth Service
-func NewService(rep Repository, ses sessions.Store) Service {
+func NewService(us users.Service, ses sessions.Store) Service {
 	return &service{
-		repo:  rep,
+		users: us,
 		store: ses,
 	}
 }
@@ -65,9 +60,11 @@ func (s *service) Login(wr http.ResponseWriter, req *http.Request) error {
 	if e != nil {
 		return internalError(e)
 	} else if !ses.IsNew {
+		log.Print("Session not new")
 		var authorized bool
-		e = getSessionValue("auth", authorized, ses)
+		e = getSessionValue("auth", &authorized, ses)
 		if e != nil {
+			log.Print("Existing session failure during login")
 			return internalError(e)
 		} else if authorized {
 			return nil
@@ -76,7 +73,7 @@ func (s *service) Login(wr http.ResponseWriter, req *http.Request) error {
 
 	n := req.FormValue("username")
 	u := types.User{Username: n}
-	e = s.repo.GetUserByName(&u)
+	e = s.users.GetUserByName(&u)
 	if e != nil {
 		log.Print(e)
 		return authError(ErrNotAuthorized)
@@ -108,7 +105,7 @@ func (s *service) Logout(wr http.ResponseWriter, req *http.Request) error {
 	}
 
 	var authorized bool
-	e = getSessionValue("auth", authorized, ses)
+	e = getSessionValue("auth", &authorized, ses)
 	if e != nil {
 		return internalError(e)
 	} else if !authorized {
@@ -162,31 +159,30 @@ func (s *service) Create(wr http.ResponseWriter, req *http.Request, msg *message
 	password2 := req.FormValue("pwordConf")
 
 	if !validateInput(username, password, password2, email, msg) {
-		return ErrInvalidFormData
+		return ErrInvalidInput
 	}
 
 	user := types.User{Username: username, Email: email}
-	err := s.repo.GetUserByName(&user)
-	if err == nil {
-		msg.Username = "Username already taken"
-		return ErrInvalidFormData
-	}
-
-	err = s.repo.GetUserByEmail(&user)
-	if err == nil {
-		msg.Email = "Email already registered"
-		return ErrInvalidFormData
-	}
-
+	var err error
 	user.Password, err = hashPassword(password)
 	if err != nil {
 		return internalError(err)
 	}
 
-	err = s.repo.CreateUser(&user)
+	err = s.users.CreateUser(&user)
 	if err != nil {
-		return internalError(err)
+		switch err {
+		case users.ErrEmailExists:
+			msg.Email = "Email already registered"
+			return ErrInvalidInput
+		case users.ErrNameExists:
+			msg.Username = "Username already taken"
+			return ErrInvalidInput
+		default:
+			return internalError(err)
+		}
 	}
+
 	return nil
 }
 
