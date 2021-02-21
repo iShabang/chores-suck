@@ -1,7 +1,7 @@
 package views
 
 import (
-	"chores-suck/types"
+	"chores-suck/core/types"
 )
 
 type DashboardModel struct {
