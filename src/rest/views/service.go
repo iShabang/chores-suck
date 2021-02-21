@@ -1,10 +1,10 @@
 package views
 
 import (
+	"chores-suck/core/types"
 	cerror "chores-suck/rest/errors"
 	"chores-suck/rest/messages"
 	"chores-suck/rest/sessions"
-	"chores-suck/types"
 	"html/template"
 	"net/http"
 )
