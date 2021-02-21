@@ -1,8 +1,8 @@
 create table users (
     id serial primary key,
-    uname varchar(255),
-    email varchar(255),
-    pword varchar(255),
+    uname varchar(255) not null,
+    email varchar(255) not null,
+    pword varchar(255) not null,
     created_at timestamp not null
 );
 
@@ -51,5 +51,6 @@ create table chore_assignments (
 create table sessions (
     uuid  not null primary key,
     values varchar,
-    created timestamp not null
+    created timestamp not null,
+    user_id integer references users(id)
 );

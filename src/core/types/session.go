@@ -7,4 +7,5 @@ type Session struct {
 	UUID    string
 	Values  string
 	Created time.Time
+	UserID  uint64
 }
