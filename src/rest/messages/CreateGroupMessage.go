@@ -1,5 +1,6 @@
 package messages
 
 type CreateGroup struct {
-	Name string
+	Name    string
+	General string
 }

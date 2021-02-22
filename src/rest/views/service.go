@@ -21,6 +21,7 @@ type Service interface {
 	BuildDashboard(http.ResponseWriter, *http.Request, uint64) error
 	RegisterForm(http.ResponseWriter, *http.Request, *messages.RegisterMessage) error
 	LoginForm(http.ResponseWriter, *http.Request) error
+	NewGroupForm(http.ResponseWriter, *http.Request, uint64, *messages.CreateGroup) error
 }
 
 // Repository describes the interface necessary for grabbing data necessary for views
@@ -116,6 +117,31 @@ func (s *service) LoginForm(wr http.ResponseWriter, req *http.Request) error {
 		return internalError(err)
 	}
 	err = t.ExecuteTemplate(wr, "login.html", nil)
+	if err != nil {
+		return internalError(err)
+	}
+	return nil
+}
+
+func (s *service) NewGroupForm(wr http.ResponseWriter, req *http.Request, uid uint64, msg *messages.CreateGroup) error {
+	var t *template.Template
+	t, err := template.ParseFiles("../html/newgroup.html", "../html/head.html", "../html/sessionNav.html")
+	if err != nil {
+		return internalError(err)
+	}
+	user := types.User{ID: uid}
+	e := s.repo.GetUserByID(&user)
+	if e != nil {
+		return internalError(err)
+	}
+	model := struct {
+		User *types.User
+		Msg  *messages.CreateGroup
+	}{
+		User: &user,
+		Msg:  msg,
+	}
+	err = t.ExecuteTemplate(wr, "newgroup", &model)
 	if err != nil {
 		return internalError(err)
 	}

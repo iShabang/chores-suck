@@ -3,6 +3,7 @@ package groups
 import (
 	"chores-suck/core/groups"
 	"chores-suck/core/types"
+	"chores-suck/core/users"
 	ce "chores-suck/rest/errors"
 	"chores-suck/rest/messages"
 	"errors"
@@ -20,19 +21,30 @@ type Service interface {
 
 type service struct {
 	gs groups.Service
+	us users.Service
+}
+
+func NewService(g groups.Service, u users.Service) Service {
+	return &service{
+		gs: g,
+		us: u,
+	}
 }
 
 func (s *service) CreateGroup(wr http.ResponseWriter, req *http.Request, uid uint64, msg *messages.CreateGroup) error {
-	groupName := req.PostFormValue("groupName")
+	groupName := req.PostFormValue("groupname")
 
 	if !validateName(groupName, msg) {
 		return ErrInvalidFormData
 	}
 
-	var user types.User
-	// TODO: Use user service to grab a new user object
+	user := types.User{ID: uid}
+	e := s.us.GetUserByID(&user)
+	if e != nil {
+		return ce.StatusError{Code: http.StatusInternalServerError, Err: e}
+	}
 
-	e := s.gs.CreateGroup(groupName, uid)
+	e = s.gs.CreateGroup(groupName, &user)
 	if e != nil {
 		return ce.StatusError{Code: http.StatusInternalServerError, Err: e}
 	}

@@ -151,6 +151,24 @@ func (s *Storage) GetUserMemberships(user *types.User) error {
 	return nil
 }
 
+func (s *Storage) CreateGroup(group *types.Group) error {
+	query := `INSERT INTO groups (name) VALUES ($1) RETURNING id`
+	e := s.Db.QueryRow(query, &group.Name).Scan(&group.ID)
+	return e
+}
+
+func (s *Storage) CreateRole(role *types.Role) error {
+	query := `INSERT INTO roles (name, permissions, group_id) VALUES ($1,$2,$3) RETURNING id`
+	e := s.Db.QueryRow(query, role.Name, role.Permissions, role.Group.ID).Scan(&role.ID)
+	return e
+}
+
+func (s *Storage) CreateMembership(mem *types.Membership) error {
+	query := `INSERT INTO memberships (joined_at, user_id, group_id) VALUES ($1,$2,$3)`
+	_, e := s.Db.Exec(query, mem.JoinedAt, mem.User.ID, mem.Group.ID)
+	return e
+}
+
 // GetMemberChores fetches the list of chores assigned to a member
 func (s *Storage) GetMemberChores(member *types.Membership) error {
 	rows, err := s.Db.Query("SELECT chores.id, chores.description, chores.name, chores.duration, chore_assignments.complete, chore_assignments.date_assigned, chore_assignments.date_complete FROM chores WHERE chores.group_id = $1 INNER JOIN chore_assignment ON chore_assignment.chore_id = chores.id", member.Group.ID)

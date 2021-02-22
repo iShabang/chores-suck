@@ -8,21 +8,24 @@ import (
 
 	"chores-suck/rest/auth"
 	"chores-suck/rest/errors"
+	"chores-suck/rest/groups"
 	"chores-suck/rest/messages"
 	"chores-suck/rest/views"
 )
 
 // Services holds references to services that handlers utilize to carry out requests
 type Services struct {
-	auth  auth.Service
-	views views.Service
+	auth   auth.Service
+	views  views.Service
+	groups groups.Service
 }
 
 // NewServices creates a new Services object
-func NewServices(a auth.Service, v views.Service) *Services {
+func NewServices(a auth.Service, v views.Service, g groups.Service) *Services {
 	return &Services{
-		auth:  a,
-		views: v,
+		auth:   a,
+		views:  v,
+		groups: g,
 	}
 }
 
@@ -35,6 +38,8 @@ func Handler(s *Services) http.Handler {
 	ro.HandlerFunc("POST", "/createuser", s.createUser)
 	ro.HandlerFunc("GET", "/dashboard", s.requiresLogin(s.dashboard))
 	ro.HandlerFunc("GET", "/register", s.register)
+	ro.HandlerFunc("GET", "/creategroup", s.requiresLogin(s.createGroupGet))
+	ro.HandlerFunc("POST", "/creategroup", s.requiresLogin(s.createGroupPost))
 	ro.HandlerFunc("GET", "/", s.index)
 	return ro
 }
@@ -106,13 +111,26 @@ func (s *Services) createUser(wr http.ResponseWriter, req *http.Request) {
 	http.Redirect(wr, req, "/login", 302)
 }
 
-func (s *Services) createGroup(wr http.ResponseWriter, req *http.Request, uid uint64) {
-	// create group message struct
-	// use group service to add form data to the database (pass in the message struct for errors)
-	// if there was an error, send message struct to views to show in the create group form
-	// if successfull, redirect to the group page
+func (s *Services) createGroupGet(wr http.ResponseWriter, req *http.Request, uid uint64) {
+	e := s.views.NewGroupForm(wr, req, uid, &messages.CreateGroup{})
+	if e != nil {
+		log.Printf("handler.createGroupGet: %s", e.Error())
+		handleError(e, wr)
+	}
+}
 
-	// Need a group service that extracts http form data from requests and uses another internal group service to interact with the group objects
+func (s *Services) createGroupPost(wr http.ResponseWriter, req *http.Request, uid uint64) {
+	msg := messages.CreateGroup{}
+	e := s.groups.CreateGroup(wr, req, uid, &msg)
+	if e != nil {
+		log.Printf("handler.createGroup: %s", e.Error())
+		msg.General = "There was an error creating a new group"
+		s.views.NewGroupForm(wr, req, uid, &msg)
+		return
+	}
+
+	// TODO: if successfull, redirect to the group page
+	http.Redirect(wr, req, "/dashboard", 302)
 }
 
 /////////////////////////////////////////////////////////////////

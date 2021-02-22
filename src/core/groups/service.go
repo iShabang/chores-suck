@@ -26,6 +26,12 @@ type service struct {
 	repo Repository
 }
 
+func NewService(r Repository) Service {
+	return &service{
+		repo: r,
+	}
+}
+
 func (s *service) CreateGroup(name string, user *types.User) error {
 	group := types.Group{Name: name}
 	e := s.repo.CreateGroup(&group)

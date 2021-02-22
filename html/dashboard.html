@@ -8,9 +8,9 @@
     {{ range .Chores }}
     <div class="choreListRow">
         <ul class="choreList" style="list-style: none;">
-            <li style="display: inline">.ChoreName</li>
-            <li style="display: inline">.GroupName</li>
-            <li style="display: inline">.DateDue</li>
+            <li style="display: inline">{{ .ChoreName }}</li>
+            <li style="display: inline">{{ .GroupName }}</li>
+            <li style="display: inline">{{ .DateDue }}</li>
         </ul>
     </div>
     {{ else }}
@@ -20,7 +20,7 @@
     {{ range .User.Memberships }}
     <div class="groupListRow">
         <ul class="groupList" style="list-style:none;">
-            <li>.Group.Name</li>
+            <li>{{ .Group.Name }}</li>
         </ul>
     </div>
     {{ else }}
