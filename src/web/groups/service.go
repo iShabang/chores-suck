@@ -4,8 +4,8 @@ import (
 	"chores-suck/core/groups"
 	"chores-suck/core/types"
 	"chores-suck/core/users"
-	ce "chores-suck/rest/errors"
-	"chores-suck/rest/messages"
+	ce "chores-suck/web/errors"
+	"chores-suck/web/messages"
 	"errors"
 	"net/http"
 )

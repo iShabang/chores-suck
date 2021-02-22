@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"chores-suck/rest/messages"
+	"chores-suck/web/messages"
 	"regexp"
 	"strings"
 )
