@@ -36,10 +36,10 @@ func Handler(s *Services) http.Handler {
 	ro.HandlerFunc("POST", "/login", s.loginPost)
 	ro.HandlerFunc("GET", "/logout", s.logout)
 	ro.HandlerFunc("POST", "/createuser", s.createUser)
-	ro.HandlerFunc("GET", "/dashboard", s.requiresLogin(s.dashboard))
+	ro.HandlerFunc("GET", "/dashboard", s.authorize(s.dashboard))
 	ro.HandlerFunc("GET", "/register", s.register)
-	ro.HandlerFunc("GET", "/creategroup", s.requiresLogin(s.createGroupGet))
-	ro.HandlerFunc("POST", "/creategroup", s.requiresLogin(s.createGroupPost))
+	ro.HandlerFunc("GET", "/creategroup", s.authorize(s.createGroupGet))
+	ro.HandlerFunc("POST", "/creategroup", s.authorize(s.createGroupPost))
 	ro.HandlerFunc("GET", "/", s.index)
 	return ro
 }
@@ -133,10 +133,14 @@ func (s *Services) createGroupPost(wr http.ResponseWriter, req *http.Request, ui
 	http.Redirect(wr, req, "/dashboard", 302)
 }
 
+func (s *Services) editGroupGet(wr http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+
+}
+
 /////////////////////////////////////////////////////////////////
 // Middleware methods
 /////////////////////////////////////////////////////////////////
-func (s *Services) requiresLogin(handler func(wr http.ResponseWriter, req *http.Request, uid uint64)) http.HandlerFunc {
+func (s *Services) authorize(handler func(wr http.ResponseWriter, req *http.Request, uid uint64)) http.HandlerFunc {
 	return func(wr http.ResponseWriter, req *http.Request) {
 		// TODO: Save the requested url in a cookie that can be redirected to after logging in successfully
 		uid, err := s.auth.Authorize(wr, req)
@@ -147,6 +151,19 @@ func (s *Services) requiresLogin(handler func(wr http.ResponseWriter, req *http.
 		}
 
 		handler(wr, req, uid)
+	}
+}
+
+func (s *Services) authorizeParam(handler func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, uid uint64)) httprouter.Handle {
+	return func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+		uid, err := s.auth.Authorize(wr, req)
+		if err != nil {
+			log.Print(err)
+			http.Redirect(wr, req, "/login", 302)
+			return
+		}
+
+		handler(wr, req, ps, uid)
 	}
 }
 
