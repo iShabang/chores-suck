@@ -6,20 +6,22 @@ import (
 )
 
 type Repository interface {
-	// CreateGroup adds a new group object to storage
 	CreateGroup(group *types.Group) error
-
-	// CreateRole adds a new role object to storage
 	CreateRole(role *types.Role) error
-
-	// CreateMembership adds a new membership object to storage
+	CreateRoleAssignment(roleID uint64, userID uint64) error
 	CreateMembership(mem *types.Membership) error
+	GetGroupByID(group *types.Group) error
+	GetMemberships(t interface{}) error
+	GetRoles(t interface{}) error
 }
 
 type Service interface {
 	// CreateGroup creates a new group with the default roles (owner, admin, default) and creates a new membership
 	// for the owner (passed in user)
 	CreateGroup(name string, user *types.User) error
+	GetGroup(group *types.Group) error
+	GetMemberships(group *types.Group) error
+	GetRoles(t interface{}) error
 }
 
 type service struct {
@@ -38,12 +40,17 @@ func (s *service) CreateGroup(name string, user *types.User) error {
 	if e != nil {
 		return e
 	}
-	users := make([]*types.User, 1)
-	users[0] = user
+	users := make([]types.User, 1)
+	users[0] = *user
 
 	owner := types.Role{Name: "Owner", Group: &group, Users: users}
 	owner.SetAll(true)
 	e = s.repo.CreateRole(&owner)
+	if e != nil {
+		return e
+	}
+
+	e = s.repo.CreateRoleAssignment(owner.ID, user.ID)
 	if e != nil {
 		return e
 	}
@@ -55,8 +62,18 @@ func (s *service) CreateGroup(name string, user *types.User) error {
 		return e
 	}
 
-	def := types.Role{Name: "Default", Group: &group, Users: users}
+	e = s.repo.CreateRoleAssignment(admin.ID, user.ID)
+	if e != nil {
+		return e
+	}
+
+	def := types.Role{Name: "Default", Group: &group, Users: users, GetsChores: true}
 	e = s.repo.CreateRole(&def)
+	if e != nil {
+		return e
+	}
+
+	e = s.repo.CreateRoleAssignment(def.ID, user.ID)
 	if e != nil {
 		return e
 	}
@@ -68,4 +85,19 @@ func (s *service) CreateGroup(name string, user *types.User) error {
 	}
 
 	return nil
+}
+
+func (s *service) GetGroup(group *types.Group) error {
+	e := s.repo.GetGroupByID(group)
+	return e
+}
+
+func (s *service) GetMemberships(group *types.Group) error {
+	e := s.repo.GetMemberships(group)
+	return e
+}
+
+func (s *service) GetRoles(t interface{}) error {
+	e := s.repo.GetRoles(t)
+	return e
 }

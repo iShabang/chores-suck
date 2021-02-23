@@ -22,6 +22,7 @@ type Service interface {
 	RegisterForm(http.ResponseWriter, *http.Request, *messages.RegisterMessage) error
 	LoginForm(http.ResponseWriter, *http.Request) error
 	NewGroupForm(http.ResponseWriter, *http.Request, uint64, *messages.CreateGroup) error
+	EditGroupForm(http.ResponseWriter, *http.Request, *types.Group, *types.User) error
 }
 
 // Repository describes the interface necessary for grabbing data necessary for views
@@ -148,6 +149,32 @@ func (s *service) NewGroupForm(wr http.ResponseWriter, req *http.Request, uid ui
 	return nil
 }
 
+func (s *service) EditGroupForm(wr http.ResponseWriter, req *http.Request, group *types.Group, user *types.User) error {
+	model := struct {
+		User  *types.User
+		Group *types.Group
+	}{
+		User:  user,
+		Group: group,
+	}
+	files := []string{"../html/editgroup.html", "../html/head.html", "../html/sessionNav.html"}
+	err := executeTemplate(wr, "editgroup", model, files...)
+	if err != nil {
+		return internalError(err)
+	}
+	return nil
+}
+
 func internalError(e error) cerror.StatusError {
 	return cerror.StatusError{Code: http.StatusInternalServerError, Err: e}
+}
+
+func executeTemplate(wr http.ResponseWriter, tname string, model interface{}, files ...string) error {
+	var t *template.Template
+	t, err := template.ParseFiles(files...)
+	if err != nil {
+		return err
+	}
+	err = t.ExecuteTemplate(wr, tname, model)
+	return err
 }

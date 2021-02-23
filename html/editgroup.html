@@ -1,0 +1,23 @@
+{{ define "editgroup" }}
+<!DOCTYPE html>
+<html lang="en">
+{{ template "head" }}
+<body>
+    {{ template "navbar" .User }}
+    <h2>{{ .Group.Name }}</h2>
+    <button>Edit</button>
+    <h3>Members</h3>
+    {{ range .Group.Memberships }}
+    <div>
+        <p>{{ .User.Username }}</p>
+    </div>
+    {{ end }}
+    <h3>Roles</h3>
+    {{ range .Group.Roles }}
+    <div>
+        <p>{{ .Name }}</p>
+    </div>
+    {{ end }}
+</body>
+</html>
+{{ end }}

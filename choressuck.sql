@@ -22,6 +22,7 @@ create table roles (
     id serial primary key,
     name varchar(255) not null,
     permissions integer,
+    gets_chores boolean
     group_id integer references groups(id)
 );
 

@@ -10,4 +10,5 @@ type Membership struct {
 	User        *User
 	Group       *Group
 	Assignments []ChoreAssignment
+	Roles       []Role
 }

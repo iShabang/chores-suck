@@ -17,6 +17,7 @@ type Repository interface {
 	GetUserByEmail(user *types.User) error
 	GetUserByID(user *types.User) error
 	CreateUser(user *types.User) error
+	GetMemberships(t interface{}) error
 }
 
 type Service interface {
@@ -25,6 +26,7 @@ type Service interface {
 	CreateUser(user *types.User) error
 	CheckEmailExists(email string) (bool, error)
 	CheckUsernameExists(name string) (bool, error)
+	GetMemberships(user *types.User) error
 }
 
 type service struct {
@@ -83,4 +85,9 @@ func (s *service) CheckUsernameExists(name string) (bool, error) {
 		return false, nil
 	}
 	return true, e
+}
+
+func (s *service) GetMemberships(user *types.User) error {
+	e := s.repo.GetMemberships(user)
+	return e
 }

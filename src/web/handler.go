@@ -3,9 +3,12 @@ package web
 import (
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/julienschmidt/httprouter"
 
+	"chores-suck/core/types"
+	"chores-suck/core/users"
 	"chores-suck/web/auth"
 	"chores-suck/web/errors"
 	"chores-suck/web/groups"
@@ -18,20 +21,23 @@ type Services struct {
 	auth   auth.Service
 	views  views.Service
 	groups groups.Service
+	users  users.Service
 }
 
 // NewServices creates a new Services object
-func NewServices(a auth.Service, v views.Service, g groups.Service) *Services {
+func NewServices(a auth.Service, v views.Service, g groups.Service, u users.Service) *Services {
 	return &Services{
 		auth:   a,
 		views:  v,
 		groups: g,
+		users:  u,
 	}
 }
 
 //Handler creates and returns a new http.Handler with the request handlers and functions pre-registered/routed
 func Handler(s *Services) http.Handler {
 	ro := httprouter.New()
+	ro.GET("/editgroup/:id", s.authorizeParam(s.editGroupGet))
 	ro.HandlerFunc("GET", "/login", s.loginGet)
 	ro.HandlerFunc("POST", "/login", s.loginPost)
 	ro.HandlerFunc("GET", "/logout", s.logout)
@@ -133,8 +139,33 @@ func (s *Services) createGroupPost(wr http.ResponseWriter, req *http.Request, ui
 	http.Redirect(wr, req, "/dashboard", 302)
 }
 
-func (s *Services) editGroupGet(wr http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+func (s *Services) editGroupGet(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, uid uint64) {
+	groupID, e := strconv.ParseUint(ps.ByName("id"), 10, 32)
+	if e != nil {
+		http.Error(wr, e.Error(), http.StatusInternalServerError)
+	}
+	group := types.Group{ID: groupID}
+	e = s.groups.GetGroup(&group)
 
+	edit, e := s.groups.CanEdit(&group, uid)
+	if e != nil {
+		handleError(e, wr)
+		return
+	} else if !edit {
+		http.Error(wr, "You do not have permission to edit this group.", http.StatusUnauthorized)
+		return
+	}
+
+	user := types.User{ID: uid}
+	e = s.users.GetUserByID(&user)
+	if e != nil {
+		http.Error(wr, e.Error(), http.StatusInternalServerError)
+		return
+	}
+	e = s.views.EditGroupForm(wr, req, &group, &user)
+	if e != nil {
+		handleError(e, wr)
+	}
 }
 
 /////////////////////////////////////////////////////////////////

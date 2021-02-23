@@ -118,6 +118,24 @@ func (s *Storage) GetUserChoreList(user *types.User) ([]types.ChoreListItem, err
 	return chores, err
 }
 
+func (s *Storage) GetGroupByID(group *types.Group) error {
+	query := `
+	SELECT name FROM groups WHERE id = $1`
+	e := s.Db.QueryRow(query, group.ID).Scan(&group.Name)
+	return e
+}
+
+func (s *Storage) GetMemberships(t interface{}) error {
+	switch v := t.(type) {
+	case *types.User:
+		return s.GetUserMemberships(v)
+	case *types.Group:
+		return s.GetGroupMemberships(v)
+	default:
+		return errors.ErrType
+	}
+}
+
 func (s *Storage) GetUserMemberships(user *types.User) error {
 	query := `
 	SELECT m.joined_at, m.group_id, g.name
@@ -151,6 +169,34 @@ func (s *Storage) GetUserMemberships(user *types.User) error {
 	return nil
 }
 
+func (s *Storage) GetGroupMemberships(group *types.Group) error {
+	query := `
+	SELECT m.joined_at, m.user_id, u.uname
+	FROM memberships m
+	INNER JOIN users u ON m.user_id = u.id
+	WHERE m.group_id = $1`
+
+	rows, err := s.Db.Query(query, group.ID)
+	if err != nil {
+		return err
+	}
+	group.Memberships = []types.Membership{}
+	defer rows.Close()
+	for rows.Next() {
+		mem := types.Membership{Group: group, User: &types.User{}}
+		err = rows.Scan(&mem.JoinedAt, &mem.User.ID, &mem.User.Username)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return nil
+			}
+			return err
+		}
+		group.Memberships = append(group.Memberships, mem)
+	}
+
+	return nil
+}
+
 func (s *Storage) CreateGroup(group *types.Group) error {
 	query := `INSERT INTO groups (name) VALUES ($1) RETURNING id`
 	e := s.Db.QueryRow(query, &group.Name).Scan(&group.ID)
@@ -158,8 +204,14 @@ func (s *Storage) CreateGroup(group *types.Group) error {
 }
 
 func (s *Storage) CreateRole(role *types.Role) error {
-	query := `INSERT INTO roles (name, permissions, group_id) VALUES ($1,$2,$3) RETURNING id`
-	e := s.Db.QueryRow(query, role.Name, role.Permissions, role.Group.ID).Scan(&role.ID)
+	query := `INSERT INTO roles (name, permissions, group_id, gets_chores) VALUES ($1,$2,$3,$4) RETURNING id`
+	e := s.Db.QueryRow(query, role.Name, role.Permissions, role.Group.ID, role.GetsChores).Scan(&role.ID)
+	return e
+}
+
+func (s *Storage) CreateRoleAssignment(roleID uint64, userID uint64) error {
+	query := `INSERT INTO role_assignments (role_id, user_id) VALUES ($1,$2)`
+	_, e := s.Db.Exec(query, roleID, userID)
 	return e
 }
 
@@ -169,7 +221,6 @@ func (s *Storage) CreateMembership(mem *types.Membership) error {
 	return e
 }
 
-// GetMemberChores fetches the list of chores assigned to a member
 func (s *Storage) GetMemberChores(member *types.Membership) error {
 	rows, err := s.Db.Query("SELECT chores.id, chores.description, chores.name, chores.duration, chore_assignments.complete, chore_assignments.date_assigned, chore_assignments.date_complete FROM chores WHERE chores.group_id = $1 INNER JOIN chore_assignment ON chore_assignment.chore_id = chores.id", member.Group.ID)
 
@@ -194,6 +245,70 @@ func (s *Storage) GetMemberChores(member *types.Membership) error {
 	}
 
 	return nil
+}
+
+func (s *Storage) GetRoles(t interface{}) error {
+	switch v := t.(type) {
+	case *types.Group:
+		return s.GetGroupRoles(v)
+	case *types.Membership:
+		return s.GetMemberRoles(v)
+	default:
+		return errors.ErrType
+	}
+}
+
+func (s *Storage) GetGroupRoles(group *types.Group) error {
+	query := `
+	SELECT id, name, permissions, gets_chores
+	FROM roles
+	WHERE group_id = $1`
+	rows, e := s.Db.Query(query, group.ID)
+	if e != nil {
+		return e
+	}
+	group.Roles = []types.Role{}
+	defer rows.Close()
+	for rows.Next() {
+		role := types.Role{Group: group}
+		e := rows.Scan(&role.ID, &role.Name, &role.Permissions, &role.GetsChores)
+		if e != nil {
+			if e == sql.ErrNoRows {
+				return nil
+			}
+			return e
+		}
+		group.Roles = append(group.Roles, role)
+	}
+	return nil
+}
+
+func (s *Storage) GetMemberRoles(member *types.Membership) error {
+	query := `
+	SELECT r.id, r.name, r.permissions, r.gets_chores
+	FROM role_assignments ra
+	INNER JOIN roles r on r.id = ra.role_id
+	WHERE ra.user_id = $1`
+
+	rows, e := s.Db.Query(query, member.User.ID)
+	if e != nil {
+		return e
+	}
+	member.Roles = []types.Role{}
+	defer rows.Close()
+	for rows.Next() {
+		role := types.Role{Group: member.Group}
+		e := rows.Scan(&role.ID, &role.Name, &role.Permissions, &role.GetsChores)
+		if e != nil {
+			if e == sql.ErrNoRows {
+				return nil
+			}
+			return e
+		}
+		member.Roles = append(member.Roles, role)
+	}
+	return nil
+
 }
 
 // GetSession fetches a session frm the database by session id

@@ -9,6 +9,7 @@ type Chore struct {
 	Name        string
 	Duration    int
 	Group       *Group
+	User        *User
 }
 
 type ChoreListItem struct {

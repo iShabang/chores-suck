@@ -25,6 +25,6 @@ func main() {
 	auth := auth.NewService(users, store)
 	views := views.NewService(store, repo)
 	groups := groups.NewService(groupCore, users)
-	handler := web.Handler(web.NewServices(auth, views, groups))
+	handler := web.Handler(web.NewServices(auth, views, groups, users))
 	log.Fatal(http.ListenAndServe(":8080", context.ClearHandler(handler)))
 }

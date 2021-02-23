@@ -2,12 +2,12 @@ package types
 
 // Role defines what a member has access to within a group and if they get chores assigned to them
 type Role struct {
-	ID          string
+	ID          uint64
 	Name        string
 	Permissions int
 	GetsChores  bool
 	Group       *Group
-	Users       []*User
+	Users       []User
 }
 
 type PermBit int
@@ -46,4 +46,11 @@ func (role *Role) SetAll(value bool) {
 	if value {
 		role.Permissions = ^role.Permissions
 	}
+}
+
+func (role *Role) CanEdit() bool {
+	mask := 1 << EditMembers
+	mask |= 1 << EditChores
+	mask |= 1 << EditGroup
+	return role.Permissions&mask != 0
 }

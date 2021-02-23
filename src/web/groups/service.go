@@ -7,6 +7,7 @@ import (
 	ce "chores-suck/web/errors"
 	"chores-suck/web/messages"
 	"errors"
+	"log"
 	"net/http"
 )
 
@@ -17,6 +18,8 @@ var (
 
 type Service interface {
 	CreateGroup(wr http.ResponseWriter, req *http.Request, uid uint64, msg *messages.CreateGroup) error
+	CanEdit(group *types.Group, uid uint64) (bool, error)
+	GetGroup(group *types.Group) error
 }
 
 type service struct {
@@ -51,4 +54,63 @@ func (s *service) CreateGroup(wr http.ResponseWriter, req *http.Request, uid uin
 
 	return nil
 
+}
+
+func (s *service) CanEdit(group *types.Group, uid uint64) (bool, error) {
+
+	isMember := false
+	var mem types.Membership
+	for _, v := range group.Memberships {
+		if v.User.ID == uid {
+			isMember = true
+			mem = v
+			break
+		}
+	}
+	if !isMember {
+		log.Print("User is not a member of the group to edit")
+		return false, nil
+	}
+
+	e := s.gs.GetRoles(&mem)
+	if e != nil {
+		return false, internalError(e)
+	}
+
+	canEdit := false
+	for _, v := range mem.Roles {
+		if v.CanEdit() {
+			canEdit = true
+			break
+		}
+	}
+	if !canEdit {
+		log.Print("User has insufficient privileges to edit this group")
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func (s *service) GetGroup(group *types.Group) error {
+	e := s.gs.GetGroup(group)
+	if e != nil {
+		return internalError(e)
+	}
+
+	e = s.gs.GetMemberships(group)
+	if e != nil {
+		return internalError(e)
+	}
+
+	e = s.gs.GetRoles(group)
+	if e != nil {
+		return internalError(e)
+	}
+
+	return nil
+}
+
+func internalError(e error) error {
+	return ce.StatusError{Code: http.StatusInternalServerError, Err: e}
 }
