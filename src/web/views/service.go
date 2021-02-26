@@ -157,8 +157,8 @@ func (s *service) EditGroupForm(wr http.ResponseWriter, req *http.Request, group
 		User:  user,
 		Group: group,
 	}
-	files := []string{"../html/editgroup.html", "../html/head.html", "../html/sessionNav.html"}
-	err := executeTemplate(wr, "editgroup", model, files...)
+	files := []string{"../html/editgroup.html", "../html/head.html", "../html/sessionNav.html", "../html/layout.html"}
+	err := executeTemplate(wr, "layout", model, files...)
 	if err != nil {
 		return internalError(err)
 	}

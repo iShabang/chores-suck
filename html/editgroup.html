@@ -1,23 +1,25 @@
-{{ define "editgroup" }}
-<!DOCTYPE html>
-<html lang="en">
-{{ template "head" }}
-<body>
-    {{ template "navbar" .User }}
-    <h2>{{ .Group.Name }}</h2>
-    <button>Edit</button>
-    <h3>Members</h3>
-    {{ range .Group.Memberships }}
-    <div>
-        <p>{{ .User.Username }}</p>
-    </div>
-    {{ end }}
-    <h3>Roles</h3>
-    {{ range .Group.Roles }}
-    <div>
-        <p>{{ .Name }}</p>
-    </div>
-    {{ end }}
-</body>
-</html>
+{{ define "body" }}
+<h2>{{ .Group.Name }}</h2>
+<button>Edit</button>
+<h3>Members</h3>
+{{ range .Group.Memberships }}
+<div>
+    <p>{{ .User.Username }}</p>
+    <a href="/editgroup/{{ .Group.ID }}/remove/user/{{ .User.ID }}">Remove</a>
+</div>
+{{ end }}
+<div>
+    <form action="/editgroup/{{ .Group.ID }}/add/user" method="post">
+        <input type="text" name="username" id="username" placeholder="Username...">
+        <input type="submit" value="Add">
+    </form>
+</div>
+<h3>Roles</h3>
+<a href="/editgroup/{{ .Group.ID }}/add/role">Create Role</a>
+{{ range .Group.Roles }}
+<div>
+    <p>{{ .Name }}</p>
+    <a href="/editgroup/{{ .Group.ID }}/edit/role/{{ .ID }}">Edit</a>
+</div>
+{{ end }}
 {{ end }}
