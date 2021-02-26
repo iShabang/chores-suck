@@ -59,15 +59,8 @@ func (s *service) Index(wr http.ResponseWriter, req *http.Request) error {
 
 func (s *service) BuildDashboard(wr http.ResponseWriter, req *http.Request, uid uint64) error {
 	user := types.User{}
-
 	user.ID = uid
 	err := s.repo.GetUserByID(&user)
-	if err != nil {
-		return internalError(err)
-	}
-
-	var t *template.Template
-	t, err = template.ParseFiles("../html/dashboard.html", "../html/sessionNav.html", "../html/head.html")
 	if err != nil {
 		return internalError(err)
 	}
@@ -81,12 +74,14 @@ func (s *service) BuildDashboard(wr http.ResponseWriter, req *http.Request, uid 
 	if err != nil {
 		return internalError(err)
 	}
-
-	dm := DashboardModel{
+	model := struct {
+		User   *types.User
+		Chores []types.ChoreListItem
+	}{
 		User:   &user,
 		Chores: chores,
 	}
-	err = t.ExecuteTemplate(wr, "index", dm)
+	err = executeTemplate(wr, model, "../html/dashboard.html")
 	if err != nil {
 		return internalError(err)
 	}
@@ -94,46 +89,42 @@ func (s *service) BuildDashboard(wr http.ResponseWriter, req *http.Request, uid 
 }
 
 func (s *service) RegisterForm(wr http.ResponseWriter, req *http.Request, msg *messages.RegisterMessage) error {
-	var t *template.Template
-	t, err := template.ParseFiles("../html/register.html", "../html/navbar.html", "../html/head.html")
-	if err != nil {
-		return internalError(err)
-	}
-	data := RegisterFormData{
+	model := struct {
+		Username string
+		Email    string
+		Messages *messages.RegisterMessage
+		User     *types.User
+	}{
 		Username: req.FormValue("username"),
 		Email:    req.FormValue("email"),
 		Messages: msg,
+		User:     nil,
 	}
-	err = t.ExecuteTemplate(wr, "register.html", data)
-	if err != nil {
-		return internalError(err)
+	e := executeTemplate(wr, model, "../html/register.html")
+	if e != nil {
+		return internalError(e)
 	}
 	return nil
 }
 
 func (s *service) LoginForm(wr http.ResponseWriter, req *http.Request) error {
-	var t *template.Template
-	t, err := template.ParseFiles("../html/login.html", "../html/head.html", "../html/navbar.html")
-	if err != nil {
-		return internalError(err)
+	model := struct {
+		User *types.User
+	}{
+		User: nil,
 	}
-	err = t.ExecuteTemplate(wr, "login.html", nil)
-	if err != nil {
-		return internalError(err)
+	e := executeTemplate(wr, model, "../html/login.html")
+	if e != nil {
+		return internalError(e)
 	}
 	return nil
 }
 
 func (s *service) NewGroupForm(wr http.ResponseWriter, req *http.Request, uid uint64, msg *messages.CreateGroup) error {
-	var t *template.Template
-	t, err := template.ParseFiles("../html/newgroup.html", "../html/head.html", "../html/sessionNav.html")
-	if err != nil {
-		return internalError(err)
-	}
 	user := types.User{ID: uid}
 	e := s.repo.GetUserByID(&user)
 	if e != nil {
-		return internalError(err)
+		return internalError(e)
 	}
 	model := struct {
 		User *types.User
@@ -142,9 +133,9 @@ func (s *service) NewGroupForm(wr http.ResponseWriter, req *http.Request, uid ui
 		User: &user,
 		Msg:  msg,
 	}
-	err = t.ExecuteTemplate(wr, "newgroup", &model)
-	if err != nil {
-		return internalError(err)
+	e = executeTemplate(wr, model, "../html/newgroup.html")
+	if e != nil {
+		return internalError(e)
 	}
 	return nil
 }
@@ -157,8 +148,7 @@ func (s *service) EditGroupForm(wr http.ResponseWriter, req *http.Request, group
 		User:  user,
 		Group: group,
 	}
-	files := []string{"../html/editgroup.html", "../html/head.html", "../html/sessionNav.html", "../html/layout.html"}
-	err := executeTemplate(wr, "layout", model, files...)
+	err := executeTemplate(wr, model, "../html/editgroup.html")
 	if err != nil {
 		return internalError(err)
 	}
@@ -169,12 +159,14 @@ func internalError(e error) cerror.StatusError {
 	return cerror.StatusError{Code: http.StatusInternalServerError, Err: e}
 }
 
-func executeTemplate(wr http.ResponseWriter, tname string, model interface{}, files ...string) error {
+func executeTemplate(wr http.ResponseWriter, model interface{}, files ...string) error {
+	common := []string{"../html/layout.html", "../html/navbar.html"}
+	files = append(files, common...)
 	var t *template.Template
 	t, err := template.ParseFiles(files...)
 	if err != nil {
 		return err
 	}
-	err = t.ExecuteTemplate(wr, tname, model)
+	err = t.ExecuteTemplate(wr, "layout", model)
 	return err
 }

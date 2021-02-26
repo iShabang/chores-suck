@@ -1,14 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-{{ template "head" }}
-<body>
-    {{ template "navbar" }}
-    <div class="loginContainer">
-        <form action="/login" method="post">
-            <input type="text" id="username" name="username" placeholder="Username...">
-            <input type="password" id="pword" name="pword" placeholder="Password...">
-            <input type="submit" id="submit" name="submit" value="Login">
-        </form>
-    </div>
-</body>
-</html>
+{{define "body"}}
+<div class="loginContainer">
+    <form action="/login" method="post">
+        <input type="text" id="username" name="username" placeholder="Username...">
+        <input type="password" id="pword" name="pword" placeholder="Password...">
+        <input type="submit" id="submit" name="submit" value="Login">
+    </form>
+</div>
+{{end}}
