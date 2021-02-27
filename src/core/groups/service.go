@@ -13,6 +13,7 @@ type Repository interface {
 	GetGroupByID(group *types.Group) error
 	GetMemberships(t interface{}) error
 	GetRoles(t interface{}) error
+	UpdateGroup(group *types.Group) error
 }
 
 type Service interface {
@@ -22,6 +23,7 @@ type Service interface {
 	GetGroup(group *types.Group) error
 	GetMemberships(group *types.Group) error
 	GetRoles(t interface{}) error
+	UpdateGroup(group *types.Group) error
 }
 
 type service struct {
@@ -99,5 +101,10 @@ func (s *service) GetMemberships(group *types.Group) error {
 
 func (s *service) GetRoles(t interface{}) error {
 	e := s.repo.GetRoles(t)
+	return e
+}
+
+func (s *service) UpdateGroup(group *types.Group) error {
+	e := s.repo.UpdateGroup(group)
 	return e
 }

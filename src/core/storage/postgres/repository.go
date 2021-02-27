@@ -203,6 +203,12 @@ func (s *Storage) CreateGroup(group *types.Group) error {
 	return e
 }
 
+func (s *Storage) UpdateGroup(group *types.Group) error {
+	query := `UPDATE groups SET name = $1 WHERE id = $2`
+	_, e := s.Db.Exec(query, group.Name, group.ID)
+	return e
+}
+
 func (s *Storage) CreateRole(role *types.Role) error {
 	query := `INSERT INTO roles (name, permissions, group_id, gets_chores) VALUES ($1,$2,$3,$4) RETURNING id`
 	e := s.Db.QueryRow(query, role.Name, role.Permissions, role.Group.ID, role.GetsChores).Scan(&role.ID)

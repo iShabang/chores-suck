@@ -16,6 +16,9 @@ import (
 	"chores-suck/web/views"
 )
 
+type authBasicHandle func(http.ResponseWriter, *http.Request, uint64)
+type authParamHandle func(http.ResponseWriter, *http.Request, httprouter.Params, uint64)
+
 // Services holds references to services that handlers utilize to carry out requests
 type Services struct {
 	auth   auth.Service
@@ -38,6 +41,7 @@ func NewServices(a auth.Service, v views.Service, g groups.Service, u users.Serv
 func Handler(s *Services) http.Handler {
 	ro := httprouter.New()
 	ro.GET("/editgroup/:id", s.authorizeParam(s.editGroupGet))
+	ro.POST("/editgroup/:id", s.authorizeParam(s.editGroupPost))
 	ro.HandlerFunc("GET", "/login", s.loginGet)
 	ro.HandlerFunc("POST", "/login", s.loginPost)
 	ro.HandlerFunc("GET", "/logout", s.logout)
@@ -140,7 +144,7 @@ func (s *Services) createGroupPost(wr http.ResponseWriter, req *http.Request, ui
 }
 
 func (s *Services) editGroupGet(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, uid uint64) {
-	groupID, e := strconv.ParseUint(ps.ByName("id"), 10, 32)
+	groupID, e := strconv.ParseUint(ps.ByName("id"), 10, 64)
 	if e != nil {
 		http.Error(wr, e.Error(), http.StatusInternalServerError)
 	}
@@ -165,6 +169,35 @@ func (s *Services) editGroupGet(wr http.ResponseWriter, req *http.Request, ps ht
 	e = s.views.EditGroupForm(wr, req, &group, &user)
 	if e != nil {
 		handleError(e, wr)
+	}
+}
+
+func (s *Services) editGroupPost(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, uid uint64, group *types.Group) {
+	user := types.User{ID: uid}
+	e := s.users.GetUserByID(&user)
+	if e != nil {
+		http.Error(wr, e.Error(), http.StatusInternalServerError)
+		return
+	}
+	editGroup := false
+	for _, r := range group.Roles {
+		for _, u := range r.Users {
+			if u.ID == user.ID && r.Can(types.EditGroup) {
+				editGroup = true
+				break
+			}
+		}
+	}
+	if !editGroup {
+		http.Error(wr, "You do not have permission to edit this group", http.StatusUnauthorized)
+		return
+	}
+	groupName := req.PostFormValue("groupname")
+	// TODO: validate input
+	group.Name = groupName
+	e = s.groups.UpdateGroup(group)
+	if e != nil {
+		log.Print(e.Error())
 	}
 }
 
@@ -195,6 +228,28 @@ func (s *Services) authorizeParam(handler func(wr http.ResponseWriter, req *http
 		}
 
 		handler(wr, req, ps, uid)
+	}
+}
+
+func (s *Services) groupAccess(handler func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, uid uint64, group *types.Group)) authParamHandle {
+	return func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, uid uint64) {
+		groupID, e := strconv.ParseUint(ps.ByName("id"), 10, 64)
+		if e != nil {
+			http.Error(wr, e.Error(), http.StatusInternalServerError)
+		}
+		group := types.Group{ID: groupID}
+		e = s.groups.GetGroup(&group)
+
+		edit, e := s.groups.CanEdit(&group, uid)
+		if e != nil {
+			handleError(e, wr)
+			return
+		} else if !edit {
+			http.Error(wr, "You do not have permission to edit this group.", http.StatusUnauthorized)
+			return
+		}
+
+		handler(wr, req, ps, uid, &group)
 	}
 }
 

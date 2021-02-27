@@ -1,6 +1,15 @@
 {{ define "body" }}
-<h2>{{ .Group.Name }}</h2>
-<button>Edit</button>
+{{ if .Error.Name }}
+<div>
+    <p>{{.Error.Name}}</p>
+</div>
+{{end}}
+<div>
+    <form action="editgroup/{{.Group.ID}}" method="post">
+        <input type="text" name="groupname" id="groupname" value="{{.Group.Name}}">
+        <input type="submit" value="Update Name">
+    </form>
+</div>
 <h3>Members</h3>
 {{ range .Group.Memberships }}
 <div>
@@ -19,7 +28,7 @@
 {{ range .Group.Roles }}
 <div>
     <p>{{ .Name }}</p>
-    <a href="/editgroup/{{ .Group.ID }}/edit/role/{{ .ID }}">Edit</a>
+    <a href="/editrole/{{ .ID }}">Edit</a>
 </div>
 {{ end }}
 {{ end }}

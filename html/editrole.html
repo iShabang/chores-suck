@@ -1,0 +1,20 @@
+{{define "body"}}
+<div>
+    <form action="/editrole/{{.ID}}" method="post">
+        <input type="text" name="rolename" id="rolename" value="{{.Name}}">
+        <input type="checkbox" name="editchores" id="editchores" value="true" {{ if .Can(types.EditChores) }}checked{{end}}>
+        <input type="checkbox" name="editmembers" id="editmembers" value="true" {{ if .Can(types.EditMembers) }}checked{{end}}>
+        <input type="checkbox" name="editgroup" id="editgroup" value="true" {{ if .Can(types.EditGroup) }}checked{{end}}>
+        <input type="checkbox" name="getschores" id="getschores" value="true" {{ if .GetsChores }}checked{{end}}>
+    </form>
+</div>
+<div>
+    <form action="/editrole/{{.ID}}/adduser" method="post">
+        <input type="text" name="username" id="username" placeholder="Username...">
+        <input type="submit" value="Add">
+    </form>
+</div>
+<div>
+    <a href="/editrole/{{.ID}}/delete">Delete Role</a>
+</div>
+{{end}}

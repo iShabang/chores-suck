@@ -20,6 +20,7 @@ type Service interface {
 	CreateGroup(wr http.ResponseWriter, req *http.Request, uid uint64, msg *messages.CreateGroup) error
 	CanEdit(group *types.Group, uid uint64) (bool, error)
 	GetGroup(group *types.Group) error
+	UpdateGroup(group *types.Group) error
 }
 
 type service struct {
@@ -109,6 +110,11 @@ func (s *service) GetGroup(group *types.Group) error {
 	}
 
 	return nil
+}
+
+func (s *service) UpdateGroup(group *types.Group) error {
+	e := s.gs.UpdateGroup(group)
+	return ce.StatusError{Code: http.StatusInternalServerError, Err: e}
 }
 
 func internalError(e error) error {
