@@ -84,6 +84,54 @@ func (s *Storage) CreateUser(user *types.User) error {
 	return nil
 }
 
+func (s *Storage) GetChores(t interface{}) error {
+	switch v := t.(type) {
+	case *types.User:
+		return s.GetUserChores(v)
+	// TODO: Implement GetGroupChores
+	//case *types.Group:
+	//	return s.GetGroupChores(v)
+	default:
+		return errors.ErrType
+	}
+}
+
+func (s *Storage) GetUserChores(user *types.User) error {
+	query := `
+	SELECT ca.complete, ca.date_assigned, ca.date_complete, ca.date_due,
+	c.id, c.name, c.description, c.duration, g.id, g.name
+	FROM chore_assignments ca
+	INNER JOIN chores c ON c.id = ca.chore_id
+	INNER JOIN groups g ON g.id = c.group_id
+	WHERE ca.user_id = $1`
+
+	rows, err := s.Db.Query(query, user.ID)
+
+	if err != nil {
+		return err
+	}
+
+	for rows.Next() {
+		ca := types.ChoreAssignment{User: user}
+		c := types.Chore{User: user}
+		g := types.Group{}
+
+		err = rows.Scan(&ca.Complete, &ca.DateAssigned, &ca.DateComplete, &ca.DateDue,
+			&c.ID, &c.Name, &c.Description, &c.Duration, &g.ID, &g.Name)
+
+		if err != nil && err != sql.ErrNoRows {
+			return err
+		}
+
+		ca.Chore = &c
+		c.Assignment = &ca
+		c.Group = &g
+		user.Chores = append(user.Chores, c)
+	}
+
+	return nil
+}
+
 // GetUserChoreList fetches a list of chore data
 func (s *Storage) GetUserChoreList(user *types.User) ([]types.ChoreListItem, error) {
 	query := `

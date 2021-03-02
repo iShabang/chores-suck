@@ -10,6 +10,7 @@ type Chore struct {
 	Duration    int
 	Group       *Group
 	User        *User
+	Assignment  *ChoreAssignment
 }
 
 type ChoreListItem struct {

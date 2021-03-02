@@ -1,10 +1,9 @@
-package groups
+package web
 
 import (
 	"chores-suck/core/groups"
 	"chores-suck/core/types"
 	"chores-suck/core/users"
-	ce "chores-suck/web/errors"
 	"chores-suck/web/messages"
 	"errors"
 	"log"
@@ -16,48 +15,48 @@ var (
 	ErrInvalidFormData = errors.New("Invalid form input")
 )
 
-type Service interface {
+type GroupService interface {
 	CreateGroup(wr http.ResponseWriter, req *http.Request, uid uint64, msg *messages.CreateGroup) error
 	CanEdit(group *types.Group, uid uint64) (bool, error)
 	GetGroup(group *types.Group) error
 	UpdateGroup(group *types.Group) error
 }
 
-type service struct {
+type groupService struct {
 	gs groups.Service
 	us users.Service
 }
 
-func NewService(g groups.Service, u users.Service) Service {
-	return &service{
+func NewGroupService(g groups.Service, u users.Service) GroupService {
+	return &groupService{
 		gs: g,
 		us: u,
 	}
 }
 
-func (s *service) CreateGroup(wr http.ResponseWriter, req *http.Request, uid uint64, msg *messages.CreateGroup) error {
+func (s *groupService) CreateGroup(wr http.ResponseWriter, req *http.Request, uid uint64, msg *messages.CreateGroup) error {
 	groupName := req.PostFormValue("groupname")
 
-	if !validateName(groupName, msg) {
+	if !validateGroupName(groupName, msg) {
 		return ErrInvalidFormData
 	}
 
 	user := types.User{ID: uid}
 	e := s.us.GetUserByID(&user)
 	if e != nil {
-		return ce.StatusError{Code: http.StatusInternalServerError, Err: e}
+		return StatusError{Code: http.StatusInternalServerError, Err: e}
 	}
 
 	e = s.gs.CreateGroup(groupName, &user)
 	if e != nil {
-		return ce.StatusError{Code: http.StatusInternalServerError, Err: e}
+		return StatusError{Code: http.StatusInternalServerError, Err: e}
 	}
 
 	return nil
 
 }
 
-func (s *service) CanEdit(group *types.Group, uid uint64) (bool, error) {
+func (s *groupService) CanEdit(group *types.Group, uid uint64) (bool, error) {
 
 	isMember := false
 	var mem types.Membership
@@ -93,7 +92,7 @@ func (s *service) CanEdit(group *types.Group, uid uint64) (bool, error) {
 	return true, nil
 }
 
-func (s *service) GetGroup(group *types.Group) error {
+func (s *groupService) GetGroup(group *types.Group) error {
 	e := s.gs.GetGroup(group)
 	if e != nil {
 		return internalError(e)
@@ -112,11 +111,10 @@ func (s *service) GetGroup(group *types.Group) error {
 	return nil
 }
 
-func (s *service) UpdateGroup(group *types.Group) error {
+func (s *groupService) UpdateGroup(group *types.Group) error {
 	e := s.gs.UpdateGroup(group)
-	return ce.StatusError{Code: http.StatusInternalServerError, Err: e}
+	return StatusError{Code: http.StatusInternalServerError, Err: e}
 }
 
-func internalError(e error) error {
-	return ce.StatusError{Code: http.StatusInternalServerError, Err: e}
+func (s *groupService) RemoveUser(p Params) {
 }

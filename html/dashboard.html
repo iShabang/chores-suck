@@ -1,11 +1,11 @@
 {{ define "body" }}
 <h2>Chores</h2>
-{{ range .Chores }}
+{{ range .User.Chores }}
 <div class="choreListRow">
     <ul class="choreList" style="list-style: none;">
-        <li style="display: inline">{{ .ChoreName }}</li>
-        <li style="display: inline">{{ .GroupName }}</li>
-        <li style="display: inline">{{ .DateDue }}</li>
+        <li style="display: inline">{{ .Name }}</li>
+        <li style="display: inline">{{ .Group.Name }}</li>
+        <li style="display: inline">Due: {{ .Assignment.DateDue }}</li>
     </ul>
 </div>
 {{ else }}

@@ -1,61 +1,44 @@
-package auth
+package web
 
 import (
-	"errors"
 	"log"
 	"net/http"
 	"os"
 
 	"chores-suck/core/types"
 	"chores-suck/core/users"
-	cerror "chores-suck/web/errors"
 	"chores-suck/web/messages"
 
 	"github.com/gorilla/sessions"
 )
 
 var (
-	// ErrSessionType describes a type assertion error for retrieving session values
-	ErrSessionType = errors.New("session value type assertion failed")
-
-	// ErrNotAuthorized occurs when the current session is not authorized
-	ErrNotAuthorized = errors.New("authorization unsuccessfull")
-
-	// ErrInvalidValue occurs when an invalid session value is retrieved from the current session
-	ErrInvalidValue = errors.New("invalid session value")
-
-	// ErrInvalidInput occurs when a form is submitted but the data is not valid
-	ErrInvalidInput = errors.New("one or more form values was invalid")
-
-	// ErrValueName occurs when attempting to access an invalid session value
-	ErrValueName = errors.New("invalid session value name")
-
 	// Name of the session cookie that will be sent to clients
 	SessionName = os.Getenv("SESSION_NAME")
 )
 
 // Service provides functionality for authentication and authorization
-type Service interface {
+type AuthService interface {
 	Login(http.ResponseWriter, *http.Request) error
 	Logout(http.ResponseWriter, *http.Request) error
 	Authorize(http.ResponseWriter, *http.Request) (uint64, error)
 	Create(http.ResponseWriter, *http.Request, *messages.RegisterMessage) error
 }
 
-type service struct {
+type authService struct {
 	users users.Service
 	store sessions.Store
 }
 
 // NewService creates and returns a new auth Service
-func NewService(us users.Service, ses sessions.Store) Service {
-	return &service{
+func NewAuthService(us users.Service, ses sessions.Store) AuthService {
+	return &authService{
 		users: us,
 		store: ses,
 	}
 }
 
-func (s *service) Login(wr http.ResponseWriter, req *http.Request) error {
+func (s *authService) Login(wr http.ResponseWriter, req *http.Request) error {
 	ses, e := s.store.Get(req, SessionName)
 	if e != nil {
 		return internalError(e)
@@ -96,7 +79,7 @@ func (s *service) Login(wr http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 
-func (s *service) Logout(wr http.ResponseWriter, req *http.Request) error {
+func (s *authService) Logout(wr http.ResponseWriter, req *http.Request) error {
 	ses, e := s.store.Get(req, SessionName)
 	if e != nil {
 		return internalError(e)
@@ -118,7 +101,7 @@ func (s *service) Logout(wr http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 
-func (s *service) Authorize(wr http.ResponseWriter, req *http.Request) (uint64, error) {
+func (s *authService) Authorize(wr http.ResponseWriter, req *http.Request) (uint64, error) {
 	ses, e := s.store.Get(req, SessionName)
 	if e != nil {
 		log.Printf("Get session: %s", e.Error())
@@ -152,13 +135,13 @@ func (s *service) Authorize(wr http.ResponseWriter, req *http.Request) (uint64, 
 }
 
 // TODO: Move this method to a new User service
-func (s *service) Create(wr http.ResponseWriter, req *http.Request, msg *messages.RegisterMessage) error {
+func (s *authService) Create(wr http.ResponseWriter, req *http.Request, msg *messages.RegisterMessage) error {
 	username := req.FormValue("username")
 	email := req.FormValue("email")
 	password := req.FormValue("pword")
 	password2 := req.FormValue("pwordConf")
 
-	if !validateInput(username, password, password2, email, msg) {
+	if !validateRegisterInput(username, password, password2, email, msg) {
 		return ErrInvalidInput
 	}
 
@@ -190,7 +173,7 @@ func (s *service) Create(wr http.ResponseWriter, req *http.Request, msg *message
 // Helper methods
 /////////////////////////////////////////////////////////////////
 
-func (s *service) isLoggedIn(r *http.Request) bool {
+func (s *authService) isLoggedIn(r *http.Request) bool {
 	ses, e := s.store.Get(r, SessionName)
 	if e != nil {
 		return false
@@ -216,12 +199,4 @@ func getSessionValue(name string, result interface{}, ses *sessions.Session) err
 	}
 
 	return nil
-}
-
-func internalError(e error) cerror.StatusError {
-	return cerror.StatusError{Code: http.StatusInternalServerError, Err: e}
-}
-
-func authError(e error) cerror.StatusError {
-	return cerror.StatusError{Code: http.StatusUnauthorized, Err: e}
 }

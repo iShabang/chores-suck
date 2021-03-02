@@ -1,8 +1,8 @@
-package views
+package web
 
 import (
 	"chores-suck/core/types"
-	cerror "chores-suck/web/errors"
+	"chores-suck/core/users"
 	"chores-suck/web/messages"
 	"chores-suck/web/sessions"
 	"html/template"
@@ -16,7 +16,7 @@ type RegisterFormData struct {
 }
 
 // Service provides functionality for generating views
-type Service interface {
+type ViewService interface {
 	Index(http.ResponseWriter, *http.Request) error
 	BuildDashboard(http.ResponseWriter, *http.Request, uint64) error
 	RegisterForm(http.ResponseWriter, *http.Request, *messages.RegisterMessage) error
@@ -25,26 +25,19 @@ type Service interface {
 	EditGroupForm(http.ResponseWriter, *http.Request, *types.Group, *types.User) error
 }
 
-// Repository describes the interface necessary for grabbing data necessary for views
-type Repository interface {
-	GetUserByID(*types.User) error
-	GetUserChoreList(*types.User) ([]types.ChoreListItem, error)
-	GetUserMemberships(*types.User) error
-}
-
-type service struct {
+type viewService struct {
 	store *sessions.Store
-	repo  Repository
+	users users.Service
 }
 
-func NewService(s *sessions.Store, r Repository) Service {
-	return &service{
+func NewViewService(s *sessions.Store, u users.Service) ViewService {
+	return &viewService{
 		store: s,
-		repo:  r,
+		users: u,
 	}
 }
 
-func (s *service) Index(wr http.ResponseWriter, req *http.Request) error {
+func (s *viewService) Index(wr http.ResponseWriter, req *http.Request) error {
 	var t *template.Template
 	t, err := template.ParseFiles("../html/index.html", "../html/navbar.html", "../html/head.html")
 	if err != nil {
@@ -57,29 +50,27 @@ func (s *service) Index(wr http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 
-func (s *service) BuildDashboard(wr http.ResponseWriter, req *http.Request, uid uint64) error {
+func (s *viewService) BuildDashboard(wr http.ResponseWriter, req *http.Request, uid uint64) error {
 	user := types.User{}
 	user.ID = uid
-	err := s.repo.GetUserByID(&user)
+	err := s.users.GetUserByID(&user)
 	if err != nil {
 		return internalError(err)
 	}
 
-	chores, err := s.repo.GetUserChoreList(&user)
+	err = s.users.GetChores(&user)
 	if err != nil {
 		return internalError(err)
 	}
 
-	err = s.repo.GetUserMemberships(&user)
+	err = s.users.GetMemberships(&user)
 	if err != nil {
 		return internalError(err)
 	}
 	model := struct {
-		User   *types.User
-		Chores []types.ChoreListItem
+		User *types.User
 	}{
-		User:   &user,
-		Chores: chores,
+		User: &user,
 	}
 	err = executeTemplate(wr, model, "../html/dashboard.html")
 	if err != nil {
@@ -88,7 +79,7 @@ func (s *service) BuildDashboard(wr http.ResponseWriter, req *http.Request, uid 
 	return nil
 }
 
-func (s *service) RegisterForm(wr http.ResponseWriter, req *http.Request, msg *messages.RegisterMessage) error {
+func (s *viewService) RegisterForm(wr http.ResponseWriter, req *http.Request, msg *messages.RegisterMessage) error {
 	model := struct {
 		Username string
 		Email    string
@@ -107,7 +98,7 @@ func (s *service) RegisterForm(wr http.ResponseWriter, req *http.Request, msg *m
 	return nil
 }
 
-func (s *service) LoginForm(wr http.ResponseWriter, req *http.Request) error {
+func (s *viewService) LoginForm(wr http.ResponseWriter, req *http.Request) error {
 	model := struct {
 		User *types.User
 	}{
@@ -120,9 +111,9 @@ func (s *service) LoginForm(wr http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 
-func (s *service) NewGroupForm(wr http.ResponseWriter, req *http.Request, uid uint64, msg *messages.CreateGroup) error {
+func (s *viewService) NewGroupForm(wr http.ResponseWriter, req *http.Request, uid uint64, msg *messages.CreateGroup) error {
 	user := types.User{ID: uid}
-	e := s.repo.GetUserByID(&user)
+	e := s.users.GetUserByID(&user)
 	if e != nil {
 		return internalError(e)
 	}
@@ -140,7 +131,7 @@ func (s *service) NewGroupForm(wr http.ResponseWriter, req *http.Request, uid ui
 	return nil
 }
 
-func (s *service) EditGroupForm(wr http.ResponseWriter, req *http.Request, group *types.Group, user *types.User) error {
+func (s *viewService) EditGroupForm(wr http.ResponseWriter, req *http.Request, group *types.Group, user *types.User) error {
 	model := struct {
 		User  *types.User
 		Group *types.Group
@@ -153,10 +144,6 @@ func (s *service) EditGroupForm(wr http.ResponseWriter, req *http.Request, group
 		return internalError(err)
 	}
 	return nil
-}
-
-func internalError(e error) cerror.StatusError {
-	return cerror.StatusError{Code: http.StatusInternalServerError, Err: e}
 }
 
 func executeTemplate(wr http.ResponseWriter, model interface{}, files ...string) error {

@@ -1,4 +1,4 @@
-package auth
+package web
 
 import (
 	"chores-suck/web/messages"
@@ -6,7 +6,23 @@ import (
 	"strings"
 )
 
-func validateInput(username string, p1 string, p2 string, email string, msg *messages.RegisterMessage) bool {
+func validateGroupName(name string, msg *messages.CreateGroup) bool {
+	valid := false
+	regName := regexp.MustCompile(`^(?:[0-9a-zA-Z]+-)*[0-9a-zA-Z]+$`)
+
+	if strings.TrimSpace(name) == "" {
+		msg.Name = "Group name cannot be empty!"
+
+	} else if !regName.MatchString(name) {
+		msg.Name = "Group name must only consist of alphanumeric characters and hyphens and cannot start or end with a hyphen"
+	} else {
+		valid = true
+	}
+
+	return valid
+}
+
+func validateRegisterInput(username string, p1 string, p2 string, email string, msg *messages.RegisterMessage) bool {
 	valid := true
 
 	regEmail := regexp.MustCompile(`.+@.+\..+`)

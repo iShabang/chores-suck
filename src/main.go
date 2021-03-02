@@ -5,10 +5,7 @@ import (
 	"chores-suck/core/storage/postgres"
 	"chores-suck/core/users"
 	"chores-suck/web"
-	"chores-suck/web/auth"
-	"chores-suck/web/groups"
 	"chores-suck/web/sessions"
-	"chores-suck/web/views"
 	"log"
 	"net/http"
 	"os"
@@ -22,9 +19,9 @@ func main() {
 	groupCore := groupcore.NewService(repo)
 
 	store := sessions.NewStore(repo, []byte(os.Getenv("SESSION_KEY")))
-	auth := auth.NewService(users, store)
-	views := views.NewService(store, repo)
-	groups := groups.NewService(groupCore, users)
+	auth := web.NewAuthService(users, store)
+	views := web.NewViewService(store, users)
+	groups := web.NewGroupService(groupCore, users)
 	handler := web.Handler(web.NewServices(auth, views, groups, users))
 	log.Fatal(http.ListenAndServe(":8080", context.ClearHandler(handler)))
 }

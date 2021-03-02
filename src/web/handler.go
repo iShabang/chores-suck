@@ -9,11 +9,7 @@ import (
 
 	"chores-suck/core/types"
 	"chores-suck/core/users"
-	"chores-suck/web/auth"
-	"chores-suck/web/errors"
-	"chores-suck/web/groups"
 	"chores-suck/web/messages"
-	"chores-suck/web/views"
 )
 
 type authBasicHandle func(http.ResponseWriter, *http.Request, uint64)
@@ -21,14 +17,14 @@ type authParamHandle func(http.ResponseWriter, *http.Request, httprouter.Params,
 
 // Services holds references to services that handlers utilize to carry out requests
 type Services struct {
-	auth   auth.Service
-	views  views.Service
-	groups groups.Service
+	auth   AuthService
+	views  ViewService
+	groups GroupService
 	users  users.Service
 }
 
 // NewServices creates a new Services object
-func NewServices(a auth.Service, v views.Service, g groups.Service, u users.Service) *Services {
+func NewServices(a AuthService, v ViewService, g GroupService, u users.Service) *Services {
 	return &Services{
 		auth:   a,
 		views:  v,
@@ -41,7 +37,7 @@ func NewServices(a auth.Service, v views.Service, g groups.Service, u users.Serv
 func Handler(s *Services) http.Handler {
 	ro := httprouter.New()
 	ro.GET("/editgroup/:id", s.authorizeParam(s.editGroupGet))
-	ro.POST("/editgroup/:id", s.authorizeParam(s.editGroupPost))
+	ro.POST("/editgroup/:id", s.authorizeParam(s.groupAccess(s.editGroupPost)))
 	ro.HandlerFunc("GET", "/login", s.loginGet)
 	ro.HandlerFunc("POST", "/login", s.loginPost)
 	ro.HandlerFunc("GET", "/logout", s.logout)
@@ -111,7 +107,7 @@ func (s *Services) createUser(wr http.ResponseWriter, req *http.Request) {
 	msg := messages.RegisterMessage{}
 	err := s.auth.Create(wr, req, &msg)
 	if err != nil {
-		if err == auth.ErrInvalidInput {
+		if err == ErrInvalidInput {
 			s.views.RegisterForm(wr, req, &msg)
 		} else {
 			handleError(err, wr)
@@ -260,7 +256,7 @@ func (s *Services) groupAccess(handler func(wr http.ResponseWriter, req *http.Re
 func handleError(err error, wr http.ResponseWriter) {
 	if err != nil {
 		switch e := err.(type) {
-		case errors.Error:
+		case HttpError:
 			http.Error(wr, e.Error(), e.Status())
 		default:
 			http.Error(wr, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

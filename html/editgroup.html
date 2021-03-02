@@ -1,9 +1,4 @@
 {{ define "body" }}
-{{ if .Error.Name }}
-<div>
-    <p>{{.Error.Name}}</p>
-</div>
-{{end}}
 <div>
     <form action="editgroup/{{.Group.ID}}" method="post">
         <input type="text" name="groupname" id="groupname" value="{{.Group.Name}}">

@@ -1,5 +1,14 @@
 package messages
 
+type EditGroup struct {
+	Name string
+}
+
+type CreateGroup struct {
+	Name    string
+	General string
+}
+
 // RegisterMessage contains messages correlating to different parts of the register form
 type RegisterMessage struct {
 	Username string
