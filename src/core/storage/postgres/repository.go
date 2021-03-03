@@ -3,13 +3,13 @@ package postgres
 import (
 	"chores-suck/core"
 	"chores-suck/core/storage/errors"
-	"database/sql"
-	"os"
-	"time"
-
-	"log"
 
 	_ "github.com/lib/pq" //Required for compilation. Functionality is wrapped using database/sql
+
+	"database/sql"
+	"log"
+	"os"
+	"time"
 )
 
 type pgsession struct {
