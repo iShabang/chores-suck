@@ -5,8 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	"chores-suck/core/types"
-	"chores-suck/core/users"
+	"chores-suck/core"
 	"chores-suck/web/messages"
 
 	"github.com/gorilla/sessions"
@@ -26,12 +25,12 @@ type AuthService interface {
 }
 
 type authService struct {
-	users users.Service
+	users core.UserService
 	store sessions.Store
 }
 
 // NewService creates and returns a new auth Service
-func NewAuthService(us users.Service, ses sessions.Store) AuthService {
+func NewAuthService(us core.UserService, ses sessions.Store) AuthService {
 	return &authService{
 		users: us,
 		store: ses,
@@ -55,7 +54,7 @@ func (s *authService) Login(wr http.ResponseWriter, req *http.Request) error {
 	}
 
 	n := req.FormValue("username")
-	u := types.User{Username: n}
+	u := core.User{Username: n}
 	e = s.users.GetUserByName(&u)
 	if e != nil {
 		log.Print(e)
@@ -145,7 +144,7 @@ func (s *authService) Create(wr http.ResponseWriter, req *http.Request, msg *mes
 		return ErrInvalidInput
 	}
 
-	user := types.User{Username: username, Email: email}
+	user := core.User{Username: username, Email: email}
 	var err error
 	user.Password, err = hashPassword(password)
 	if err != nil {
@@ -155,10 +154,10 @@ func (s *authService) Create(wr http.ResponseWriter, req *http.Request, msg *mes
 	err = s.users.CreateUser(&user)
 	if err != nil {
 		switch err {
-		case users.ErrEmailExists:
+		case core.ErrEmailExists:
 			msg.Email = "Email already registered"
 			return ErrInvalidInput
-		case users.ErrNameExists:
+		case core.ErrNameExists:
 			msg.Username = "Username already taken"
 			return ErrInvalidInput
 		default:

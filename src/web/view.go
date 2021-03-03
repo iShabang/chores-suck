@@ -1,8 +1,7 @@
 package web
 
 import (
-	"chores-suck/core/types"
-	"chores-suck/core/users"
+	"chores-suck/core"
 	"chores-suck/web/messages"
 	"chores-suck/web/sessions"
 	"html/template"
@@ -22,15 +21,15 @@ type ViewService interface {
 	RegisterForm(http.ResponseWriter, *http.Request, *messages.RegisterMessage) error
 	LoginForm(http.ResponseWriter, *http.Request) error
 	NewGroupForm(http.ResponseWriter, *http.Request, uint64, *messages.CreateGroup) error
-	EditGroupForm(http.ResponseWriter, *http.Request, *types.Group, *types.User) error
+	EditGroupForm(http.ResponseWriter, *http.Request, *core.Group, *core.User) error
 }
 
 type viewService struct {
 	store *sessions.Store
-	users users.Service
+	users core.UserService
 }
 
-func NewViewService(s *sessions.Store, u users.Service) ViewService {
+func NewViewService(s *sessions.Store, u core.UserService) ViewService {
 	return &viewService{
 		store: s,
 		users: u,
@@ -51,7 +50,7 @@ func (s *viewService) Index(wr http.ResponseWriter, req *http.Request) error {
 }
 
 func (s *viewService) BuildDashboard(wr http.ResponseWriter, req *http.Request, uid uint64) error {
-	user := types.User{}
+	user := core.User{}
 	user.ID = uid
 	err := s.users.GetUserByID(&user)
 	if err != nil {
@@ -68,7 +67,7 @@ func (s *viewService) BuildDashboard(wr http.ResponseWriter, req *http.Request, 
 		return internalError(err)
 	}
 	model := struct {
-		User *types.User
+		User *core.User
 	}{
 		User: &user,
 	}
@@ -84,7 +83,7 @@ func (s *viewService) RegisterForm(wr http.ResponseWriter, req *http.Request, ms
 		Username string
 		Email    string
 		Messages *messages.RegisterMessage
-		User     *types.User
+		User     *core.User
 	}{
 		Username: req.FormValue("username"),
 		Email:    req.FormValue("email"),
@@ -100,7 +99,7 @@ func (s *viewService) RegisterForm(wr http.ResponseWriter, req *http.Request, ms
 
 func (s *viewService) LoginForm(wr http.ResponseWriter, req *http.Request) error {
 	model := struct {
-		User *types.User
+		User *core.User
 	}{
 		User: nil,
 	}
@@ -112,13 +111,13 @@ func (s *viewService) LoginForm(wr http.ResponseWriter, req *http.Request) error
 }
 
 func (s *viewService) NewGroupForm(wr http.ResponseWriter, req *http.Request, uid uint64, msg *messages.CreateGroup) error {
-	user := types.User{ID: uid}
+	user := core.User{ID: uid}
 	e := s.users.GetUserByID(&user)
 	if e != nil {
 		return internalError(e)
 	}
 	model := struct {
-		User *types.User
+		User *core.User
 		Msg  *messages.CreateGroup
 	}{
 		User: &user,
@@ -131,10 +130,10 @@ func (s *viewService) NewGroupForm(wr http.ResponseWriter, req *http.Request, ui
 	return nil
 }
 
-func (s *viewService) EditGroupForm(wr http.ResponseWriter, req *http.Request, group *types.Group, user *types.User) error {
+func (s *viewService) EditGroupForm(wr http.ResponseWriter, req *http.Request, group *core.Group, user *core.User) error {
 	model := struct {
-		User  *types.User
-		Group *types.Group
+		User  *core.User
+		Group *core.Group
 	}{
 		User:  user,
 		Group: group,

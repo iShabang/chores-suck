@@ -1,10 +1,9 @@
-package users
+package core
 
 import (
 	"errors"
 
 	storagErr "chores-suck/core/storage/errors"
-	"chores-suck/core/types"
 )
 
 var (
@@ -12,46 +11,46 @@ var (
 	ErrNameExists  = errors.New("Username already registered")
 )
 
-type Repository interface {
-	GetUserByName(user *types.User) error
-	GetUserByEmail(user *types.User) error
-	GetUserByID(user *types.User) error
-	CreateUser(user *types.User) error
+type UserRepository interface {
+	GetUserByName(user *User) error
+	GetUserByEmail(user *User) error
+	GetUserByID(user *User) error
+	CreateUser(user *User) error
 	GetMemberships(t interface{}) error
 	GetChores(t interface{}) error
 }
 
-type Service interface {
-	GetUserByName(user *types.User) error
-	GetUserByID(user *types.User) error
-	CreateUser(user *types.User) error
+type UserService interface {
+	GetUserByName(user *User) error
+	GetUserByID(user *User) error
+	CreateUser(user *User) error
 	CheckEmailExists(email string) (bool, error)
 	CheckUsernameExists(name string) (bool, error)
-	GetMemberships(user *types.User) error
-	GetChores(user *types.User) error
+	GetMemberships(user *User) error
+	GetChores(user *User) error
 }
 
-type service struct {
-	repo Repository
+type userService struct {
+	repo UserRepository
 }
 
-func NewService(rep Repository) Service {
-	return &service{
+func NewUserService(rep UserRepository) UserService {
+	return &userService{
 		repo: rep,
 	}
 }
 
-func (s *service) GetUserByName(user *types.User) error {
+func (s *userService) GetUserByName(user *User) error {
 	e := s.repo.GetUserByName(user)
 	return e
 }
 
-func (s *service) GetUserByID(user *types.User) error {
+func (s *userService) GetUserByID(user *User) error {
 	e := s.repo.GetUserByID(user)
 	return e
 }
 
-func (s *service) CreateUser(user *types.User) error {
+func (s *userService) CreateUser(user *User) error {
 	exists, e := s.CheckEmailExists(user.Email)
 	if e != nil {
 		return e
@@ -71,8 +70,8 @@ func (s *service) CreateUser(user *types.User) error {
 
 }
 
-func (s *service) CheckEmailExists(email string) (bool, error) {
-	user := types.User{Email: email}
+func (s *userService) CheckEmailExists(email string) (bool, error) {
+	user := User{Email: email}
 	e := s.repo.GetUserByEmail(&user)
 	if e == storagErr.ErrNotFound {
 		return false, nil
@@ -80,8 +79,8 @@ func (s *service) CheckEmailExists(email string) (bool, error) {
 	return true, e
 }
 
-func (s *service) CheckUsernameExists(name string) (bool, error) {
-	user := types.User{Username: name}
+func (s *userService) CheckUsernameExists(name string) (bool, error) {
+	user := User{Username: name}
 	e := s.repo.GetUserByName(&user)
 	if e == storagErr.ErrNotFound {
 		return false, nil
@@ -89,12 +88,12 @@ func (s *service) CheckUsernameExists(name string) (bool, error) {
 	return true, e
 }
 
-func (s *service) GetMemberships(user *types.User) error {
+func (s *userService) GetMemberships(user *User) error {
 	e := s.repo.GetMemberships(user)
 	return e
 }
 
-func (s *service) GetChores(user *types.User) error {
+func (s *userService) GetChores(user *User) error {
 	e := s.repo.GetChores(user)
 	return e
 }

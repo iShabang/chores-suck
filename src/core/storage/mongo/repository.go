@@ -1,7 +1,7 @@
 package mongo
 
 import (
-	"chores-suck/types"
+	"chores-suck/core"
 	"context"
 	"errors"
 	"time"
@@ -27,9 +27,9 @@ func NewStorage(c *mongo.Client, ttl int32) *Storage {
 }
 
 // GetUserByName fetches a user from the database by unique username
-func (s *Storage) GetUserByName(name string) (types.User, error) {
+func (s *Storage) GetUserByName(name string) (core.User, error) {
 	filter := bson.M{"username": name}
-	var u types.User
+	var u core.User
 	err := s.findOne(&filter, u, "users")
 	return u, err
 }

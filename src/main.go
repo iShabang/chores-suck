@@ -1,9 +1,8 @@
 package main
 
 import (
-	groupcore "chores-suck/core/groups"
+	"chores-suck/core"
 	"chores-suck/core/storage/postgres"
-	"chores-suck/core/users"
 	"chores-suck/web"
 	"chores-suck/web/sessions"
 	"log"
@@ -15,8 +14,8 @@ import (
 
 func main() {
 	repo := postgres.NewStorage()
-	users := users.NewService(repo)
-	groupCore := groupcore.NewService(repo)
+	users := core.NewUserService(repo)
+	groupCore := core.NewGroupService(repo)
 
 	store := sessions.NewStore(repo, []byte(os.Getenv("SESSION_KEY")))
 	auth := web.NewAuthService(users, store)

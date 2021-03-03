@@ -7,8 +7,7 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 
-	"chores-suck/core/types"
-	"chores-suck/core/users"
+	"chores-suck/core"
 	"chores-suck/web/messages"
 )
 
@@ -20,11 +19,11 @@ type Services struct {
 	auth   AuthService
 	views  ViewService
 	groups GroupService
-	users  users.Service
+	users  core.UserService
 }
 
 // NewServices creates a new Services object
-func NewServices(a AuthService, v ViewService, g GroupService, u users.Service) *Services {
+func NewServices(a AuthService, v ViewService, g GroupService, u core.UserService) *Services {
 	return &Services{
 		auth:   a,
 		views:  v,
@@ -144,7 +143,7 @@ func (s *Services) editGroupGet(wr http.ResponseWriter, req *http.Request, ps ht
 	if e != nil {
 		http.Error(wr, e.Error(), http.StatusInternalServerError)
 	}
-	group := types.Group{ID: groupID}
+	group := core.Group{ID: groupID}
 	e = s.groups.GetGroup(&group)
 
 	edit, e := s.groups.CanEdit(&group, uid)
@@ -156,7 +155,7 @@ func (s *Services) editGroupGet(wr http.ResponseWriter, req *http.Request, ps ht
 		return
 	}
 
-	user := types.User{ID: uid}
+	user := core.User{ID: uid}
 	e = s.users.GetUserByID(&user)
 	if e != nil {
 		http.Error(wr, e.Error(), http.StatusInternalServerError)
@@ -168,8 +167,8 @@ func (s *Services) editGroupGet(wr http.ResponseWriter, req *http.Request, ps ht
 	}
 }
 
-func (s *Services) editGroupPost(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, uid uint64, group *types.Group) {
-	user := types.User{ID: uid}
+func (s *Services) editGroupPost(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, uid uint64, group *core.Group) {
+	user := core.User{ID: uid}
 	e := s.users.GetUserByID(&user)
 	if e != nil {
 		http.Error(wr, e.Error(), http.StatusInternalServerError)
@@ -178,7 +177,7 @@ func (s *Services) editGroupPost(wr http.ResponseWriter, req *http.Request, ps h
 	editGroup := false
 	for _, r := range group.Roles {
 		for _, u := range r.Users {
-			if u.ID == user.ID && r.Can(types.EditGroup) {
+			if u.ID == user.ID && r.Can(core.EditGroup) {
 				editGroup = true
 				break
 			}
@@ -227,13 +226,13 @@ func (s *Services) authorizeParam(handler func(wr http.ResponseWriter, req *http
 	}
 }
 
-func (s *Services) groupAccess(handler func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, uid uint64, group *types.Group)) authParamHandle {
+func (s *Services) groupAccess(handler func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, uid uint64, group *core.Group)) authParamHandle {
 	return func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, uid uint64) {
 		groupID, e := strconv.ParseUint(ps.ByName("id"), 10, 64)
 		if e != nil {
 			http.Error(wr, e.Error(), http.StatusInternalServerError)
 		}
-		group := types.Group{ID: groupID}
+		group := core.Group{ID: groupID}
 		e = s.groups.GetGroup(&group)
 
 		edit, e := s.groups.CanEdit(&group, uid)

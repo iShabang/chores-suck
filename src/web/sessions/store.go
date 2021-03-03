@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"chores-suck/core"
 	se "chores-suck/core/storage/errors"
-	"chores-suck/core/types"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/securecookie"
@@ -16,9 +16,9 @@ import (
 
 // Repository defines storage functionality for sessions
 type Repository interface {
-	GetSession(ses *types.Session) error
+	GetSession(ses *core.Session) error
 	DeleteSession(ID string) error
-	UpsertSession(ses *types.Session) error
+	UpsertSession(ses *core.Session) error
 }
 
 // Store defines properties of a session store
@@ -58,7 +58,7 @@ func (s *Store) New(req *http.Request, name string) (*sessions.Session, error) {
 	var err error
 	if cookie, errCookie := req.Cookie(name); errCookie == nil {
 		if err = securecookie.DecodeMulti(name, cookie.Value, &session.ID, s.codecs...); err == nil {
-			var ts = types.Session{}
+			var ts = core.Session{}
 			ts.UUID = session.ID
 			if err := s.repo.GetSession(&ts); err == nil {
 				session.IsNew = false
@@ -90,7 +90,7 @@ func (s *Store) Save(req *http.Request, w http.ResponseWriter, ses *sessions.Ses
 	}
 
 	var err error
-	ts := types.Session{}
+	ts := core.Session{}
 	ts.UUID = ses.ID
 	ts.Created = time.Now().UTC()
 	if ts.Values, err = securecookie.EncodeMulti(ses.Name(), ses.Values, s.codecs...); err != nil {

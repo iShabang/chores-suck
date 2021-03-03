@@ -1,8 +1,8 @@
 package postgres
 
 import (
+	"chores-suck/core"
 	"chores-suck/core/storage/errors"
-	"chores-suck/core/types"
 	"database/sql"
 	"time"
 
@@ -43,7 +43,7 @@ func NewStorage() *Storage {
 }
 
 // GetUserByName fetches a user from the database by unique username
-func (s *Storage) GetUserByName(user *types.User) error {
+func (s *Storage) GetUserByName(user *core.User) error {
 	query := `
 	SELECT users.id, users.email, users.pword, users.created_at 
 	FROM users 
@@ -55,7 +55,7 @@ func (s *Storage) GetUserByName(user *types.User) error {
 	return err
 }
 
-func (s *Storage) GetUserByEmail(user *types.User) error {
+func (s *Storage) GetUserByEmail(user *core.User) error {
 	query := `
 	SELECT users.id, users.uname, users.pword, users.created_at 
 	FROM users 
@@ -68,13 +68,13 @@ func (s *Storage) GetUserByEmail(user *types.User) error {
 }
 
 // GetUserByID fetches a user from the database by unique ID
-func (s *Storage) GetUserByID(user *types.User) error {
+func (s *Storage) GetUserByID(user *core.User) error {
 	err := s.Db.QueryRow("SELECT uname, email, pword, created_at FROM users WHERE id = $1", user.ID).Scan(&user.Username, &user.Email, &user.Password, &user.CreatedAt)
 	return err
 }
 
 // CreateUser adds a new user to the database
-func (s *Storage) CreateUser(user *types.User) error {
+func (s *Storage) CreateUser(user *core.User) error {
 	ca := time.Now().UTC()
 	query := `INSERT INTO users (uname, email, pword, created_at) VALUES ($1,$2,$3,$4) RETURNING id`
 	err := s.Db.QueryRow(query, user.Username, user.Email, user.Password, ca).Scan(&user.ID)
@@ -86,17 +86,17 @@ func (s *Storage) CreateUser(user *types.User) error {
 
 func (s *Storage) GetChores(t interface{}) error {
 	switch v := t.(type) {
-	case *types.User:
+	case *core.User:
 		return s.GetUserChores(v)
 	// TODO: Implement GetGroupChores
-	//case *types.Group:
+	//case *core.Group:
 	//	return s.GetGroupChores(v)
 	default:
 		return errors.ErrType
 	}
 }
 
-func (s *Storage) GetUserChores(user *types.User) error {
+func (s *Storage) GetUserChores(user *core.User) error {
 	query := `
 	SELECT ca.complete, ca.date_assigned, ca.date_complete, ca.date_due,
 	c.id, c.name, c.description, c.duration, g.id, g.name
@@ -112,9 +112,9 @@ func (s *Storage) GetUserChores(user *types.User) error {
 	}
 
 	for rows.Next() {
-		ca := types.ChoreAssignment{User: user}
-		c := types.Chore{User: user}
-		g := types.Group{}
+		ca := core.ChoreAssignment{User: user}
+		c := core.Chore{User: user}
+		g := core.Group{}
 
 		err = rows.Scan(&ca.Complete, &ca.DateAssigned, &ca.DateComplete, &ca.DateDue,
 			&c.ID, &c.Name, &c.Description, &c.Duration, &g.ID, &g.Name)
@@ -132,41 +132,7 @@ func (s *Storage) GetUserChores(user *types.User) error {
 	return nil
 }
 
-// GetUserChoreList fetches a list of chore data
-func (s *Storage) GetUserChoreList(user *types.User) ([]types.ChoreListItem, error) {
-	query := `
-	SELECT ca.date_due, c.name, g.name
-	FROM chore_assignments ca
-	INNER JOIN chores c ON c.id = ca.chore_id
-	INNER JOIN groups g ON g.id = c.group_id
-	WHERE ca.user_id = $1`
-
-	rows, err := s.Db.Query(query, user.ID)
-
-	if err != nil {
-		return nil, err
-	}
-
-	var chores []types.ChoreListItem
-	defer rows.Close()
-	for rows.Next() {
-		ch := types.ChoreListItem{}
-		err = rows.Scan(&ch.DateDue, &ch.ChoreName, &ch.GroupName)
-		if err != nil {
-			// An empty list is a valid value
-			if err == sql.ErrNoRows {
-				return chores, nil
-			}
-
-			return nil, err
-		}
-		chores = append(chores, ch)
-	}
-
-	return chores, err
-}
-
-func (s *Storage) GetGroupByID(group *types.Group) error {
+func (s *Storage) GetGroupByID(group *core.Group) error {
 	query := `
 	SELECT name FROM groups WHERE id = $1`
 	e := s.Db.QueryRow(query, group.ID).Scan(&group.Name)
@@ -175,16 +141,16 @@ func (s *Storage) GetGroupByID(group *types.Group) error {
 
 func (s *Storage) GetMemberships(t interface{}) error {
 	switch v := t.(type) {
-	case *types.User:
+	case *core.User:
 		return s.GetUserMemberships(v)
-	case *types.Group:
+	case *core.Group:
 		return s.GetGroupMemberships(v)
 	default:
 		return errors.ErrType
 	}
 }
 
-func (s *Storage) GetUserMemberships(user *types.User) error {
+func (s *Storage) GetUserMemberships(user *core.User) error {
 	query := `
 	SELECT m.joined_at, m.group_id, g.name
 	FROM memberships m
@@ -197,12 +163,12 @@ func (s *Storage) GetUserMemberships(user *types.User) error {
 		return err
 	}
 
-	user.Memberships = []types.Membership{}
+	user.Memberships = []core.Membership{}
 	defer rows.Close()
 	for rows.Next() {
-		mem := types.Membership{
+		mem := core.Membership{
 			User:  user,
-			Group: &types.Group{},
+			Group: &core.Group{},
 		}
 		err := rows.Scan(&mem.JoinedAt, &mem.Group.ID, &mem.Group.Name)
 		if err != nil {
@@ -217,7 +183,7 @@ func (s *Storage) GetUserMemberships(user *types.User) error {
 	return nil
 }
 
-func (s *Storage) GetGroupMemberships(group *types.Group) error {
+func (s *Storage) GetGroupMemberships(group *core.Group) error {
 	query := `
 	SELECT m.joined_at, m.user_id, u.uname
 	FROM memberships m
@@ -228,10 +194,10 @@ func (s *Storage) GetGroupMemberships(group *types.Group) error {
 	if err != nil {
 		return err
 	}
-	group.Memberships = []types.Membership{}
+	group.Memberships = []core.Membership{}
 	defer rows.Close()
 	for rows.Next() {
-		mem := types.Membership{Group: group, User: &types.User{}}
+		mem := core.Membership{Group: group, User: &core.User{}}
 		err = rows.Scan(&mem.JoinedAt, &mem.User.ID, &mem.User.Username)
 		if err != nil {
 			if err == sql.ErrNoRows {
@@ -245,19 +211,19 @@ func (s *Storage) GetGroupMemberships(group *types.Group) error {
 	return nil
 }
 
-func (s *Storage) CreateGroup(group *types.Group) error {
+func (s *Storage) CreateGroup(group *core.Group) error {
 	query := `INSERT INTO groups (name) VALUES ($1) RETURNING id`
 	e := s.Db.QueryRow(query, &group.Name).Scan(&group.ID)
 	return e
 }
 
-func (s *Storage) UpdateGroup(group *types.Group) error {
+func (s *Storage) UpdateGroup(group *core.Group) error {
 	query := `UPDATE groups SET name = $1 WHERE id = $2`
 	_, e := s.Db.Exec(query, group.Name, group.ID)
 	return e
 }
 
-func (s *Storage) CreateRole(role *types.Role) error {
+func (s *Storage) CreateRole(role *core.Role) error {
 	query := `INSERT INTO roles (name, permissions, group_id, gets_chores) VALUES ($1,$2,$3,$4) RETURNING id`
 	e := s.Db.QueryRow(query, role.Name, role.Permissions, role.Group.ID, role.GetsChores).Scan(&role.ID)
 	return e
@@ -269,25 +235,25 @@ func (s *Storage) CreateRoleAssignment(roleID uint64, userID uint64) error {
 	return e
 }
 
-func (s *Storage) CreateMembership(mem *types.Membership) error {
+func (s *Storage) CreateMembership(mem *core.Membership) error {
 	query := `INSERT INTO memberships (joined_at, user_id, group_id) VALUES ($1,$2,$3)`
 	_, e := s.Db.Exec(query, mem.JoinedAt, mem.User.ID, mem.Group.ID)
 	return e
 }
 
-func (s *Storage) GetMemberChores(member *types.Membership) error {
+func (s *Storage) GetMemberChores(member *core.Membership) error {
 	rows, err := s.Db.Query("SELECT chores.id, chores.description, chores.name, chores.duration, chore_assignments.complete, chore_assignments.date_assigned, chore_assignments.date_complete FROM chores WHERE chores.group_id = $1 INNER JOIN chore_assignment ON chore_assignment.chore_id = chores.id", member.Group.ID)
 
 	if err != nil {
 		return err
 	}
 
-	member.Assignments = []types.ChoreAssignment{}
+	member.Assignments = []core.ChoreAssignment{}
 	defer rows.Close()
 	for rows.Next() {
-		ca := types.ChoreAssignment{
+		ca := core.ChoreAssignment{
 			User:  member.User,
-			Chore: &types.Chore{Group: member.Group},
+			Chore: &core.Chore{Group: member.Group},
 		}
 		err := rows.Scan(&ca.Chore.ID, &ca.Chore.Description, &ca.Chore.Name, &ca.Chore.Duration, &ca.Complete, &ca.DateAssigned, &ca.DateComplete)
 
@@ -303,16 +269,16 @@ func (s *Storage) GetMemberChores(member *types.Membership) error {
 
 func (s *Storage) GetRoles(t interface{}) error {
 	switch v := t.(type) {
-	case *types.Group:
+	case *core.Group:
 		return s.GetGroupRoles(v)
-	case *types.Membership:
+	case *core.Membership:
 		return s.GetMemberRoles(v)
 	default:
 		return errors.ErrType
 	}
 }
 
-func (s *Storage) GetGroupRoles(group *types.Group) error {
+func (s *Storage) GetGroupRoles(group *core.Group) error {
 	query := `
 	SELECT id, name, permissions, gets_chores
 	FROM roles
@@ -321,10 +287,10 @@ func (s *Storage) GetGroupRoles(group *types.Group) error {
 	if e != nil {
 		return e
 	}
-	group.Roles = []types.Role{}
+	group.Roles = []core.Role{}
 	defer rows.Close()
 	for rows.Next() {
-		role := types.Role{Group: group}
+		role := core.Role{Group: group}
 		e := rows.Scan(&role.ID, &role.Name, &role.Permissions, &role.GetsChores)
 		if e != nil {
 			if e == sql.ErrNoRows {
@@ -337,7 +303,7 @@ func (s *Storage) GetGroupRoles(group *types.Group) error {
 	return nil
 }
 
-func (s *Storage) GetMemberRoles(member *types.Membership) error {
+func (s *Storage) GetMemberRoles(member *core.Membership) error {
 	query := `
 	SELECT r.id, r.name, r.permissions, r.gets_chores
 	FROM role_assignments ra
@@ -348,10 +314,10 @@ func (s *Storage) GetMemberRoles(member *types.Membership) error {
 	if e != nil {
 		return e
 	}
-	member.Roles = []types.Role{}
+	member.Roles = []core.Role{}
 	defer rows.Close()
 	for rows.Next() {
-		role := types.Role{Group: member.Group}
+		role := core.Role{Group: member.Group}
 		e := rows.Scan(&role.ID, &role.Name, &role.Permissions, &role.GetsChores)
 		if e != nil {
 			if e == sql.ErrNoRows {
@@ -366,7 +332,7 @@ func (s *Storage) GetMemberRoles(member *types.Membership) error {
 }
 
 // GetSession fetches a session frm the database by session id
-func (s *Storage) GetSession(ses *types.Session) error {
+func (s *Storage) GetSession(ses *core.Session) error {
 	err := s.Db.QueryRow("SELECT values, created, user_id FROM sessions WHERE uuid = $1", ses.UUID).Scan(&ses.Values, &ses.Created, &ses.UserID)
 
 	if err == sql.ErrNoRows {
@@ -389,7 +355,7 @@ func (s *Storage) DeleteSession(UUID string) error {
 
 // UpsertSession inserts or updates a session in the database. If the session does not exist
 // it is created otherwise the existing session is updated.
-func (s *Storage) UpsertSession(ses *types.Session) error {
+func (s *Storage) UpsertSession(ses *core.Session) error {
 	statement, err := s.Db.Prepare("INSERT INTO sessions (uuid, values, created, user_id) VALUES ($1,$2,$3,$4) ON CONFLICT (uuid) DO UPDATE SET values = $2")
 	if err != nil {
 		return err
