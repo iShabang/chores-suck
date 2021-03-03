@@ -54,3 +54,14 @@ func internalError(e error) StatusError {
 func authError(e error) StatusError {
 	return StatusError{Code: http.StatusUnauthorized, Err: e}
 }
+
+func handleError(err error, wr http.ResponseWriter) {
+	if err != nil {
+		switch e := err.(type) {
+		case HttpError:
+			http.Error(wr, e.Error(), e.Status())
+		default:
+			http.Error(wr, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		}
+	}
+}

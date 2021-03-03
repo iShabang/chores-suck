@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func validateGroupName(name string, msg *messages.CreateGroup) bool {
+func validateGroupName(name string, msg *messages.Group) bool {
 	valid := false
 	regName := regexp.MustCompile(`^(?:[0-9a-zA-Z]+-)*[0-9a-zA-Z]+$`)
 

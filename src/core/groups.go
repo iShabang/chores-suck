@@ -1,6 +1,7 @@
 package core
 
 import (
+	"log"
 	"time"
 )
 
@@ -23,6 +24,7 @@ type GroupService interface {
 	GetMemberships(group *Group) error
 	GetRoles(t interface{}) error
 	UpdateGroup(group *Group) error
+	CanEdit(group *Group, uid uint64) (bool, error)
 }
 
 type groupService struct {
@@ -106,4 +108,40 @@ func (s *groupService) GetRoles(t interface{}) error {
 func (s *groupService) UpdateGroup(group *Group) error {
 	e := s.repo.UpdateGroup(group)
 	return e
+}
+
+func (s *groupService) CanEdit(group *Group, uid uint64) (bool, error) {
+	isMember := false
+	var mem Membership
+	for _, v := range group.Memberships {
+		if v.User.ID == uid {
+			isMember = true
+			mem = v
+			break
+		}
+	}
+	if !isMember {
+		log.Print("User is not a member of the group to edit")
+		return false, nil
+	}
+
+	e := s.GetRoles(&mem)
+	if e != nil {
+		return false, e
+	}
+
+	canEdit := false
+	for _, v := range mem.Roles {
+		if v.CanEdit() {
+			canEdit = true
+			break
+		}
+	}
+	if !canEdit {
+		log.Print("User has insufficient privileges to edit this group")
+		return false, nil
+	}
+
+	return true, nil
+
 }

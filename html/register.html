@@ -1,17 +1,11 @@
 {{define "body"}}
 <div class="regContainer">
-    <form action="/createuser" method="post">
-        {{ with .Messages.Username }}
-        <p class="ErrorMsg">{{ . }}</p>
-        {{ end }}
+    <form action="/register" method="post">
+        {{ with .Messages }}<p class="ErrorMsg">{{ .Username }}</p>{{end}}
         <input type="text" id="username" name="username" placeholder="Username..." value="{{ .Username }}">
-        {{ with .Messages.Email }}
-        <p class="ErrorMsg">{{ . }}</p>
-        {{ end }}
+        {{ with .Messages }}<p class="ErrorMsg">{{ .Email }}</p>{{end}}
         <input type="text" id="email" name="email" placeholder="Email..." value="{{ .Email }}">
-        {{ with .Messages.Password }}
-        <p class="ErrorMsg">{{ . }}</p>
-        {{ end }}
+        {{ with .Messages }}<p class="ErrorMsg">{{ .Password }}</p>{{end}}
         <input type="password" id="pword" name="pword" placeholder="Password">
         <input type="password" id="pwordConf" name="pwordConf" placeholder="Confirm Password">
         <input type="submit" id="submit" name="submit" value="Sign Up">

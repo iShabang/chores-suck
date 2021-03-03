@@ -4,8 +4,10 @@ import (
 	"chores-suck/core"
 	"chores-suck/web/messages"
 	"errors"
-	"log"
 	"net/http"
+	"strconv"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 var (
@@ -14,80 +16,47 @@ var (
 )
 
 type GroupService interface {
-	CreateGroup(wr http.ResponseWriter, req *http.Request, uid uint64, msg *messages.CreateGroup) error
-	CanEdit(group *core.Group, uid uint64) (bool, error)
+	CreateGroup(wr http.ResponseWriter, req *http.Request, uid uint64)
 	GetGroup(group *core.Group) error
 	UpdateGroup(group *core.Group) error
+	EditGroup(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, uid uint64, group *core.Group)
+	GroupAccess(handler func(wr http.ResponseWriter, req *http.Request,
+		ps httprouter.Params, uid uint64, group *core.Group)) authParamHandle
 }
 
 type groupService struct {
 	gs core.GroupService
 	us core.UserService
+	vs ViewService
 }
 
-func NewGroupService(g core.GroupService, u core.UserService) GroupService {
+func NewGroupService(g core.GroupService, u core.UserService, v ViewService) GroupService {
 	return &groupService{
 		gs: g,
 		us: u,
+		vs: v,
 	}
 }
 
-func (s *groupService) CreateGroup(wr http.ResponseWriter, req *http.Request, uid uint64, msg *messages.CreateGroup) error {
+func (s *groupService) CreateGroup(wr http.ResponseWriter, req *http.Request, uid uint64) {
 	groupName := req.PostFormValue("groupname")
-
-	if !validateGroupName(groupName, msg) {
-		return ErrInvalidFormData
-	}
-
 	user := core.User{ID: uid}
 	e := s.us.GetUserByID(&user)
 	if e != nil {
-		return StatusError{Code: http.StatusInternalServerError, Err: e}
+		handleError(internalError(e), wr)
+		return
 	}
-
+	msg := messages.Group{}
+	if !validateGroupName(groupName, &msg) {
+		s.vs.NewGroupFail(wr, req, &user, &msg)
+		return
+	}
 	e = s.gs.CreateGroup(groupName, &user)
 	if e != nil {
-		return StatusError{Code: http.StatusInternalServerError, Err: e}
+		handleError(internalError(e), wr)
+		return
 	}
-
-	return nil
-
-}
-
-func (s *groupService) CanEdit(group *core.Group, uid uint64) (bool, error) {
-
-	isMember := false
-	var mem core.Membership
-	for _, v := range group.Memberships {
-		if v.User.ID == uid {
-			isMember = true
-			mem = v
-			break
-		}
-	}
-	if !isMember {
-		log.Print("User is not a member of the group to edit")
-		return false, nil
-	}
-
-	e := s.gs.GetRoles(&mem)
-	if e != nil {
-		return false, internalError(e)
-	}
-
-	canEdit := false
-	for _, v := range mem.Roles {
-		if v.CanEdit() {
-			canEdit = true
-			break
-		}
-	}
-	if !canEdit {
-		log.Print("User has insufficient privileges to edit this group")
-		return false, nil
-	}
-
-	return true, nil
+	http.Redirect(wr, req, "/dashboard", 302)
 }
 
 func (s *groupService) GetGroup(group *core.Group) error {
@@ -115,4 +84,61 @@ func (s *groupService) UpdateGroup(group *core.Group) error {
 }
 
 func (s *groupService) RemoveUser(p Params) {
+}
+
+func (s *groupService) EditGroup(wr http.ResponseWriter, req *http.Request,
+	ps httprouter.Params, uid uint64, group *core.Group) {
+	user := core.User{ID: uid}
+	e := s.us.GetUserByID(&user)
+	if e != nil {
+		http.Error(wr, e.Error(), http.StatusInternalServerError)
+		return
+	}
+	editGroup := false
+	for _, r := range group.Roles {
+		for _, u := range r.Users {
+			if u.ID == user.ID && r.Can(core.EditGroup) {
+				editGroup = true
+				break
+			}
+		}
+	}
+	if !editGroup {
+		http.Error(wr, "You do not have permission to edit this group", http.StatusUnauthorized)
+		return
+	}
+	groupName := req.PostFormValue("groupname")
+	group.Name = groupName
+	msg := messages.Group{}
+	if validateGroupName(groupName, &msg) {
+		e = s.gs.UpdateGroup(group)
+		if e != nil {
+			handleError(internalError(e), wr)
+		}
+	} else {
+		s.vs.EditGroupFail(wr, req, &user, group, &msg)
+	}
+}
+
+func (s *groupService) GroupAccess(handler func(wr http.ResponseWriter, req *http.Request,
+	ps httprouter.Params, uid uint64, group *core.Group)) authParamHandle {
+	return func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, uid uint64) {
+		groupID, e := strconv.ParseUint(ps.ByName("id"), 10, 64)
+		if e != nil {
+			http.Error(wr, e.Error(), http.StatusInternalServerError)
+		}
+		group := core.Group{ID: groupID}
+		e = s.gs.GetGroup(&group)
+
+		edit, e := s.gs.CanEdit(&group, uid)
+		if e != nil {
+			handleError(e, wr)
+			return
+		} else if !edit {
+			http.Error(wr, "You do not have permission to edit this group.", http.StatusUnauthorized)
+			return
+		}
+
+		handler(wr, req, ps, uid, &group)
+	}
 }

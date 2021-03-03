@@ -1,11 +1,11 @@
 {{ define "body" }}
 <div class="newgroupCont">
     <form action="/creategroup" method="post">
-        {{ with .Msg.General }}
-        <p class="ErrorMsg">{{ . }}</p>
+        {{ with .Msg }}
+        <p class="ErrorMsg">{{ .General }}</p>
         {{ end }}
-        {{ with .Msg.Name }}
-        <p class="ErrorMsg">{{ . }}</p>
+        {{ with .Msg }}
+        <p class="ErrorMsg">{{ .Name }}</p>
         {{ end }}
         <input type="text" id="groupname" name="groupname" placeholder="Group name...">
         <input type="submit" id="submit" name="submit" value="Create Group">

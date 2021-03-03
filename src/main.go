@@ -14,13 +14,14 @@ import (
 
 func main() {
 	repo := postgres.NewStorage()
-	users := core.NewUserService(repo)
+	userCore := core.NewUserService(repo)
 	groupCore := core.NewGroupService(repo)
 
 	store := sessions.NewStore(repo, []byte(os.Getenv("SESSION_KEY")))
-	auth := web.NewAuthService(users, store)
-	views := web.NewViewService(store, users)
-	groups := web.NewGroupService(groupCore, users)
+	auth := web.NewAuthService(userCore, store)
+	views := web.NewViewService(store, userCore, auth, groupCore)
+	users := web.NewUserService(userCore, views)
+	groups := web.NewGroupService(groupCore, userCore, views)
 	handler := web.Handler(web.NewServices(auth, views, groups, users))
 	log.Fatal(http.ListenAndServe(":8080", context.ClearHandler(handler)))
 }

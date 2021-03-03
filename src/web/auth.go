@@ -18,8 +18,8 @@ var (
 
 // Service provides functionality for authentication and authorization
 type AuthService interface {
-	Login(http.ResponseWriter, *http.Request) error
-	Logout(http.ResponseWriter, *http.Request) error
+	Login(http.ResponseWriter, *http.Request)
+	Logout(http.ResponseWriter, *http.Request)
 	Authorize(http.ResponseWriter, *http.Request) (uint64, error)
 	Create(http.ResponseWriter, *http.Request, *messages.RegisterMessage) error
 }
@@ -37,67 +37,78 @@ func NewAuthService(us core.UserService, ses sessions.Store) AuthService {
 	}
 }
 
-func (s *authService) Login(wr http.ResponseWriter, req *http.Request) error {
+func (s *authService) Login(wr http.ResponseWriter, req *http.Request) {
+	authorized := false
 	ses, e := s.store.Get(req, SessionName)
 	if e != nil {
-		return internalError(e)
+		handleError(internalError(e), wr)
+		return
 	} else if !ses.IsNew {
 		log.Print("Session not new")
-		var authorized bool
 		e = getSessionValue("auth", &authorized, ses)
 		if e != nil {
 			log.Print("Existing session failure during login")
-			return internalError(e)
-		} else if authorized {
-			return nil
+			handleError(internalError(e), wr)
+			return
 		}
 	}
 
-	n := req.FormValue("username")
-	u := core.User{Username: n}
-	e = s.users.GetUserByName(&u)
+	if !authorized {
+		n := req.FormValue("username")
+		p := req.FormValue("pword")
+		u := core.User{Username: n, Password: p}
+		e = s.checkCredentials(&u)
+		if e == ErrNotAuthorized {
+			// TODO: Resend login form with error message
+			handleError(authError(e), wr)
+			return
+		} else if e != nil {
+			handleError(internalError(e), wr)
+		}
+		ses.Values["userid"] = u.ID
+		ses.Values["auth"] = true
+		if e = ses.Save(req, wr); e != nil {
+			handleError(internalError(e), wr)
+			return
+		}
+	}
+	// TODO: Check cookie for a redirect url
+	http.Redirect(wr, req, "/dashboard", 302)
+}
+
+func (s *authService) checkCredentials(u *core.User) error {
+	p := u.Password
+	e := s.users.GetUserByName(u)
 	if e != nil {
 		log.Print(e)
-		return authError(ErrNotAuthorized)
+		return ErrNotAuthorized
 	}
-
-	p := req.FormValue("pword")
 	r := checkpword(p, u.Password)
-
 	if !r {
-		log.Printf("Incorrect Password. Passed-In: %s, Database: %s", p, u.Password)
-		return authError(ErrNotAuthorized)
+		return ErrNotAuthorized
 	}
-
-	ses.Values["userid"] = u.ID
-	ses.Values["auth"] = true
-	if e = ses.Save(req, wr); e != nil {
-		return internalError(e)
-	}
-
 	return nil
 }
 
-func (s *authService) Logout(wr http.ResponseWriter, req *http.Request) error {
+func (s *authService) Logout(wr http.ResponseWriter, req *http.Request) {
 	ses, e := s.store.Get(req, SessionName)
 	if e != nil {
-		return internalError(e)
-	} else if ses.IsNew {
-		return nil
+		handleError(internalError(e), wr)
+	} else if !ses.IsNew {
+		var authorized bool
+		e = getSessionValue("auth", &authorized, ses)
+		if e != nil {
+			handleError(internalError(e), wr)
+		} else if !authorized {
+			handleError(authError(ErrNotAuthorized), wr)
+		}
+
+		ses.Values["auth"] = false
+		ses.Options.MaxAge = -1
+		ses.Save(req, wr)
 	}
 
-	var authorized bool
-	e = getSessionValue("auth", &authorized, ses)
-	if e != nil {
-		return internalError(e)
-	} else if !authorized {
-		return authError(ErrNotAuthorized)
-	}
-
-	ses.Values["auth"] = false
-	ses.Options.MaxAge = -1
-	ses.Save(req, wr)
-	return nil
+	http.Redirect(wr, req, "/", 302)
 }
 
 func (s *authService) Authorize(wr http.ResponseWriter, req *http.Request) (uint64, error) {

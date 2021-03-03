@@ -4,7 +4,7 @@ type EditGroup struct {
 	Name string
 }
 
-type CreateGroup struct {
+type Group struct {
 	Name    string
 	General string
 }
