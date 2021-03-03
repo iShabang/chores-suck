@@ -4,6 +4,7 @@ import (
 	"chores-suck/core"
 	"chores-suck/core/storage/errors"
 	"database/sql"
+	"os"
 	"time"
 
 	"log"
@@ -27,7 +28,8 @@ type Storage struct {
 
 // NewStorage creates and returns a new storage object
 func NewStorage() *Storage {
-	db, err := sql.Open("postgres", "host=192.168.1.202 port=5432 user=pi password=CorkstCork12 dbname=choressuck")
+	connString := os.Getenv("POSTGRES_CONN")
+	db, err := sql.Open("postgres", connString)
 	s := &Storage{
 		Db: db,
 	}
