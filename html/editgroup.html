@@ -1,15 +1,19 @@
 {{ define "body" }}
+{{ with .Msg }}<p>{{ .Name }}</p>{{end}}
 <div>
-    <form action="editgroup/{{.Group.ID}}" method="post">
+    <form action="/editgroup/{{.Group.ID}}" method="post">
         <input type="text" name="groupname" id="groupname" value="{{.Group.Name}}">
         <input type="submit" value="Update Name">
     </form>
 </div>
+{{ with .Msg }}<p>{{ .General }}</p>{{ end }}
 <h3>Members</h3>
 {{ range .Group.Memberships }}
 <div>
     <p>{{ .User.Username }}</p>
-    <a href="/editgroup/{{ .Group.ID }}/remove/user/{{ .User.ID }}">Remove</a>
+    <form action="/editgroup/{{ .Group.ID }}/remove/user/{{ .User.ID }}" method="post">
+        <input type="submit" value="Remove">
+    </form>
 </div>
 {{ end }}
 <div>

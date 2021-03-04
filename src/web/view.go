@@ -167,7 +167,7 @@ func (s *viewService) newGroupInternal(wr http.ResponseWriter, req *http.Request
 
 func (s *viewService) EditGroupForm(wr http.ResponseWriter, req *http.Request,
 	ps httprouter.Params, uid uint64) {
-	groupID, e := strconv.ParseUint(ps.ByName("id"), 10, 64)
+	groupID, e := strconv.ParseUint(ps.ByName("groupID"), 10, 64)
 	if e != nil {
 		handleError(internalError(e), wr)
 	}
@@ -182,7 +182,8 @@ func (s *viewService) EditGroupForm(wr http.ResponseWriter, req *http.Request,
 		handleError(internalError(e), wr)
 		return
 	}
-	edit, e := s.groups.CanEdit(&group, uid)
+	user := core.User{ID: uid}
+	edit, e := s.groups.CanEdit(&group, &user)
 	if e != nil {
 		handleError(internalError(e), wr)
 		return
@@ -195,7 +196,6 @@ func (s *viewService) EditGroupForm(wr http.ResponseWriter, req *http.Request,
 		handleError(internalError(e), wr)
 		return
 	}
-	user := core.User{ID: uid}
 	e = s.users.GetUserByID(&user)
 	if e != nil {
 		handleError(internalError(e), wr)
@@ -214,9 +214,11 @@ func (s *viewService) editGroupInternal(wr http.ResponseWriter, req *http.Reques
 	model := struct {
 		User  *core.User
 		Group *core.Group
+		Msg   *messages.Group
 	}{
 		User:  user,
 		Group: group,
+		Msg:   msg,
 	}
 	err := executeTemplate(wr, model, "../html/editgroup.html")
 	if err != nil {

@@ -31,8 +31,9 @@ func NewServices(a AuthService, v ViewService, g GroupService, u UserService) *S
 //Handler creates and returns a new http.Handler with the request handlers and functions pre-registered/routed
 func Handler(s *Services) http.Handler {
 	ro := httprouter.New()
-	ro.GET("/editgroup/:id", s.authorizeParam(s.views.EditGroupForm))
-	ro.POST("/editgroup/:id", s.authorizeParam(s.groups.GroupAccess(s.groups.EditGroup)))
+	ro.GET("/editgroup/:groupID", s.authorizeParam(s.views.EditGroupForm))
+	ro.POST("/editgroup/:groupID", s.authorizeParam(s.groups.GroupAccess(s.groups.EditGroup)))
+	ro.POST("/editgroup/:groupID/remove/user/:userID", s.authorizeParam(s.groups.GroupAccess(s.groups.DeleteMember)))
 	ro.HandlerFunc("GET", "/login", s.views.LoginForm)
 	ro.HandlerFunc("POST", "/login", s.auth.Login)
 	ro.HandlerFunc("GET", "/logout", s.auth.Logout)

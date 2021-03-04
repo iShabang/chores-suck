@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"log"
 	"time"
 )
@@ -12,8 +13,10 @@ type GroupRepository interface {
 	CreateMembership(mem *Membership) error
 	GetGroupByID(group *Group) error
 	GetMemberships(t interface{}) error
+	GetMembership(mem *Membership) error
 	GetRoles(t interface{}) error
 	UpdateGroup(group *Group) error
+	DeleteMember(mem *Membership) error
 }
 
 type GroupService interface {
@@ -22,9 +25,11 @@ type GroupService interface {
 	CreateGroup(name string, user *User) error
 	GetGroup(group *Group) error
 	GetMemberships(group *Group) error
+	GetMembership(mem *Membership) error
 	GetRoles(t interface{}) error
 	UpdateGroup(group *Group) error
-	CanEdit(group *Group, uid uint64) (bool, error)
+	CanEdit(group *Group, user *User) (bool, error)
+	DeleteMember(mem *Membership) error
 }
 
 type groupService struct {
@@ -110,11 +115,11 @@ func (s *groupService) UpdateGroup(group *Group) error {
 	return e
 }
 
-func (s *groupService) CanEdit(group *Group, uid uint64) (bool, error) {
+func (s *groupService) CanEdit(group *Group, user *User) (bool, error) {
 	isMember := false
 	var mem Membership
 	for _, v := range group.Memberships {
-		if v.User.ID == uid {
+		if v.User.ID == user.ID {
 			isMember = true
 			mem = v
 			break
@@ -124,14 +129,14 @@ func (s *groupService) CanEdit(group *Group, uid uint64) (bool, error) {
 		log.Print("User is not a member of the group to edit")
 		return false, nil
 	}
-
-	e := s.GetRoles(&mem)
+	user.Memberships = append(user.Memberships, mem)
+	e := s.GetRoles(&user.Memberships[0])
 	if e != nil {
 		return false, e
 	}
 
 	canEdit := false
-	for _, v := range mem.Roles {
+	for _, v := range user.Memberships[0].Roles {
 		if v.CanEdit() {
 			canEdit = true
 			break
@@ -144,4 +149,18 @@ func (s *groupService) CanEdit(group *Group, uid uint64) (bool, error) {
 
 	return true, nil
 
+}
+
+func (s *groupService) DeleteMember(mem *Membership) error {
+	for _, v := range mem.Roles {
+		if v.Name == "Owner" {
+			log.Print("Cannot delete owner")
+			return errors.New("Cannot delete owner")
+		}
+	}
+	return s.repo.DeleteMember(mem)
+}
+
+func (s *groupService) GetMembership(mem *Membership) error {
+	return s.repo.GetMembership(mem)
 }

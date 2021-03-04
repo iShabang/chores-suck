@@ -141,6 +141,12 @@ func (s *Storage) GetGroupByID(group *core.Group) error {
 	return e
 }
 
+func (s *Storage) GetMembership(mem *core.Membership) error {
+	query := `SELECT joined_at FROM memberships WHERE group_id = $1 AND user_id = $2`
+	e := s.Db.QueryRow(query, mem.Group.ID, mem.User.ID).Scan(&mem.JoinedAt)
+	return e
+}
+
 func (s *Storage) GetMemberships(t interface{}) error {
 	switch v := t.(type) {
 	case *core.User:
@@ -310,9 +316,9 @@ func (s *Storage) GetMemberRoles(member *core.Membership) error {
 	SELECT r.id, r.name, r.permissions, r.gets_chores
 	FROM role_assignments ra
 	INNER JOIN roles r on r.id = ra.role_id
-	WHERE ra.user_id = $1`
+	WHERE ra.user_id = $1 AND r.group_id = $2`
 
-	rows, e := s.Db.Query(query, member.User.ID)
+	rows, e := s.Db.Query(query, member.User.ID, member.Group.ID)
 	if e != nil {
 		return e
 	}
@@ -331,6 +337,22 @@ func (s *Storage) GetMemberRoles(member *core.Membership) error {
 	}
 	return nil
 
+}
+
+func (s *Storage) DeleteMember(mem *core.Membership) error {
+	query := `DELETE FROM memberships WHERE group_id = $1 AND user_id = $2`
+	_, e := s.Db.Exec(query, mem.Group.ID, mem.User.ID)
+	if e != nil {
+		return e
+	}
+	query = `DELETE FROM role_assignments WHERE user_id = $1 AND role_id = $2`
+	for _, v := range mem.Roles {
+		_, e = s.Db.Exec(query, mem.User.ID, v.ID)
+		if e != nil {
+			return e
+		}
+	}
+	return nil
 }
 
 // GetSession fetches a session frm the database by session id
