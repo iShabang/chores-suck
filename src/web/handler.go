@@ -34,6 +34,7 @@ func Handler(s *Services) http.Handler {
 	ro.GET("/editgroup/:groupID", s.authorizeParam(s.views.EditGroupForm))
 	ro.POST("/editgroup/:groupID", s.authorizeParam(s.groups.GroupAccess(s.groups.EditGroup)))
 	ro.POST("/editgroup/:groupID/remove/user/:userID", s.authorizeParam(s.groups.GroupAccess(s.groups.DeleteMember)))
+	ro.POST("/editgroup/:groupID/add/user", s.authorizeParam(s.groups.GroupAccess(s.groups.AddMember)))
 	ro.HandlerFunc("GET", "/login", s.views.LoginForm)
 	ro.HandlerFunc("POST", "/login", s.auth.Login)
 	ro.HandlerFunc("GET", "/logout", s.auth.Logout)

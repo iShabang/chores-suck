@@ -30,6 +30,7 @@ type GroupService interface {
 	UpdateGroup(group *Group) error
 	CanEdit(group *Group, user *User) (bool, error)
 	DeleteMember(mem *Membership) error
+	AddMember(mem *Membership) error
 }
 
 type groupService struct {
@@ -163,4 +164,9 @@ func (s *groupService) DeleteMember(mem *Membership) error {
 
 func (s *groupService) GetMembership(mem *Membership) error {
 	return s.repo.GetMembership(mem)
+}
+
+func (s *groupService) AddMember(mem *Membership) error {
+	mem.JoinedAt = time.Now().UTC()
+	return s.repo.CreateMembership(mem)
 }

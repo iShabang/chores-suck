@@ -6,6 +6,7 @@ type EditGroup struct {
 
 type Group struct {
 	Name    string
+	Member  string
 	General string
 }
 

@@ -21,6 +21,7 @@ type GroupService interface {
 	UpdateGroup(group *core.Group) error
 	EditGroup(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)
 	DeleteMember(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)
+	AddMember(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)
 	GroupAccess(handler func(wr http.ResponseWriter, req *http.Request,
 		ps httprouter.Params, user *core.User, group *core.Group)) authParamHandle
 }
@@ -147,7 +148,40 @@ func (s *groupService) DeleteMember(wr http.ResponseWriter, req *http.Request,
 			}
 		}
 	} else {
-		msg.General = e.Error()
+		msg.Member = e.Error()
+	}
+	s.gs.GetRoles(group)
+	s.vs.EditGroupFail(wr, req, user, group, &msg)
+}
+
+func (s *groupService) AddMember(wr http.ResponseWriter, req *http.Request,
+	ps httprouter.Params, user *core.User, group *core.Group) {
+	mem := core.Membership{}
+	for _, v := range user.Memberships {
+		if v.Group.ID == group.ID {
+			mem = v
+			break
+		}
+	}
+	canAdd := false
+	for _, v := range mem.Roles {
+		if v.Can(core.EditMembers) {
+			canAdd = true
+		}
+	}
+	msg := messages.Group{}
+	if !canAdd {
+		msg.Member = "You don't have permission to edit members"
+	} else {
+		uname := req.PostFormValue("username")
+		userNew := core.User{Username: uname}
+		s.us.GetUserByName(&userNew)
+		memNew := core.Membership{User: &userNew, Group: group}
+		if s.gs.AddMember(&memNew) == nil {
+			group.Memberships = append(group.Memberships, memNew)
+		} else {
+			msg.Member = "Failed to add new member"
+		}
 	}
 	s.gs.GetRoles(group)
 	s.vs.EditGroupFail(wr, req, user, group, &msg)
