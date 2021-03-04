@@ -1,0 +1,21 @@
+{{ define "body" }}
+<h2>New Role</h2>
+<form action="/editgroup/{{.Group.ID}}/add/role" method="post">
+    <input type="text" name="name" id="name" placeholder="Role Name ...">
+    <input type="checkbox" name="editgroup" id="editgroup" value="true">
+    <label for="editgroup">Edit Group</label>
+    <input type="checkbox" name="editchores" id="editchores" value="true">
+    <label for="editchores">Edit Chores</label>
+    <input type="checkbox" name="editmembers" id="editmembers" value="true">
+    <label for="editmembers">Edit Members</label>
+    <input type="checkbox" name="editroles" id="editroles" value="true">
+    <label for="editroles">Edit Roles</label>
+    <input type="checkbox" name="getschores" id="getschores" value="true">
+    <label for="getschores">Gets Chores</label>
+    <input type="submit" value="Add Role">
+</form>
+{{with .Msg}}
+{{with .General}}<p>{{ . }}</p>{{end}}
+{{with .Name}}<p>{{ . }}</p>{{end}}
+{{end}}
+{{ end }}

@@ -75,7 +75,7 @@ const (
 	EditMembers = 0
 	EditChores  = 1
 	EditGroup   = 2
-	DeleteGroup = 3
+	EditRoles   = 3
 )
 
 /* Permission Bits

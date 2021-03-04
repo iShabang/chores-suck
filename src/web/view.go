@@ -5,6 +5,7 @@ import (
 	"chores-suck/web/messages"
 	"chores-suck/web/sessions"
 	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -28,6 +29,8 @@ type ViewService interface {
 	NewGroupFail(http.ResponseWriter, *http.Request, *core.User, *messages.Group)
 	EditGroupForm(http.ResponseWriter, *http.Request, httprouter.Params, uint64)
 	EditGroupFail(http.ResponseWriter, *http.Request, *core.User, *core.Group, *messages.Group)
+	NewRoleForm(http.ResponseWriter, *http.Request, httprouter.Params, *core.User, *core.Group)
+	NewRoleFail(http.ResponseWriter, *core.User, *core.Group, *messages.Group)
 }
 
 type viewService struct {
@@ -226,14 +229,57 @@ func (s *viewService) editGroupInternal(wr http.ResponseWriter, req *http.Reques
 	}
 }
 
+func (s *viewService) NewRoleForm(wr http.ResponseWriter, req *http.Request,
+	ps httprouter.Params, user *core.User, group *core.Group) {
+	mem := core.Membership{}
+	for _, m := range user.Memberships {
+		if m.Group.ID == group.ID {
+			mem = m
+			break
+		}
+	}
+	editRoles := false
+	for _, r := range mem.Roles {
+		if r.Can(core.EditRoles) {
+			editRoles = true
+			break
+		}
+	}
+	if !editRoles {
+		http.Error(wr, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	s.newRoleInternal(wr, user, group, nil)
+}
+
+func (s *viewService) NewRoleFail(wr http.ResponseWriter, user *core.User, group *core.Group, msg *messages.Group) {
+	s.newRoleInternal(wr, user, group, msg)
+}
+
+func (s *viewService) newRoleInternal(wr http.ResponseWriter, user *core.User,
+	group *core.Group, msg *messages.Group) {
+	model := struct {
+		User  *core.User
+		Group *core.Group
+		Msg   *messages.Group
+	}{
+		User:  user,
+		Group: group,
+		Msg:   msg,
+	}
+	executeTemplate(wr, model, "../html/addrole.html")
+}
+
 func executeTemplate(wr http.ResponseWriter, model interface{}, files ...string) error {
 	common := []string{"../html/layout.html", "../html/navbar.html"}
 	files = append(files, common...)
 	var t *template.Template
 	t, err := template.ParseFiles(files...)
-	if err != nil {
-		return err
+	if err == nil {
+		err = t.ExecuteTemplate(wr, "layout", model)
 	}
-	err = t.ExecuteTemplate(wr, "layout", model)
+	if err != nil {
+		log.Print(err)
+	}
 	return err
 }

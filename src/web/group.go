@@ -22,6 +22,7 @@ type GroupService interface {
 	EditGroup(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)
 	DeleteMember(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)
 	AddMember(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)
+	AddRole(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)
 	GroupAccess(handler func(wr http.ResponseWriter, req *http.Request,
 		ps httprouter.Params, user *core.User, group *core.Group)) authParamHandle
 }
@@ -185,6 +186,62 @@ func (s *groupService) AddMember(wr http.ResponseWriter, req *http.Request,
 	}
 	s.gs.GetRoles(group)
 	s.vs.EditGroupFail(wr, req, user, group, &msg)
+}
+
+func (s *groupService) AddRole(wr http.ResponseWriter, req *http.Request,
+	ps httprouter.Params, user *core.User, group *core.Group) {
+	mem := core.Membership{}
+	for _, m := range user.Memberships {
+		if m.Group.ID == group.ID {
+			mem = m
+			break
+		}
+	}
+	editRole := false
+	for _, r := range mem.Roles {
+		if r.Can(core.EditRoles) {
+			editRole = true
+			break
+		}
+	}
+	if !editRole {
+		http.Error(wr, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	name := req.PostFormValue("name")
+	editGroup := req.PostFormValue("editgroup")
+	editChores := req.PostFormValue("editchores")
+	editMembers := req.PostFormValue("editmembers")
+	editRoles := req.PostFormValue("editroles")
+	getsChores := req.PostFormValue("getsChores")
+	msg := messages.Group{}
+	ok := validateGroupName(name, &msg)
+	if ok {
+		s.gs.GetRoles(group)
+		for _, r := range group.Roles {
+			if r.Name == name {
+				ok = false
+				msg.Name = "Role name already exists!"
+			}
+		}
+	}
+	role := core.Role{Name: name, GetsChores: getsChores == "true", Group: group}
+	if ok {
+		role.Set(core.EditGroup, editGroup == "true")
+		role.Set(core.EditChores, editChores == "true")
+		role.Set(core.EditMembers, editMembers == "true")
+		role.Set(core.EditRoles, editRoles == "true")
+		if s.gs.AddRole(&role) != nil {
+			ok = false
+			msg.General = "Unable to add role due to an unexpected error"
+		}
+	}
+	if !ok {
+		s.vs.NewRoleFail(wr, user, group, &msg)
+	} else {
+		group.Roles = append(group.Roles, role)
+		s.vs.EditGroupFail(wr, req, user, group, nil)
+	}
 }
 
 func (s *groupService) GroupAccess(handler func(wr http.ResponseWriter, req *http.Request,

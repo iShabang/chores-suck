@@ -11,10 +11,10 @@ func validateGroupName(name string, msg *messages.Group) bool {
 	regName := regexp.MustCompile(`^(?:[0-9a-zA-Z]+-)*[0-9a-zA-Z]+$`)
 
 	if strings.TrimSpace(name) == "" {
-		msg.Name = "Group name cannot be empty!"
+		msg.Name = "Name cannot be empty!"
 
 	} else if !regName.MatchString(name) {
-		msg.Name = "Group name must only consist of alphanumeric characters and hyphens and cannot start or end with a hyphen"
+		msg.Name = "Name must only consist of alphanumeric characters and hyphens and cannot start or end with a hyphen"
 	} else {
 		valid = true
 	}
