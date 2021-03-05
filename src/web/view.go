@@ -32,6 +32,7 @@ type ViewService interface {
 	NewRoleForm(http.ResponseWriter, *http.Request, httprouter.Params, *core.User, *core.Group)
 	NewRoleFail(http.ResponseWriter, *core.User, *core.Group, *messages.Group)
 	UpdateRoleForm(http.ResponseWriter, *http.Request, httprouter.Params, *core.User, *core.Group)
+	UpdateRoleFail(http.ResponseWriter, *core.User, *core.Group, *core.Role, *messages.Group)
 }
 
 type viewService struct {
@@ -264,18 +265,29 @@ func (s *viewService) UpdateRoleForm(wr http.ResponseWriter, req *http.Request,
 			return
 		}
 		s.groups.GetMemberships(role)
-		model := struct {
-			User  *core.User
-			Group *core.Group
-			Role  *core.Role
-		}{
-			User:  user,
-			Group: group,
-			Role:  role,
-		}
-		executeTemplate(wr, model, "../html/editrole.html")
+		s.updateRoleInternal(wr, user, group, role, nil)
 	}
 
+}
+func (s *viewService) UpdateRoleFail(wr http.ResponseWriter, user *core.User,
+	group *core.Group, role *core.Role, msg *messages.Group) {
+	s.updateRoleInternal(wr, user, group, role, msg)
+}
+
+func (s *viewService) updateRoleInternal(wr http.ResponseWriter, user *core.User,
+	group *core.Group, role *core.Role, msg *messages.Group) {
+	model := struct {
+		User  *core.User
+		Group *core.Group
+		Role  *core.Role
+		Msg   *messages.Group
+	}{
+		User:  user,
+		Group: group,
+		Role:  role,
+		Msg:   msg,
+	}
+	executeTemplate(wr, model, "../html/editrole.html")
 }
 
 func executeTemplate(wr http.ResponseWriter, model interface{}, files ...string) error {

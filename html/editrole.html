@@ -1,4 +1,8 @@
 {{define "body"}}
+{{with .Msg}}
+{{with .General}}<p>{{.}}</p>{{end}}
+{{with .Name}}<p>{{.}}</p>{{end}}
+{{end}}
 <div>
     <form action="/groups/{{.Group.ID}}/update/role/{{.Role.ID}}" method="post">
         {{with .Role}}
@@ -12,7 +16,8 @@
         <input type="checkbox" name="editroles" id="editroles" value="true" {{if .Can 3}}checked{{end}}>
         <label for="editroles">Edit Roles</label>
         <input type="checkbox" name="getschores" id="getschores" value="true" {{ if .GetsChores }}checked{{end}}>
-        <label for="editchores">Gets Chores</label>
+        <label for="getschores">Gets Chores</label>
+        <input type="submit" value="Update">
         {{end}}
     </form>
 </div>

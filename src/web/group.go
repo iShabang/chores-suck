@@ -24,6 +24,7 @@ type GroupService interface {
 	DeleteMember(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)
 	AddMember(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)
 	AddRole(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)
+	UpdateRole(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)
 	GroupAccess(handler func(wr http.ResponseWriter, req *http.Request,
 		ps httprouter.Params, user *core.User, group *core.Group)) authParamHandle
 }
@@ -244,6 +245,59 @@ func (s *groupService) AddRole(wr http.ResponseWriter, req *http.Request,
 		s.vs.NewRoleFail(wr, user, group, &msg)
 	} else {
 		url := fmt.Sprintf("/groups/%v", group.ID)
+		http.Redirect(wr, req, url, 302)
+	}
+}
+
+func (s *groupService) UpdateRole(wr http.ResponseWriter, req *http.Request,
+	ps httprouter.Params, user *core.User, group *core.Group) {
+	var mem *core.Membership
+	for i := range group.Memberships {
+		if group.Memberships[i].User.ID == user.ID {
+			mem = &group.Memberships[i]
+		}
+	}
+	if !mem.SuperRole.Can(core.EditRoles) {
+		log.Printf("UserID: %v, GroupID: %v, UpdateRole: Insufficient privileges, perm: %v",
+			user.ID, group.ID, mem.SuperRole.Permissions)
+		http.Error(wr, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	name := req.PostFormValue("rolename")
+	editMem := req.PostFormValue("editmembers") == "true"
+	editChores := req.PostFormValue("editchores") == "true"
+	editGroup := req.PostFormValue("editgroup") == "true"
+	editRoles := req.PostFormValue("editroles") == "true"
+	getsChores := req.PostFormValue("getschores") == "true"
+
+	ok := true
+	roleID, _ := strconv.ParseUint(ps.ByName("roleID"), 10, 64)
+	msg := messages.Group{}
+	if !validateGroupName(name, &msg) {
+		ok = false
+	} else {
+		role := core.Role{ID: roleID, Name: name, Group: group, GetsChores: getsChores}
+		role.Set(core.EditMembers, editMem)
+		role.Set(core.EditChores, editChores)
+		role.Set(core.EditGroup, editGroup)
+		role.Set(core.EditRoles, editRoles)
+		if e := s.gs.UpdateRole(&role); e != nil {
+			log.Printf("UserID: %v, GroupID: %v, UpdateRole: Error: %s", user.ID, group.ID, e.Error())
+			ok = false
+			msg.General = "Failed to update role due to an unexpected error"
+		}
+	}
+	if !ok {
+		var role *core.Role
+		for i := range group.Roles {
+			if group.Roles[i].ID == roleID {
+				role = &group.Roles[i]
+				s.gs.GetMemberships(role)
+			}
+		}
+		s.vs.UpdateRoleFail(wr, user, group, role, &msg)
+	} else {
+		url := fmt.Sprintf("/groups/%v/update/role/%v", group.ID, roleID)
 		http.Redirect(wr, req, url, 302)
 	}
 }

@@ -17,6 +17,7 @@ type GroupRepository interface {
 	GetRoles(t interface{}) error
 	UpdateGroup(group *Group) error
 	DeleteMember(mem *Membership) error
+	UpdateRole(role *Role) error
 }
 
 type GroupService interface {
@@ -32,6 +33,7 @@ type GroupService interface {
 	DeleteMember(mem *Membership) error
 	AddMember(mem *Membership) error
 	AddRole(role *Role) error
+	UpdateRole(role *Role) error
 }
 
 type groupService struct {
@@ -172,4 +174,7 @@ func (s *groupService) AddMember(mem *Membership) error {
 
 func (s *groupService) AddRole(role *Role) error {
 	return s.repo.CreateRole(role)
+}
+func (s *groupService) UpdateRole(role *Role) error {
+	return s.repo.UpdateRole(role)
 }

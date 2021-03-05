@@ -364,6 +364,12 @@ func (s *Storage) GetMemberRoles(member *core.Membership) error {
 
 }
 
+func (s *Storage) UpdateRole(role *core.Role) error {
+	query := `UPDATE roles SET (name, permissions, gets_chores) = ($1, $2, $3) WHERE id = $4`
+	_, e := s.Db.Exec(query, role.Name, role.Permissions, role.GetsChores, role.ID)
+	return e
+}
+
 func (s *Storage) DeleteMember(mem *core.Membership) error {
 	query := `DELETE FROM memberships WHERE group_id = $1 AND user_id = $2`
 	_, e := s.Db.Exec(query, mem.Group.ID, mem.User.ID)
