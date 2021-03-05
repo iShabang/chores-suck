@@ -1,20 +1,28 @@
 {{define "body"}}
 <div>
-    <form action="/editrole/{{.ID}}" method="post">
+    <form action="/groups/{{.Group.ID}}/update/role/{{.Role.ID}}" method="post">
+        {{with .Role}}
         <input type="text" name="rolename" id="rolename" value="{{.Name}}">
-        <input type="checkbox" name="editchores" id="editchores" value="true" {{ if .Can(types.EditChores) }}checked{{end}}>
-        <input type="checkbox" name="editmembers" id="editmembers" value="true" {{ if .Can(types.EditMembers) }}checked{{end}}>
-        <input type="checkbox" name="editgroup" id="editgroup" value="true" {{ if .Can(types.EditGroup) }}checked{{end}}>
+        <input type="checkbox" name="editmembers" id="editmembers" value="true" {{if .Can 0}}checked{{end}}>
+        <label for="editmembers">Edit Members</label>
+        <input type="checkbox" name="editchores" id="editchores" value="true" {{if .Can 1}}checked{{end}}>
+        <label for="editchores">Edit Chores</label>
+        <input type="checkbox" name="editgroup" id="editgroup" value="true" {{if .Can 2}}checked{{end}}>
+        <label for="editgroup">Edit Group</label>
+        <input type="checkbox" name="editroles" id="editroles" value="true" {{if .Can 3}}checked{{end}}>
+        <label for="editroles">Edit Roles</label>
         <input type="checkbox" name="getschores" id="getschores" value="true" {{ if .GetsChores }}checked{{end}}>
+        <label for="editchores">Gets Chores</label>
+        {{end}}
     </form>
 </div>
 <div>
-    <form action="/editrole/{{.ID}}/adduser" method="post">
+    <form action="/groups/{{.Group.ID}}/update/role/{{.Role.ID}}add/user/" method="post">
         <input type="text" name="username" id="username" placeholder="Username...">
         <input type="submit" value="Add">
     </form>
 </div>
 <div>
-    <a href="/editrole/{{.ID}}/delete">Delete Role</a>
+    <a href="/groups/{{.Group.ID}}/update/role/remove/user/{{.User.ID}}">Delete Role</a>
 </div>
 {{end}}

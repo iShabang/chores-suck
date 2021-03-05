@@ -24,10 +24,11 @@
 </div>
 <h3>Roles</h3>
 <a href="/groups/{{ .Group.ID }}/add/role">Create Role</a>
+{{ $g := .Group.ID }}
 {{ range .Group.Roles }}
 <div>
     <p>{{ .Name }}</p>
-    <a href="/editrole/{{ .ID }}">Edit</a>
+    <a href="/groups/{{$g}}/update/role/{{.ID}}">Edit</a>
 </div>
 {{ end }}
 {{ end }}

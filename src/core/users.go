@@ -18,6 +18,7 @@ type UserRepository interface {
 	CreateUser(user *User) error
 	GetMemberships(t interface{}) error
 	GetChores(t interface{}) error
+	GetRoles(t interface{}) error
 }
 
 type UserService interface {
@@ -55,7 +56,7 @@ func (s *userService) GetUserByID(user *User) error {
 }
 
 func (s *userService) getUserInternal(user *User) error {
-	return s.repo.GetMemberships(user)
+	return s.GetMemberships(user)
 	// TODO: get chores
 }
 
@@ -98,8 +99,18 @@ func (s *userService) CheckUsernameExists(name string) (bool, error) {
 }
 
 func (s *userService) GetMemberships(user *User) error {
-	e := s.repo.GetMemberships(user)
-	return e
+	if e := s.repo.GetMemberships(user); e != nil {
+		return e
+	}
+	for i := range user.Memberships {
+		if e := s.repo.GetRoles(&user.Memberships[i]); e != nil {
+			return e
+		}
+		for j := range user.Memberships[i].Roles {
+			user.Memberships[i].SuperRole.Permissions |= user.Memberships[i].Roles[j].Permissions
+		}
+	}
+	return nil
 }
 
 func (s *userService) GetChores(user *User) error {
