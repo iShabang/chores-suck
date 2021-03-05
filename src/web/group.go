@@ -5,6 +5,7 @@ import (
 	"chores-suck/web/messages"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -18,7 +19,6 @@ var (
 
 type GroupService interface {
 	CreateGroup(wr http.ResponseWriter, req *http.Request, uid uint64)
-	GetGroup(group *core.Group) error
 	UpdateGroup(group *core.Group) error
 	EditGroup(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)
 	DeleteMember(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)
@@ -61,25 +61,6 @@ func (s *groupService) CreateGroup(wr http.ResponseWriter, req *http.Request, ui
 		return
 	}
 	http.Redirect(wr, req, "/dashboard", 302)
-}
-
-func (s *groupService) GetGroup(group *core.Group) error {
-	e := s.gs.GetGroup(group)
-	if e != nil {
-		return internalError(e)
-	}
-
-	e = s.gs.GetMemberships(group)
-	if e != nil {
-		return internalError(e)
-	}
-
-	e = s.gs.GetRoles(group)
-	if e != nil {
-		return internalError(e)
-	}
-
-	return nil
 }
 
 func (s *groupService) UpdateGroup(group *core.Group) error {
@@ -287,9 +268,23 @@ func (s *groupService) GroupAccess(handler func(wr http.ResponseWriter, req *htt
 			http.Error(wr, e.Error(), http.StatusInternalServerError)
 			return
 		}
-		edit := s.gs.CanEdit(&group, &user)
-		if !edit {
-			http.Error(wr, "You do not have permission to edit this group.", http.StatusUnauthorized)
+		s.gs.GetMemberships(&group)
+		var mem *core.Membership
+		for i := range group.Memberships {
+			if group.Memberships[i].User.ID == user.ID {
+				mem = &group.Memberships[i]
+				s.gs.GetRoles(mem)
+			}
+		}
+		if mem == nil || !mem.SuperRole.CanEdit() {
+			var msg string
+			if mem == nil {
+				msg = "Member not found"
+			} else {
+				msg = "Member has insufficient privileges"
+			}
+			log.Printf("UserID: %v, GroupID: %v, GroupAccess: %s", user.ID, group.ID, msg)
+			http.Error(wr, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 			return
 		}
 

@@ -31,13 +31,14 @@ func NewServices(a AuthService, v ViewService, g GroupService, u UserService) *S
 //Handler creates and returns a new http.Handler with the request handlers and functions pre-registered/routed
 func Handler(s *Services) http.Handler {
 	ro := httprouter.New()
-	ro.GET("/groups/:groupID", s.authorizeParam(s.views.EditGroupForm))
+	ro.GET("/groups/:groupID", s.authorizeParam(s.groups.GroupAccess(s.views.EditGroupForm)))
 	ro.POST("/groups/:groupID", s.authorizeParam(s.groups.GroupAccess(s.groups.EditGroup)))
 	ro.POST("/groups/:groupID/remove/user/:userID", s.authorizeParam(s.groups.GroupAccess(s.groups.DeleteMember)))
 	ro.POST("/groups/:groupID/add/user", s.authorizeParam(s.groups.GroupAccess(s.groups.AddMember)))
 	ro.GET("/groups/:groupID/add/role", s.authorizeParam(s.groups.GroupAccess(s.views.NewRoleForm)))
 	ro.POST("/groups/:groupID/add/role", s.authorizeParam(s.groups.GroupAccess(s.groups.AddRole)))
 	ro.GET("/groups/:groupID/update/role/:roleID", s.authorizeParam(s.groups.GroupAccess(s.views.UpdateRoleForm)))
+	//ro.POST("/groups/:groupID/update/role/:roleID", s.authorizeParam(s.groups.GroupAccess(s.groups.UpdateRole)))
 	ro.HandlerFunc("GET", "/login", s.views.LoginForm)
 	ro.HandlerFunc("POST", "/login", s.auth.Login)
 	ro.HandlerFunc("GET", "/logout", s.auth.Logout)

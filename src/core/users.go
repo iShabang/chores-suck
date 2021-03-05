@@ -42,22 +42,11 @@ func NewUserService(rep UserRepository) UserService {
 }
 
 func (s *userService) GetUserByName(user *User) error {
-	if e := s.repo.GetUserByName(user); e != nil {
-		return e
-	}
-	return s.getUserInternal(user)
+	return s.repo.GetUserByName(user)
 }
 
 func (s *userService) GetUserByID(user *User) error {
-	if e := s.repo.GetUserByID(user); e != nil {
-		return e
-	}
-	return s.getUserInternal(user)
-}
-
-func (s *userService) getUserInternal(user *User) error {
-	return s.GetMemberships(user)
-	// TODO: get chores
+	return s.repo.GetUserByID(user)
 }
 
 func (s *userService) CreateUser(user *User) error {

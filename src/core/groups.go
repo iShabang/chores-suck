@@ -24,7 +24,7 @@ type GroupService interface {
 	// for the owner (passed in user)
 	CreateGroup(name string, user *User) error
 	GetGroup(group *Group) error
-	GetMemberships(group *Group) error
+	GetMemberships(t interface{}) error
 	GetMembership(mem *Membership) error
 	GetRoles(t interface{}) error
 	UpdateGroup(group *Group) error
@@ -50,10 +50,13 @@ func (s *groupService) CreateGroup(name string, user *User) error {
 	if e != nil {
 		return e
 	}
-	users := make([]User, 1)
-	users[0] = *user
 
-	owner := Role{Name: "Owner", Group: &group, Users: users}
+	mem := Membership{JoinedAt: time.Now().UTC(), User: user, Group: &group}
+	e = s.repo.CreateMembership(&mem)
+	if e != nil {
+		return e
+	}
+	owner := Role{Name: "Owner", Group: &group}
 	owner.SetAll(true)
 	e = s.repo.CreateRole(&owner)
 	if e != nil {
@@ -65,7 +68,7 @@ func (s *groupService) CreateGroup(name string, user *User) error {
 		return e
 	}
 
-	admin := Role{Name: "Admin", Group: &group, Users: users}
+	admin := Role{Name: "Admin", Group: &group}
 	admin.SetAll(true)
 	e = s.repo.CreateRole(&admin)
 	if e != nil {
@@ -77,19 +80,13 @@ func (s *groupService) CreateGroup(name string, user *User) error {
 		return e
 	}
 
-	def := Role{Name: "Default", Group: &group, Users: users, GetsChores: true}
+	def := Role{Name: "Default", Group: &group, GetsChores: true}
 	e = s.repo.CreateRole(&def)
 	if e != nil {
 		return e
 	}
 
 	e = s.repo.CreateRoleAssignment(def.ID, user.ID)
-	if e != nil {
-		return e
-	}
-
-	mem := Membership{JoinedAt: time.Now().UTC(), User: user, Group: &group}
-	e = s.repo.CreateMembership(&mem)
 	if e != nil {
 		return e
 	}
@@ -101,35 +98,19 @@ func (s *groupService) GetGroup(group *Group) error {
 	if e := s.repo.GetGroupByID(group); e != nil {
 		return e
 	}
-	if e := s.GetMemberships(group); e != nil {
-		return e
-	}
-	if e := s.GetRoles(group); e != nil {
-		return e
-	}
-	// TODO: Get chores
 	return nil
 }
 
-func (s *groupService) GetMemberships(group *Group) error {
-	if e := s.repo.GetMemberships(group); e != nil {
-		return e
-	}
-	for i := range group.Memberships {
-		if e := s.repo.GetRoles(&group.Memberships[i]); e != nil {
-			log.Print(e.Error())
-		}
-		for j := range group.Memberships[i].Roles {
-			log.Printf("Role: %s, Perm: %v", group.Memberships[i].Roles[j].Name, group.Memberships[i].Roles[j].Permissions)
-			group.Memberships[i].SuperRole.Permissions |= group.Memberships[i].Roles[j].Permissions
-		}
-		log.Printf("Setting super role for member: %s, value: %v", group.Memberships[i].User.Username, group.Memberships[i].SuperRole.Permissions)
-	}
-	return nil
+func (s *groupService) GetMemberships(t interface{}) error {
+	return s.repo.GetMemberships(t)
 }
 
 func (s *groupService) GetRoles(t interface{}) error {
 	e := s.repo.GetRoles(t)
+	switch v := t.(type) {
+	case *Membership:
+		v.BuildSuperRole()
+	}
 	return e
 }
 

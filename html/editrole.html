@@ -16,6 +16,16 @@
         {{end}}
     </form>
 </div>
+<h3>Members</h3>
+{{$g := .Group.ID}}
+{{range .Role.Members}}
+<div>
+    <p>{{.User.Username}}</p>
+    <form action="/groups/{{$g}}/update/role/add/user/{{.User.ID}}" method="post">
+        <input type="submit" value="Remove">
+    </form>
+</div>
+{{end}}
 <div>
     <form action="/groups/{{.Group.ID}}/update/role/{{.Role.ID}}add/user/" method="post">
         <input type="text" name="username" id="username" placeholder="Username...">

@@ -38,7 +38,20 @@ type Membership struct {
 	Group       *Group
 	Assignments []ChoreAssignment
 	Roles       []Role
-	SuperRole   Role
+	//SuperRole is a combination of all the roles assigned to the member
+	//This is a convenience for checking permissions for a member without
+	//checking all of their roles individually. See Membership.BuildSuperRole()
+	//for an in-depth look on what information is available in the super role
+	SuperRole Role
+}
+
+func (m *Membership) BuildSuperRole() {
+	m.SuperRole.Name = "SuperRole"
+	m.SuperRole.Group = m.Group
+	for i := range m.Roles {
+		m.SuperRole.Permissions |= m.Roles[i].Permissions
+		m.SuperRole.GetsChores = m.SuperRole.GetsChores || m.Roles[i].GetsChores
+	}
 }
 
 // User defines properties of a user
@@ -67,7 +80,7 @@ type Role struct {
 	Permissions int
 	GetsChores  bool
 	Group       *Group
-	Users       []User
+	Members     []Membership
 }
 
 type PermBit int

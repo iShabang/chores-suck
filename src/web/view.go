@@ -27,7 +27,7 @@ type ViewService interface {
 	LoginForm(http.ResponseWriter, *http.Request)
 	NewGroupForm(http.ResponseWriter, *http.Request, uint64)
 	NewGroupFail(http.ResponseWriter, *http.Request, *core.User, *messages.Group)
-	EditGroupForm(http.ResponseWriter, *http.Request, httprouter.Params, uint64)
+	EditGroupForm(http.ResponseWriter, *http.Request, httprouter.Params, *core.User, *core.Group)
 	EditGroupFail(http.ResponseWriter, *http.Request, *core.User, *core.Group, *messages.Group)
 	NewRoleForm(http.ResponseWriter, *http.Request, httprouter.Params, *core.User, *core.Group)
 	NewRoleFail(http.ResponseWriter, *core.User, *core.Group, *messages.Group)
@@ -170,34 +170,11 @@ func (s *viewService) newGroupInternal(wr http.ResponseWriter, req *http.Request
 }
 
 func (s *viewService) EditGroupForm(wr http.ResponseWriter, req *http.Request,
-	ps httprouter.Params, uid uint64) {
-	groupID, e := strconv.ParseUint(ps.ByName("groupID"), 10, 64)
-	if e != nil {
-		handleError(internalError(e), wr)
+	ps httprouter.Params, user *core.User, group *core.Group) {
+	if e := s.groups.GetRoles(group); e != nil {
+		log.Printf("UserID: %v, GroupID: %v, EditGroupForm: Error: %s", user.ID, group.ID, e.Error())
 	}
-	group := core.Group{ID: groupID}
-	e = s.groups.GetGroup(&group)
-	if e != nil {
-		handleError(internalError(e), wr)
-		return
-	}
-	user := core.User{ID: uid}
-	edit := s.groups.CanEdit(&group, &user)
-	if !edit {
-		handleError(authError(ErrNotAuthorized), wr)
-		return
-	}
-	e = s.groups.GetRoles(&group)
-	if e != nil {
-		handleError(internalError(e), wr)
-		return
-	}
-	e = s.users.GetUserByID(&user)
-	if e != nil {
-		handleError(internalError(e), wr)
-		return
-	}
-	s.editGroupInternal(wr, req, &user, &group, nil)
+	s.editGroupInternal(wr, req, user, group, nil)
 }
 
 func (s *viewService) EditGroupFail(wr http.ResponseWriter, req *http.Request,
@@ -224,6 +201,7 @@ func (s *viewService) editGroupInternal(wr http.ResponseWriter, req *http.Reques
 
 func (s *viewService) NewRoleForm(wr http.ResponseWriter, req *http.Request,
 	ps httprouter.Params, user *core.User, group *core.Group) {
+	s.users.GetMemberships(user)
 	mem := core.Membership{}
 	for _, m := range user.Memberships {
 		if m.Group.ID == group.ID {
@@ -231,14 +209,8 @@ func (s *viewService) NewRoleForm(wr http.ResponseWriter, req *http.Request,
 			break
 		}
 	}
-	editRoles := false
-	for _, r := range mem.Roles {
-		if r.Can(core.EditRoles) {
-			editRoles = true
-			break
-		}
-	}
-	if !editRoles {
+	s.groups.GetRoles(&mem)
+	if !mem.SuperRole.Can(core.EditRoles) {
 		http.Error(wr, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
 	}
@@ -265,8 +237,13 @@ func (s *viewService) newRoleInternal(wr http.ResponseWriter, user *core.User,
 
 func (s *viewService) UpdateRoleForm(wr http.ResponseWriter, req *http.Request,
 	ps httprouter.Params, user *core.User, group *core.Group) {
+	s.users.GetMemberships(user)
+	s.groups.GetRoles(group)
 	mem := findMembership(user, group.ID)
+	s.groups.GetRoles(mem)
 	if !mem.SuperRole.Can(core.EditRoles) {
+		log.Printf("UserID: %v, GroupID: %v, UpdateRoleForm: Member cannot edit roles. Perm: %v",
+			user.ID, group.ID, mem.SuperRole.Permissions)
 		http.Error(wr, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
 	} else {
@@ -286,6 +263,7 @@ func (s *viewService) UpdateRoleForm(wr http.ResponseWriter, req *http.Request,
 			http.Error(wr, "An unexpected error occurred", http.StatusInternalServerError)
 			return
 		}
+		s.groups.GetMemberships(role)
 		model := struct {
 			User  *core.User
 			Group *core.Group

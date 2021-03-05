@@ -153,6 +153,8 @@ func (s *Storage) GetMemberships(t interface{}) error {
 		return s.GetUserMemberships(v)
 	case *core.Group:
 		return s.GetGroupMemberships(v)
+	case *core.Role:
+		return s.GetRoleMemberships(v)
 	default:
 		return errors.ErrType
 	}
@@ -216,6 +218,29 @@ func (s *Storage) GetGroupMemberships(group *core.Group) error {
 		group.Memberships = append(group.Memberships, mem)
 	}
 
+	return nil
+}
+
+func (s *Storage) GetRoleMemberships(role *core.Role) error {
+	query := `
+	SELECT m.joined_at, m.user_id, u.uname
+	FROM memberships m
+	INNER JOIN role_assignments ra ON ra.role_id = $1
+	INNER JOIN users u ON u.id = ra.user_id
+	WHERE m.group_id = $2`
+	rows, e := s.Db.Query(query, role.ID, role.Group.ID)
+	if e != nil {
+		return e
+	}
+	for rows.Next() {
+		mem := core.Membership{User: &core.User{}, Group: role.Group}
+		e = rows.Scan(&mem.JoinedAt, &mem.User.ID, &mem.User.Username)
+		if e != nil {
+			log.Print(e.Error())
+			return e
+		}
+		role.Members = append(role.Members, mem)
+	}
 	return nil
 }
 
