@@ -1,6 +1,6 @@
 {{ define "body" }}
 <h2>New Role</h2>
-<form action="/editgroup/{{.Group.ID}}/add/role" method="post">
+<form action="/groups/{{.Group.ID}}/add/role" method="post">
     <input type="text" name="name" id="name" placeholder="Role Name ...">
     <input type="checkbox" name="editgroup" id="editgroup" value="true">
     <label for="editgroup">Edit Group</label>

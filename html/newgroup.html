@@ -1,6 +1,6 @@
 {{ define "body" }}
 <div class="newgroupCont">
-    <form action="/creategroup" method="post">
+    <form action="/new/group" method="post">
         {{ with .Msg }}
         <p class="ErrorMsg">{{ .General }}</p>
         {{ end }}

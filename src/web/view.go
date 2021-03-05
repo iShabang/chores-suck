@@ -31,6 +31,7 @@ type ViewService interface {
 	EditGroupFail(http.ResponseWriter, *http.Request, *core.User, *core.Group, *messages.Group)
 	NewRoleForm(http.ResponseWriter, *http.Request, httprouter.Params, *core.User, *core.Group)
 	NewRoleFail(http.ResponseWriter, *core.User, *core.Group, *messages.Group)
+	UpdateRoleForm(http.ResponseWriter, *http.Request, httprouter.Params, *core.User, *core.Group)
 }
 
 type viewService struct {
@@ -180,17 +181,9 @@ func (s *viewService) EditGroupForm(wr http.ResponseWriter, req *http.Request,
 		handleError(internalError(e), wr)
 		return
 	}
-	e = s.groups.GetMemberships(&group)
-	if e != nil {
-		handleError(internalError(e), wr)
-		return
-	}
 	user := core.User{ID: uid}
-	edit, e := s.groups.CanEdit(&group, &user)
-	if e != nil {
-		handleError(internalError(e), wr)
-		return
-	} else if !edit {
+	edit := s.groups.CanEdit(&group, &user)
+	if !edit {
 		handleError(authError(ErrNotAuthorized), wr)
 		return
 	}
@@ -270,6 +263,26 @@ func (s *viewService) newRoleInternal(wr http.ResponseWriter, user *core.User,
 	executeTemplate(wr, model, "../html/addrole.html")
 }
 
+func (s *viewService) UpdateRoleForm(wr http.ResponseWriter, req *http.Request,
+	ps httprouter.Params, user *core.User, group *core.Group) {
+	mem := findMembership(user, group.ID)
+
+	if !mem.SuperRole.Can(core.EditRoles) {
+		http.Error(wr, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	} else {
+		model := struct {
+			User *core.User
+			Role *core.Role
+		}{
+			User: user,
+			Role: &mem.SuperRole,
+		}
+		executeTemplate(wr, model, "../html/editrole.html")
+	}
+
+}
+
 func executeTemplate(wr http.ResponseWriter, model interface{}, files ...string) error {
 	common := []string{"../html/layout.html", "../html/navbar.html"}
 	files = append(files, common...)
@@ -282,4 +295,22 @@ func executeTemplate(wr http.ResponseWriter, model interface{}, files ...string)
 		log.Print(err)
 	}
 	return err
+}
+
+func findMembership(user *core.User, groupID uint64) *core.Membership {
+	for _, v := range user.Memberships {
+		if v.Group.ID == groupID {
+			return &v
+		}
+	}
+	return nil
+}
+
+func findPermission(mem *core.Membership, action core.PermBit) bool {
+	for _, v := range mem.Roles {
+		if v.Can(action) {
+			return true
+		}
+	}
+	return false
 }

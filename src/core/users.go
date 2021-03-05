@@ -41,13 +41,22 @@ func NewUserService(rep UserRepository) UserService {
 }
 
 func (s *userService) GetUserByName(user *User) error {
-	e := s.repo.GetUserByName(user)
-	return e
+	if e := s.repo.GetUserByName(user); e != nil {
+		return e
+	}
+	return s.getUserInternal(user)
 }
 
 func (s *userService) GetUserByID(user *User) error {
-	e := s.repo.GetUserByID(user)
-	return e
+	if e := s.repo.GetUserByID(user); e != nil {
+		return e
+	}
+	return s.getUserInternal(user)
+}
+
+func (s *userService) getUserInternal(user *User) error {
+	return s.repo.GetMemberships(user)
+	// TODO: get chores
 }
 
 func (s *userService) CreateUser(user *User) error {

@@ -1,7 +1,7 @@
 {{ define "body" }}
 {{ with .Msg }}<p>{{ .Name }}</p>{{end}}
 <div>
-    <form action="/editgroup/{{.Group.ID}}" method="post">
+    <form action="/groups/{{.Group.ID}}" method="post">
         <input type="text" name="groupname" id="groupname" value="{{.Group.Name}}">
         <input type="submit" value="Update Name">
     </form>
@@ -11,19 +11,19 @@
 {{ range .Group.Memberships }}
 <div>
     <p>{{ .User.Username }}</p>
-    <form action="/editgroup/{{ .Group.ID }}/remove/user/{{ .User.ID }}" method="post">
+    <form action="/groups/{{ .Group.ID }}/remove/user/{{ .User.ID }}" method="post">
         <input type="submit" value="Remove">
     </form>
 </div>
 {{ end }}
 <div>
-    <form action="/editgroup/{{ .Group.ID }}/add/user" method="post">
+    <form action="/groups/{{ .Group.ID }}/add/user" method="post">
         <input type="text" name="username" id="username" placeholder="Username...">
         <input type="submit" value="Add">
     </form>
 </div>
 <h3>Roles</h3>
-<a href="/editgroup/{{ .Group.ID }}/add/role">Create Role</a>
+<a href="/groups/{{ .Group.ID }}/add/role">Create Role</a>
 {{ range .Group.Roles }}
 <div>
     <p>{{ .Name }}</p>

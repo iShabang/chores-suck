@@ -28,7 +28,7 @@ type GroupService interface {
 	GetMembership(mem *Membership) error
 	GetRoles(t interface{}) error
 	UpdateGroup(group *Group) error
-	CanEdit(group *Group, user *User) (bool, error)
+	CanEdit(group *Group, user *User) bool
 	DeleteMember(mem *Membership) error
 	AddMember(mem *Membership) error
 	AddRole(role *Role) error
@@ -98,13 +98,34 @@ func (s *groupService) CreateGroup(name string, user *User) error {
 }
 
 func (s *groupService) GetGroup(group *Group) error {
-	e := s.repo.GetGroupByID(group)
-	return e
+	if e := s.repo.GetGroupByID(group); e != nil {
+		return e
+	}
+	if e := s.GetMemberships(group); e != nil {
+		return e
+	}
+	if e := s.GetRoles(group); e != nil {
+		return e
+	}
+	// TODO: Get chores
+	return nil
 }
 
 func (s *groupService) GetMemberships(group *Group) error {
-	e := s.repo.GetMemberships(group)
-	return e
+	if e := s.repo.GetMemberships(group); e != nil {
+		return e
+	}
+	for i := range group.Memberships {
+		if e := s.repo.GetRoles(&group.Memberships[i]); e != nil {
+			log.Print(e.Error())
+		}
+		for j := range group.Memberships[i].Roles {
+			log.Printf("Role: %s, Perm: %v", group.Memberships[i].Roles[j].Name, group.Memberships[i].Roles[j].Permissions)
+			group.Memberships[i].SuperRole.Permissions |= group.Memberships[i].Roles[j].Permissions
+		}
+		log.Printf("Setting super role for member: %s, value: %v", group.Memberships[i].User.Username, group.Memberships[i].SuperRole.Permissions)
+	}
+	return nil
 }
 
 func (s *groupService) GetRoles(t interface{}) error {
@@ -117,7 +138,7 @@ func (s *groupService) UpdateGroup(group *Group) error {
 	return e
 }
 
-func (s *groupService) CanEdit(group *Group, user *User) (bool, error) {
+func (s *groupService) CanEdit(group *Group, user *User) bool {
 	isMember := false
 	var mem Membership
 	for _, v := range group.Memberships {
@@ -129,28 +150,14 @@ func (s *groupService) CanEdit(group *Group, user *User) (bool, error) {
 	}
 	if !isMember {
 		log.Print("User is not a member of the group to edit")
-		return false, nil
+		return false
 	}
-	user.Memberships = append(user.Memberships, mem)
-	e := s.GetRoles(&user.Memberships[0])
-	if e != nil {
-		return false, e
+	log.Printf("CanEdit: Number of roles: %v", len(mem.Roles))
+	if !mem.SuperRole.CanEdit() {
+		log.Printf("User has insufficient privileges to edit this group: %v", mem.SuperRole.Permissions)
+		return false
 	}
-
-	canEdit := false
-	for _, v := range user.Memberships[0].Roles {
-		if v.CanEdit() {
-			canEdit = true
-			break
-		}
-	}
-	if !canEdit {
-		log.Print("User has insufficient privileges to edit this group")
-		return false, nil
-	}
-
-	return true, nil
-
+	return true
 }
 
 func (s *groupService) DeleteMember(mem *Membership) error {
@@ -164,7 +171,17 @@ func (s *groupService) DeleteMember(mem *Membership) error {
 }
 
 func (s *groupService) GetMembership(mem *Membership) error {
-	return s.repo.GetMembership(mem)
+	if e := s.repo.GetMembership(mem); e != nil {
+		return e
+	}
+	if e := s.repo.GetRoles(mem); e != nil {
+		return e
+	}
+	for _, v := range mem.Roles {
+		mem.SuperRole.Permissions |= v.Permissions
+	}
+	//TODO: Get chore assignments
+	return nil
 }
 
 func (s *groupService) AddMember(mem *Membership) error {

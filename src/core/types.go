@@ -38,6 +38,7 @@ type Membership struct {
 	Group       *Group
 	Assignments []ChoreAssignment
 	Roles       []Role
+	SuperRole   Role
 }
 
 // User defines properties of a user
