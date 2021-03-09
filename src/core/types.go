@@ -31,6 +31,24 @@ type Group struct {
 	Chores      []Chore
 }
 
+func (g *Group) FindRole(id uint64) *Role {
+	for i := range g.Roles {
+		if g.Roles[i].ID == id {
+			return &g.Roles[i]
+		}
+	}
+	return nil
+}
+
+func (g *Group) FindMember(id uint64) *Membership {
+	for i := range g.Memberships {
+		if g.Memberships[i].User.ID == id {
+			return &g.Memberships[i]
+		}
+	}
+	return nil
+}
+
 // Membership relates a User to a specific group
 type Membership struct {
 	JoinedAt    time.Time

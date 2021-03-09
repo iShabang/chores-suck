@@ -106,13 +106,9 @@ func (s *groupService) EditGroup(wr http.ResponseWriter, req *http.Request,
 
 func (s *groupService) DeleteMember(wr http.ResponseWriter, req *http.Request,
 	ps httprouter.Params, user *core.User, group *core.Group) {
-	canDelete := false
-	for _, v := range user.Memberships[0].Roles {
-		if v.Can(core.EditMembers) {
-			canDelete = true
-			break
-		}
-	}
+	mem := group.FindMember(user.ID)
+	s.gs.GetRoles(mem)
+	canDelete := mem.SuperRole.Can(core.EditMembers)
 	if !canDelete {
 		http.Error(wr, ErrNotAuthorized.Error(), http.StatusUnauthorized)
 		return
@@ -155,19 +151,9 @@ func (s *groupService) DeleteMember(wr http.ResponseWriter, req *http.Request,
 
 func (s *groupService) AddMember(wr http.ResponseWriter, req *http.Request,
 	ps httprouter.Params, user *core.User, group *core.Group) {
-	mem := core.Membership{}
-	for _, v := range user.Memberships {
-		if v.Group.ID == group.ID {
-			mem = v
-			break
-		}
-	}
-	canAdd := false
-	for _, v := range mem.Roles {
-		if v.Can(core.EditMembers) {
-			canAdd = true
-		}
-	}
+	mem := group.FindMember(user.ID)
+	s.gs.GetRoles(mem)
+	canAdd := mem.SuperRole.Can(core.EditMembers)
 	ok := true
 	msg := messages.Group{}
 	if !canAdd {
@@ -270,31 +256,34 @@ func (s *groupService) UpdateRole(wr http.ResponseWriter, req *http.Request,
 	editRoles := req.PostFormValue("editroles") == "true"
 	getsChores := req.PostFormValue("getschores") == "true"
 
+	msg := messages.Group{}
 	ok := true
 	roleID, _ := strconv.ParseUint(ps.ByName("roleID"), 10, 64)
-	msg := messages.Group{}
-	if !validateGroupName(name, &msg) {
+	s.gs.GetRoles(group)
+	role := group.FindRole(roleID)
+	if role == nil {
+		http.Error(wr, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	} else if role.Name == "Owner" || role.Name == "Admin" || role.Name == "Default" {
+		msg.General = "Cannot make changes to Owner, Admin, or Default roles"
+		ok = false
+	} else if !validateGroupName(name, &msg) {
 		ok = false
 	} else {
-		role := core.Role{ID: roleID, Name: name, Group: group, GetsChores: getsChores}
+		role.Name = name
+		role.GetsChores = getsChores
 		role.Set(core.EditMembers, editMem)
 		role.Set(core.EditChores, editChores)
 		role.Set(core.EditGroup, editGroup)
 		role.Set(core.EditRoles, editRoles)
-		if e := s.gs.UpdateRole(&role); e != nil {
+		if e := s.gs.UpdateRole(role); e != nil {
 			log.Printf("UserID: %v, GroupID: %v, UpdateRole: Error: %s", user.ID, group.ID, e.Error())
 			ok = false
 			msg.General = "Failed to update role due to an unexpected error"
 		}
 	}
 	if !ok {
-		var role *core.Role
-		for i := range group.Roles {
-			if group.Roles[i].ID == roleID {
-				role = &group.Roles[i]
-				s.gs.GetMemberships(role)
-			}
-		}
+		s.gs.GetMemberships(role)
 		s.vs.UpdateRoleFail(wr, user, group, role, &msg)
 	} else {
 		url := fmt.Sprintf("/groups/%v/update/role/%v", group.ID, roleID)

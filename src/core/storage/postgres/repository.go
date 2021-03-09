@@ -227,7 +227,7 @@ func (s *Storage) GetRoleMemberships(role *core.Role) error {
 	FROM memberships m
 	INNER JOIN role_assignments ra ON ra.role_id = $1
 	INNER JOIN users u ON u.id = ra.user_id
-	WHERE m.group_id = $2`
+	WHERE m.user_id = ra.user_id AND m.group_id = $2`
 	rows, e := s.Db.Query(query, role.ID, role.Group.ID)
 	if e != nil {
 		return e
@@ -384,6 +384,18 @@ func (s *Storage) DeleteMember(mem *core.Membership) error {
 		}
 	}
 	return nil
+}
+
+func (s *Storage) RemoveMember(roleID uint64, userID uint64) error {
+	query := `DELETE FROM role_assignments WHERE role_id = $1 AND user_id = $2`
+	_, e := s.Db.Exec(query, roleID, userID)
+	return e
+}
+
+func (s *Storage) AddMember(roleID uint64, userID uint64) error {
+	query := `INSERT INTO role_assignments (user_id, role_id) VALUES($1,$2)`
+	_, e := s.Db.Exec(query, userID, roleID)
+	return e
 }
 
 // GetSession fetches a session frm the database by session id
