@@ -19,7 +19,6 @@ var (
 
 type GroupService interface {
 	CreateGroup(wr http.ResponseWriter, req *http.Request, uid uint64)
-	UpdateGroup(group *core.Group) error
 	EditGroup(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)
 	DeleteMember(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)
 	AddMember(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)
@@ -64,32 +63,16 @@ func (s *groupService) CreateGroup(wr http.ResponseWriter, req *http.Request, ui
 	http.Redirect(wr, req, "/dashboard", 302)
 }
 
-func (s *groupService) UpdateGroup(group *core.Group) error {
-	e := s.gs.UpdateGroup(group)
-	return StatusError{Code: http.StatusInternalServerError, Err: e}
-}
-
 func (s *groupService) EditGroup(wr http.ResponseWriter, req *http.Request,
 	ps httprouter.Params, user *core.User, group *core.Group) {
-	canEdit := false
-	for _, role := range user.Memberships[0].Roles {
-		if role.Can(core.EditGroup) {
-			canEdit = true
-			break
-		}
-	}
-	if !canEdit {
-		http.Error(wr, ErrNotAuthorized.Error(), http.StatusUnauthorized)
-		return
-	}
 	groupName := req.PostFormValue("groupname")
-	group.Name = groupName
-	ok := true
 	msg := messages.Group{}
+	ok := true
 	if validateGroupName(groupName, &msg) {
-		e := s.gs.UpdateGroup(group)
+		group.Name = groupName
+		e := s.gs.UpdateGroup(group, user)
 		if e != nil {
-			msg.General = "There was an unexpected error while updating the name"
+			msg.General = "An unexpected error occurred"
 			ok = false
 		}
 	} else {

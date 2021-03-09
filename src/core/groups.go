@@ -28,7 +28,7 @@ type GroupService interface {
 	GetMemberships(t interface{}) error
 	GetMembership(mem *Membership) error
 	GetRoles(t interface{}) error
-	UpdateGroup(group *Group) error
+	UpdateGroup(group *Group, user *User) error
 	CanEdit(group *Group, user *User) bool
 	DeleteMember(mem *Membership) error
 	AddMember(mem *Membership) error
@@ -116,9 +116,16 @@ func (s *groupService) GetRoles(t interface{}) error {
 	return e
 }
 
-func (s *groupService) UpdateGroup(group *Group) error {
-	e := s.repo.UpdateGroup(group)
-	return e
+func (s *groupService) UpdateGroup(group *Group, user *User) error {
+	mem := group.FindMember(user.ID)
+	e := s.GetRoles(mem)
+	if e != nil {
+		return e
+	}
+	if !mem.SuperRole.Can(EditGroup) {
+		return errors.New("Insufficient permissions")
+	}
+	return s.repo.UpdateGroup(group)
 }
 
 func (s *groupService) CanEdit(group *Group, user *User) bool {
