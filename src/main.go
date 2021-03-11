@@ -16,7 +16,7 @@ func main() {
 	repo := postgres.NewStorage()
 	userCore := core.NewUserService(repo)
 	groupCore := core.NewGroupService(repo)
-	roleCore := core.NewRoleService(repo)
+	roleCore := core.NewRoleService(repo, userCore)
 
 	store := sessions.NewStore(repo, []byte(os.Getenv("SESSION_KEY")))
 	auth := web.NewAuthService(userCore, store)

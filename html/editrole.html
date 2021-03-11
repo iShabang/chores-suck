@@ -1,8 +1,5 @@
 {{define "body"}}
-{{with .Msg}}
-{{with .General}}<p>{{.}}</p>{{end}}
-{{with .Name}}<p>{{.}}</p>{{end}}
-{{end}}
+{{if .Error }}<p>{{.Error}}</p>{{end}}
 <div>
     <form action="/groups/{{.Group.ID}}/update/role/{{.Role.ID}}" method="post">
         {{with .Role}}
@@ -33,7 +30,7 @@
 </div>
 {{end}}
 <div>
-    <form action="/groups/{{$g}}/update/role/{{$r}}/add/user/" method="post">
+    <form action="/groups/{{$g}}/update/role/{{$r}}/add/user" method="post">
         <input type="text" name="username" id="username" placeholder="Username...">
         <input type="submit" value="Add">
     </form>

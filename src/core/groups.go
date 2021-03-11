@@ -30,10 +30,10 @@ type GroupService interface {
 	GetRoles(t interface{}) error
 	UpdateGroup(group *Group, user *User) error
 	CanEdit(group *Group, user *User) bool
-	DeleteMember(mem *Membership) error
-	AddMember(mem *Membership) error
-	AddRole(role *Role) error
-	UpdateRole(role *Role) error
+	DeleteMember(mem *Membership, user *User) error
+	AddMember(mem *Membership, user *User) error
+	AddRole(role *Role, user *User) error
+	UpdateRole(role *Role, user *User) error
 }
 
 type groupService struct {
@@ -150,14 +150,26 @@ func (s *groupService) CanEdit(group *Group, user *User) bool {
 	return true
 }
 
-func (s *groupService) DeleteMember(mem *Membership) error {
+func (s *groupService) DeleteMember(mem *Membership, user *User) error {
+	authMem := mem.Group.FindMember(user.ID)
+	if e := s.GetRoles(authMem); e != nil {
+		return errors.New("An unexpected error occurred")
+	}
+	if !authMem.SuperRole.Can(EditMembers) {
+		return errors.New("You do not have permission to remove members!")
+	}
+	if e := s.GetRoles(mem); e != nil {
+		return errors.New("An unexpected error occurred")
+	}
 	for _, v := range mem.Roles {
 		if v.Name == "Owner" {
-			log.Print("Cannot delete owner")
 			return errors.New("Cannot delete owner")
 		}
 	}
-	return s.repo.DeleteMember(mem)
+	if e := s.repo.DeleteMember(mem); e != nil {
+		return errors.New("An unexpected error occurred")
+	}
+	return nil
 }
 
 func (s *groupService) GetMembership(mem *Membership) error {
@@ -174,14 +186,60 @@ func (s *groupService) GetMembership(mem *Membership) error {
 	return nil
 }
 
-func (s *groupService) AddMember(mem *Membership) error {
+func (s *groupService) AddMember(mem *Membership, user *User) error {
+	authMem := mem.Group.FindMember(user.ID)
+	if e := s.GetRoles(authMem); e != nil {
+		return errors.New("An unexpected error occurred")
+	}
+	if !authMem.SuperRole.Can(EditMembers) {
+		return errors.New("You do not have permission to add members!")
+	}
 	mem.JoinedAt = time.Now().UTC()
-	return s.repo.CreateMembership(mem)
+	if e := s.repo.CreateMembership(mem); e != nil {
+		return errors.New("An unexpected error occurred")
+	}
+	return nil
 }
 
-func (s *groupService) AddRole(role *Role) error {
-	return s.repo.CreateRole(role)
+func (s *groupService) AddRole(role *Role, user *User) error {
+	mem := role.Group.FindMember(user.ID)
+	if e := s.GetRoles(mem); e != nil {
+		return errors.New("An unexpected error occurred")
+	}
+	if !mem.SuperRole.Can(EditRoles) {
+		return errors.New("You do not have permission to add roles!")
+	}
+	if e := s.GetRoles(role.Group); e != nil {
+		return errors.New("An unexpected error occurred")
+	}
+	for _, r := range role.Group.Roles {
+		if r.Name == role.Name {
+			return errors.New("Role already exists")
+		}
+	}
+	if e := s.repo.CreateRole(role); e != nil {
+		return errors.New("An unexpected error occurred")
+	}
+	return nil
 }
-func (s *groupService) UpdateRole(role *Role) error {
-	return s.repo.UpdateRole(role)
+
+func (s *groupService) UpdateRole(role *Role, user *User) error {
+	mem := role.Group.FindMember(user.ID)
+	if e := s.GetRoles(mem); e != nil {
+		return errors.New("An unexpected error occurred")
+	}
+	if !mem.SuperRole.Can(EditRoles) {
+		return errors.New("You do not have permission to update roles")
+	}
+	s.GetRoles(role.Group)
+	oldRole := role.Group.FindRole(role.ID)
+	if oldRole == nil {
+		return errors.New("Invalid request")
+	} else if oldRole.Name == "Owner" || oldRole.Name == "Admin" || oldRole.Name == "Default" {
+		return errors.New("Cannot make changes to Owner, Admin, or Default roles")
+	}
+	if e := s.repo.UpdateRole(role); e != nil {
+		return errors.New("An unexpected error occurred")
+	}
+	return nil
 }

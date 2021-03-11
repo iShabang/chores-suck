@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"chores-suck/core"
-	"chores-suck/web/messages"
 
 	"github.com/gorilla/sessions"
 )
@@ -21,7 +20,6 @@ type AuthService interface {
 	Login(http.ResponseWriter, *http.Request)
 	Logout(http.ResponseWriter, *http.Request)
 	Authorize(http.ResponseWriter, *http.Request) (uint64, error)
-	Create(http.ResponseWriter, *http.Request, *messages.RegisterMessage) error
 }
 
 type authService struct {
@@ -142,41 +140,6 @@ func (s *authService) Authorize(wr http.ResponseWriter, req *http.Request) (uint
 	}
 
 	return uid, nil
-}
-
-// TODO: Move this method to a new User service
-func (s *authService) Create(wr http.ResponseWriter, req *http.Request, msg *messages.RegisterMessage) error {
-	username := req.FormValue("username")
-	email := req.FormValue("email")
-	password := req.FormValue("pword")
-	password2 := req.FormValue("pwordConf")
-
-	if !validateRegisterInput(username, password, password2, email, msg) {
-		return ErrInvalidInput
-	}
-
-	user := core.User{Username: username, Email: email}
-	var err error
-	user.Password, err = hashPassword(password)
-	if err != nil {
-		return internalError(err)
-	}
-
-	err = s.users.CreateUser(&user)
-	if err != nil {
-		switch err {
-		case core.ErrEmailExists:
-			msg.Email = "Email already registered"
-			return ErrInvalidInput
-		case core.ErrNameExists:
-			msg.Username = "Username already taken"
-			return ErrInvalidInput
-		default:
-			return internalError(err)
-		}
-	}
-
-	return nil
 }
 
 /////////////////////////////////////////////////////////////////

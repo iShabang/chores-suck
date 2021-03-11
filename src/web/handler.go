@@ -1,6 +1,7 @@
 package web
 
 import (
+	"chores-suck/core"
 	"log"
 	"net/http"
 
@@ -33,16 +34,16 @@ func NewServices(a AuthService, v ViewService, g GroupService, u UserService, r 
 //Handler creates and returns a new http.Handler with the request handlers and functions pre-registered/routed
 func Handler(s *Services) http.Handler {
 	ro := httprouter.New()
-	ro.GET("/groups/:groupID", s.authorizeParam(s.groups.GroupAccess(s.views.EditGroupForm)))
-	ro.POST("/groups/:groupID", s.authorizeParam(s.groups.GroupAccess(s.groups.EditGroup)))
-	ro.POST("/groups/:groupID/remove/user/:userID", s.authorizeParam(s.groups.GroupAccess(s.groups.DeleteMember)))
-	ro.POST("/groups/:groupID/add/user", s.authorizeParam(s.groups.GroupAccess(s.groups.AddMember)))
-	ro.GET("/groups/:groupID/add/role", s.authorizeParam(s.groups.GroupAccess(s.views.NewRoleForm)))
-	ro.POST("/groups/:groupID/add/role", s.authorizeParam(s.groups.GroupAccess(s.groups.AddRole)))
-	ro.GET("/groups/:groupID/update/role/:roleID", s.authorizeParam(s.groups.GroupAccess(s.views.UpdateRoleForm)))
-	ro.POST("/groups/:groupID/update/role/:roleID", s.authorizeParam(s.groups.GroupAccess(s.groups.UpdateRole)))
-	ro.POST("/groups/:groupID/update/role/:roleID/remove/user/:userID", s.authorizeParam(s.groups.GroupAccess(s.roles.RemoveMember)))
-	ro.POST("/groups/:groupID/update/role/:roleID/add/user", s.authorizeParam(s.groups.GroupAccess(s.roles.AddMember)))
+	ro.GET("/groups/:groupID", s.groupMW(s.views.EditGroupForm))
+	ro.GET("/groups/:groupID/add/role", s.groupMW(s.views.NewRoleForm))
+	ro.GET("/groups/:groupID/update/role/:roleID", s.groupMW(s.views.UpdateRoleForm))
+	ro.POST("/groups/:groupID", s.groupMW(s.groups.EditGroup))
+	ro.POST("/groups/:groupID/remove/user/:userID", s.groupMW(s.groups.DeleteMember))
+	ro.POST("/groups/:groupID/add/user", s.groupMW(s.groups.AddMember))
+	ro.POST("/groups/:groupID/add/role", s.groupMW(s.groups.AddRole))
+	ro.POST("/groups/:groupID/update/role/:roleID", s.groupMW(s.groups.UpdateRole))
+	ro.POST("/groups/:groupID/update/role/:roleID/remove/user/:userID", s.groupMW(s.roles.RemoveMember))
+	ro.POST("/groups/:groupID/update/role/:roleID/add/user", s.groupMW(s.roles.AddMember))
 	ro.HandlerFunc("GET", "/login", s.views.LoginForm)
 	ro.HandlerFunc("POST", "/login", s.auth.Login)
 	ro.HandlerFunc("GET", "/logout", s.auth.Logout)
@@ -83,4 +84,8 @@ func (s *Services) authorizeParam(handler func(wr http.ResponseWriter, req *http
 
 		handler(wr, req, ps, uid)
 	}
+}
+
+func (s *Services) groupMW(handler func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)) httprouter.Handle {
+	return s.authorizeParam(s.groups.GroupAccess(handler))
 }

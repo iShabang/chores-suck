@@ -23,16 +23,11 @@ type ViewService interface {
 	Index(http.ResponseWriter, *http.Request)
 	Dashboard(http.ResponseWriter, *http.Request, uint64)
 	RegisterForm(http.ResponseWriter, *http.Request)
-	RegisterFail(http.ResponseWriter, *http.Request, *messages.RegisterMessage)
 	LoginForm(http.ResponseWriter, *http.Request)
 	NewGroupForm(http.ResponseWriter, *http.Request, uint64)
-	NewGroupFail(http.ResponseWriter, *http.Request, *core.User, *messages.Group)
 	EditGroupForm(http.ResponseWriter, *http.Request, httprouter.Params, *core.User, *core.Group)
-	EditGroupFail(http.ResponseWriter, *http.Request, *core.User, *core.Group, *messages.Group)
 	NewRoleForm(http.ResponseWriter, *http.Request, httprouter.Params, *core.User, *core.Group)
-	NewRoleFail(http.ResponseWriter, *core.User, *core.Group, *messages.Group)
 	UpdateRoleForm(http.ResponseWriter, *http.Request, httprouter.Params, *core.User, *core.Group)
-	UpdateRoleFail(http.ResponseWriter, *core.User, *core.Group, *core.Role, *messages.Group)
 }
 
 type viewService struct {
@@ -98,24 +93,32 @@ func (s *viewService) Dashboard(wr http.ResponseWriter, req *http.Request, uid u
 }
 
 func (s *viewService) RegisterForm(wr http.ResponseWriter, req *http.Request) {
-	s.regFormInternal(wr, req, nil)
-}
-
-func (s *viewService) RegisterFail(wr http.ResponseWriter, req *http.Request, msg *messages.RegisterMessage) {
-	s.regFormInternal(wr, req, msg)
-}
-
-func (s *viewService) regFormInternal(wr http.ResponseWriter, req *http.Request, msg *messages.RegisterMessage) {
+	var nameErr string
+	var emailErr string
+	var passErr string
+	if data, _ := GetFlash(wr, req, "nameError"); data != nil {
+		nameErr = string(data)
+	}
+	if data, _ := GetFlash(wr, req, "emailError"); data != nil {
+		emailErr = string(data)
+	}
+	if data, _ := GetFlash(wr, req, "passError"); data != nil {
+		passErr = string(data)
+	}
 	model := struct {
-		Username string
-		Email    string
-		Messages *messages.RegisterMessage
-		User     *core.User
+		Username   string
+		Email      string
+		User       *core.User
+		NameError  string
+		EmailError string
+		PassError  string
 	}{
-		Username: req.FormValue("username"),
-		Email:    req.FormValue("email"),
-		Messages: msg,
-		User:     nil,
+		Username:   req.FormValue("username"),
+		Email:      req.FormValue("email"),
+		User:       nil,
+		NameError:  nameErr,
+		EmailError: emailErr,
+		PassError:  passErr,
 	}
 	e := executeTemplate(wr, model, "../html/register.html")
 	if e != nil {
@@ -128,10 +131,16 @@ func (s *viewService) LoginForm(wr http.ResponseWriter, req *http.Request) {
 	if e == nil {
 		http.Redirect(wr, req, "/dashboard", 302)
 	}
+	var err string
+	if data, _ := GetFlash(wr, req, "genError"); data != nil {
+		err = string(data)
+	}
 	model := struct {
-		User *core.User
+		User  *core.User
+		Error string
 	}{
-		User: nil,
+		User:  nil,
+		Error: err,
 	}
 	e = executeTemplate(wr, model, "../html/login.html")
 	if e != nil {
@@ -146,28 +155,28 @@ func (s *viewService) NewGroupForm(wr http.ResponseWriter, req *http.Request, ui
 		handleError(internalError(e), wr)
 		return
 	}
-	s.newGroupInternal(wr, req, &user, nil)
-}
-
-func (s *viewService) NewGroupFail(wr http.ResponseWriter, req *http.Request,
-	user *core.User, msg *messages.Group) {
-	s.newGroupInternal(wr, req, user, msg)
-}
-
-func (s *viewService) newGroupInternal(wr http.ResponseWriter, req *http.Request, user *core.User, msg *messages.Group) {
-	model := struct {
-		User *core.User
-		Msg  *messages.Group
-	}{
-		User: user,
-		Msg:  msg,
+	var genErr string
+	var nameErr string
+	if data, _ := GetFlash(wr, req, "genError"); data != nil {
+		genErr = string(data)
 	}
-	e := executeTemplate(wr, model, "../html/newgroup.html")
+	if data, _ := GetFlash(wr, req, "nameError"); data != nil {
+		nameErr = string(data)
+	}
+	model := struct {
+		User      *core.User
+		GenError  string
+		NameError string
+	}{
+		User:      &user,
+		GenError:  genErr,
+		NameError: nameErr,
+	}
+	e = executeTemplate(wr, model, "../html/newgroup.html")
 	if e != nil {
 		handleError(internalError(e), wr)
 		return
 	}
-
 }
 
 func (s *viewService) EditGroupForm(wr http.ResponseWriter, req *http.Request,
@@ -175,24 +184,24 @@ func (s *viewService) EditGroupForm(wr http.ResponseWriter, req *http.Request,
 	if e := s.groups.GetRoles(group); e != nil {
 		log.Printf("UserID: %v, GroupID: %v, EditGroupForm: Error: %s", user.ID, group.ID, e.Error())
 	}
-	s.editGroupInternal(wr, req, user, group, nil)
-}
-
-func (s *viewService) EditGroupFail(wr http.ResponseWriter, req *http.Request,
-	user *core.User, group *core.Group, msg *messages.Group) {
-	s.editGroupInternal(wr, req, user, group, msg)
-}
-
-func (s *viewService) editGroupInternal(wr http.ResponseWriter, req *http.Request,
-	user *core.User, group *core.Group, msg *messages.Group) {
+	var nameErr string
+	var memErr string
+	if data, _ := GetFlash(wr, req, "nameError"); data != nil {
+		nameErr = string(data)
+	}
+	if data, _ := GetFlash(wr, req, "memError"); data != nil {
+		memErr = string(data)
+	}
 	model := struct {
-		User  *core.User
-		Group *core.Group
-		Msg   *messages.Group
+		User      *core.User
+		Group     *core.Group
+		NameError string
+		MemError  string
 	}{
-		User:  user,
-		Group: group,
-		Msg:   msg,
+		User:      user,
+		Group:     group,
+		NameError: nameErr,
+		MemError:  memErr,
 	}
 	err := executeTemplate(wr, model, "../html/editgroup.html")
 	if err != nil {
@@ -202,36 +211,27 @@ func (s *viewService) editGroupInternal(wr http.ResponseWriter, req *http.Reques
 
 func (s *viewService) NewRoleForm(wr http.ResponseWriter, req *http.Request,
 	ps httprouter.Params, user *core.User, group *core.Group) {
-	s.users.GetMemberships(user)
-	mem := core.Membership{}
-	for _, m := range user.Memberships {
-		if m.Group.ID == group.ID {
-			mem = m
-			break
-		}
+	mem := group.FindMember(user.ID)
+	if e := s.groups.GetRoles(mem); e != nil {
+		http.Error(wr, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
 	}
-	s.groups.GetRoles(&mem)
 	if !mem.SuperRole.Can(core.EditRoles) {
 		http.Error(wr, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
 	}
-	s.newRoleInternal(wr, user, group, nil)
-}
-
-func (s *viewService) NewRoleFail(wr http.ResponseWriter, user *core.User, group *core.Group, msg *messages.Group) {
-	s.newRoleInternal(wr, user, group, msg)
-}
-
-func (s *viewService) newRoleInternal(wr http.ResponseWriter, user *core.User,
-	group *core.Group, msg *messages.Group) {
+	var genErr string
+	if data, _ := GetFlash(wr, req, "genError"); data != nil {
+		genErr = string(data)
+	}
 	model := struct {
 		User  *core.User
 		Group *core.Group
-		Msg   *messages.Group
+		Error string
 	}{
 		User:  user,
 		Group: group,
-		Msg:   msg,
+		Error: genErr,
 	}
 	executeTemplate(wr, model, "../html/addrole.html")
 }
@@ -247,47 +247,43 @@ func (s *viewService) UpdateRoleForm(wr http.ResponseWriter, req *http.Request,
 			user.ID, group.ID, mem.SuperRole.Permissions)
 		http.Error(wr, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
-	} else {
-		roleID, e := strconv.ParseUint(ps.ByName("roleID"), 10, 64)
-		if e != nil {
-			log.Print(e.Error())
-		}
-		var role *core.Role
-		for i := range group.Roles {
-			if group.Roles[i].ID == roleID {
-				role = &group.Roles[i]
-				break
-			}
-		}
-		if role == nil {
-			log.Printf("UserID: %v, GroupID: %v, UpdateRoleForm: Role not found", user.ID, group.ID)
-			http.Error(wr, "An unexpected error occurred", http.StatusInternalServerError)
-			return
-		}
-		s.groups.GetMemberships(role)
-		s.updateRoleInternal(wr, user, group, role, nil)
 	}
-
-}
-func (s *viewService) UpdateRoleFail(wr http.ResponseWriter, user *core.User,
-	group *core.Group, role *core.Role, msg *messages.Group) {
-	s.updateRoleInternal(wr, user, group, role, msg)
-}
-
-func (s *viewService) updateRoleInternal(wr http.ResponseWriter, user *core.User,
-	group *core.Group, role *core.Role, msg *messages.Group) {
+	roleID, e := strconv.ParseUint(ps.ByName("roleID"), 10, 64)
+	if e != nil {
+		log.Print(e.Error())
+	}
+	var role *core.Role
+	for i := range group.Roles {
+		if group.Roles[i].ID == roleID {
+			role = &group.Roles[i]
+			break
+		}
+	}
+	if role == nil {
+		log.Printf("UserID: %v, GroupID: %v, UpdateRoleForm: Role not found", user.ID, group.ID)
+		http.Error(wr, "An unexpected error occurred", http.StatusInternalServerError)
+		return
+	}
+	s.groups.GetMemberships(role)
+	var msg string
+	if data, e := GetFlash(wr, req, "genError"); data != nil {
+		msg = string(data)
+	} else if e != nil {
+		log.Printf("UpdateRoleForm: Failed to get flash message: %s", e.Error())
+	}
 	model := struct {
 		User  *core.User
 		Group *core.Group
 		Role  *core.Role
-		Msg   *messages.Group
+		Error string
 	}{
 		User:  user,
 		Group: group,
 		Role:  role,
-		Msg:   msg,
+		Error: msg,
 	}
 	executeTemplate(wr, model, "../html/editrole.html")
+
 }
 
 func executeTemplate(wr http.ResponseWriter, model interface{}, files ...string) error {

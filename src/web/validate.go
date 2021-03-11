@@ -1,62 +1,51 @@
 package web
 
 import (
-	"chores-suck/web/messages"
+	"errors"
 	"regexp"
 	"strings"
 )
 
-func validateGroupName(name string, msg *messages.Group) bool {
-	valid := false
+func validateGroupName(name string) error {
 	regName := regexp.MustCompile(`^(?:[0-9a-zA-Z]+-)*[0-9a-zA-Z]+$`)
 
 	if strings.TrimSpace(name) == "" {
-		msg.Name = "Name cannot be empty!"
+		return errors.New("Group name cannot be empty")
 
 	} else if !regName.MatchString(name) {
-		msg.Name = "Name must only consist of alphanumeric characters and hyphens and cannot start or end with a hyphen"
-	} else {
-		valid = true
+		return errors.New("Name must only consist of alphanumeric characters and hyphens and cannot start or end with a hyphen")
 	}
-
-	return valid
+	return nil
 }
 
-func validateRegisterInput(username string, p1 string, p2 string, email string, msg *messages.RegisterMessage) bool {
-	valid := true
+func validatePassword(password string, confirm string) error {
+	if password != confirm {
+		return errors.New("Passwords don't match")
+	}
+	if strings.TrimSpace(password) == "" {
+		return errors.New("Password cannot be empty")
+	}
+	return nil
+}
 
-	regEmail := regexp.MustCompile(`.+@.+\..+`)
+func validateUsername(username string) error {
 	regName := regexp.MustCompile(`^(?:[0-9a-zA-Z]+-)*[0-9a-zA-Z]+$`)
-
 	if strings.TrimSpace(username) == "" {
-		msg.Username = "Must enter a valid username"
-		valid = false
+		return errors.New("Username cannot be empty")
 	}
-
-	if p1 != p2 {
-		msg.Password = "Passwords don't match"
-		valid = false
-	}
-
-	if strings.TrimSpace(p1) == "" {
-		msg.Password = "Must enter a password"
-		valid = false
-	}
-
-	if strings.TrimSpace(email) == "" {
-		msg.Email = "Must enter an email address"
-		valid = false
-	}
-
 	if !regName.MatchString(username) {
-		msg.Username = "Username must only consist of alphanumeric characters and hyphens and cannot start or end with a hyphen"
-		valid = false
+		return errors.New("Username must only consist of alphanumeric characters and hyphens and cannot start or end with a hyphen")
 	}
+	return nil
+}
 
+func validateEmail(email string) error {
+	regEmail := regexp.MustCompile(`.+@.+\..+`)
+	if strings.TrimSpace(email) == "" {
+		return errors.New("Email cannot be empty")
+	}
 	if !regEmail.MatchString(email) {
-		msg.Email = "Must enter a valid email address"
-		valid = false
+		return errors.New("Invalid email address")
 	}
-
-	return valid
+	return nil
 }

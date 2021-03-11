@@ -1,5 +1,6 @@
 {{ define "body" }}
 <h2>New Role</h2>
+{{with .Error}}<p>{{ . }}</p>{{end}}
 <form action="/groups/{{.Group.ID}}/add/role" method="post">
     <input type="text" name="name" id="name" placeholder="Role Name ...">
     <input type="checkbox" name="editgroup" id="editgroup" value="true">
@@ -14,8 +15,4 @@
     <label for="getschores">Gets Chores</label>
     <input type="submit" value="Add Role">
 </form>
-{{with .Msg}}
-{{with .General}}<p>{{ . }}</p>{{end}}
-{{with .Name}}<p>{{ . }}</p>{{end}}
-{{end}}
 {{ end }}

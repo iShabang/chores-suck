@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"chores-suck/core"
-	"chores-suck/web/messages"
 )
 
 type UserService interface {
@@ -30,8 +29,19 @@ func (s *userService) CreateUser(wr http.ResponseWriter, req *http.Request) {
 	password2 := req.FormValue("pwordConf")
 
 	ok := true
-	msg := messages.RegisterMessage{}
-	if !validateRegisterInput(username, password, password2, email, &msg) {
+	e := validateUsername(username)
+	if e != nil {
+		SetFlash(wr, "nameError", []byte(e.Error()))
+		ok = false
+	}
+	e = validateEmail(email)
+	if e != nil {
+		SetFlash(wr, "emailError", []byte(e.Error()))
+		ok = false
+	}
+	e = validatePassword(password, password2)
+	if e != nil {
+		SetFlash(wr, "passError", []byte(e.Error()))
 		ok = false
 	}
 
@@ -47,10 +57,10 @@ func (s *userService) CreateUser(wr http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			switch err {
 			case core.ErrEmailExists:
-				msg.Email = "Email already registered"
+				SetFlash(wr, "emailError", []byte("Email already registered"))
 				ok = false
 			case core.ErrNameExists:
-				msg.Username = "Username already taken"
+				SetFlash(wr, "nameError", []byte("Username already taken"))
 				ok = false
 			default:
 				handleError(internalError(err), wr)
@@ -60,7 +70,7 @@ func (s *userService) CreateUser(wr http.ResponseWriter, req *http.Request) {
 	}
 
 	if !ok {
-		s.views.RegisterFail(wr, req, &msg)
+		http.Redirect(wr, req, "/new/user", 302)
 		return
 	}
 

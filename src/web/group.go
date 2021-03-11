@@ -2,7 +2,6 @@ package web
 
 import (
 	"chores-suck/core"
-	"chores-suck/web/messages"
 	"errors"
 	"fmt"
 	"log"
@@ -50,9 +49,9 @@ func (s *groupService) CreateGroup(wr http.ResponseWriter, req *http.Request, ui
 		handleError(internalError(e), wr)
 		return
 	}
-	msg := messages.Group{}
-	if !validateGroupName(groupName, &msg) {
-		s.vs.NewGroupFail(wr, req, &user, &msg)
+	if e = validateGroupName(groupName); e != nil {
+		SetFlash(wr, "nameError", []byte(e.Error()))
+		http.Redirect(wr, req, "/new/group", 302)
 		return
 	}
 	e = s.gs.CreateGroup(groupName, &user)
@@ -66,152 +65,83 @@ func (s *groupService) CreateGroup(wr http.ResponseWriter, req *http.Request, ui
 func (s *groupService) EditGroup(wr http.ResponseWriter, req *http.Request,
 	ps httprouter.Params, user *core.User, group *core.Group) {
 	groupName := req.PostFormValue("groupname")
-	msg := messages.Group{}
-	ok := true
-	if validateGroupName(groupName, &msg) {
+	if e := validateGroupName(groupName); e != nil {
+		SetFlash(wr, "nameError", []byte(e.Error()))
+	} else {
 		group.Name = groupName
 		e := s.gs.UpdateGroup(group, user)
 		if e != nil {
-			msg.General = "An unexpected error occurred"
-			ok = false
+			SetFlash(wr, "genError", []byte("An unexpected error occurred"))
 		}
-	} else {
-		ok = false
 	}
-
-	if !ok {
-		s.vs.EditGroupFail(wr, req, user, group, &msg)
-	} else {
-		url := fmt.Sprintf("/groups/%v", group.ID)
-		http.Redirect(wr, req, url, 302)
-	}
+	http.Redirect(wr, req, fmt.Sprintf("/groups/%v", group.ID), 302)
 }
 
 func (s *groupService) DeleteMember(wr http.ResponseWriter, req *http.Request,
 	ps httprouter.Params, user *core.User, group *core.Group) {
-	mem := group.FindMember(user.ID)
-	s.gs.GetRoles(mem)
-	canDelete := mem.SuperRole.Can(core.EditMembers)
-	if !canDelete {
-		http.Error(wr, ErrNotAuthorized.Error(), http.StatusUnauthorized)
-		return
-	}
 	userID, e := strconv.ParseUint(ps.ByName("userID"), 10, 64)
-	delUser := core.User{ID: userID}
-	e = s.us.GetUserByID(&delUser)
+	msg := ""
 	if e != nil {
-		handleError(internalError(e), wr)
-		return
-	}
-	delMem := core.Membership{User: &delUser, Group: group}
-	e = s.gs.GetRoles(&delMem)
-	if e != nil {
-		handleError(internalError(e), wr)
-		return
-	}
-	ok := true
-	msg := messages.Group{}
-	e = s.gs.DeleteMember(&delMem)
-	if e == nil {
-		for i, m := range group.Memberships {
-			if m.User.ID == delUser.ID {
-				end := len(group.Memberships) - 1
-				group.Memberships[i] = group.Memberships[end]
-				group.Memberships = group.Memberships[:end]
-			}
+		msg = "Invalid request"
+	} else {
+		delUser := core.User{ID: userID}
+		delMem := core.Membership{User: &delUser, Group: group}
+		if e = s.gs.DeleteMember(&delMem, user); e != nil {
+			msg = e.Error()
 		}
-	} else {
-		ok = false
-		msg.Member = e.Error()
 	}
-	if !ok {
-		s.vs.EditGroupFail(wr, req, user, group, &msg)
-	} else {
-		url := fmt.Sprintf("/groups/%v", group.ID)
-		http.Redirect(wr, req, url, 302)
+	if msg != "" {
+		SetFlash(wr, "memError", []byte(msg))
 	}
+	http.Redirect(wr, req, fmt.Sprintf("/groups/%v", group.ID), 302)
 }
 
 func (s *groupService) AddMember(wr http.ResponseWriter, req *http.Request,
 	ps httprouter.Params, user *core.User, group *core.Group) {
-	mem := group.FindMember(user.ID)
-	s.gs.GetRoles(mem)
-	canAdd := mem.SuperRole.Can(core.EditMembers)
-	ok := true
-	msg := messages.Group{}
-	if !canAdd {
-		ok = false
-		msg.Member = "You don't have permission to edit members"
+	msg := ""
+	uname := req.PostFormValue("username")
+	userNew := core.User{Username: uname}
+	if e := s.us.GetUserByName(&userNew); e != nil {
+		msg = "User not found"
 	} else {
-		uname := req.PostFormValue("username")
-		userNew := core.User{Username: uname}
-		s.us.GetUserByName(&userNew)
 		memNew := core.Membership{User: &userNew, Group: group}
-		if s.gs.AddMember(&memNew) == nil {
-			group.Memberships = append(group.Memberships, memNew)
-		} else {
-			ok = false
-			msg.Member = "Failed to add new member"
+		if e := s.gs.AddMember(&memNew, user); e != nil {
+			msg = e.Error()
 		}
 	}
-	if !ok {
-		s.vs.EditGroupFail(wr, req, user, group, &msg)
-	} else {
-		url := fmt.Sprintf("/groups/%v", group.ID)
-		http.Redirect(wr, req, url, 302)
+	if msg != "" {
+		SetFlash(wr, "memError", []byte(msg))
 	}
+	url := fmt.Sprintf("/groups/%v", group.ID)
+	http.Redirect(wr, req, url, 302)
 }
 
 func (s *groupService) AddRole(wr http.ResponseWriter, req *http.Request,
 	ps httprouter.Params, user *core.User, group *core.Group) {
-	mem := core.Membership{}
-	for _, m := range user.Memberships {
-		if m.Group.ID == group.ID {
-			mem = m
-			break
-		}
-	}
-	editRole := false
-	for _, r := range mem.Roles {
-		if r.Can(core.EditRoles) {
-			editRole = true
-			break
-		}
-	}
-	if !editRole {
-		http.Error(wr, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
-		return
-	}
+	var msg string
 	name := req.PostFormValue("name")
 	editGroup := req.PostFormValue("editgroup")
 	editChores := req.PostFormValue("editchores")
 	editMembers := req.PostFormValue("editmembers")
 	editRoles := req.PostFormValue("editroles")
 	getsChores := req.PostFormValue("getsChores")
-	msg := messages.Group{}
-	ok := validateGroupName(name, &msg)
-	if ok {
-		s.gs.GetRoles(group)
-		for _, r := range group.Roles {
-			if r.Name == name {
-				ok = false
-				msg.Name = "Role name already exists!"
-			}
-		}
+	if e := validateGroupName(name); e != nil {
+		msg = e.Error()
 	}
-	role := core.Role{Name: name, GetsChores: getsChores == "true", Group: group}
-	if ok {
+	if msg == "" {
+		role := core.Role{Name: name, GetsChores: getsChores == "true", Group: group}
 		role.Set(core.EditGroup, editGroup == "true")
 		role.Set(core.EditChores, editChores == "true")
 		role.Set(core.EditMembers, editMembers == "true")
 		role.Set(core.EditRoles, editRoles == "true")
-		if s.gs.AddRole(&role) != nil {
-			ok = false
-			msg.General = "Unable to add role due to an unexpected error"
+		if e := s.gs.AddRole(&role, user); e != nil {
+			msg = e.Error()
 		}
 	}
-	if !ok {
-		s.vs.NewRoleFail(wr, user, group, &msg)
+	if msg != "" {
+		SetFlash(wr, "genError", []byte(msg))
+		url := fmt.Sprintf("/groups/%v/add/role", group.ID)
+		http.Redirect(wr, req, url, 302)
 	} else {
 		url := fmt.Sprintf("/groups/%v", group.ID)
 		http.Redirect(wr, req, url, 302)
@@ -220,58 +150,35 @@ func (s *groupService) AddRole(wr http.ResponseWriter, req *http.Request,
 
 func (s *groupService) UpdateRole(wr http.ResponseWriter, req *http.Request,
 	ps httprouter.Params, user *core.User, group *core.Group) {
-	var mem *core.Membership
-	for i := range group.Memberships {
-		if group.Memberships[i].User.ID == user.ID {
-			mem = &group.Memberships[i]
-		}
-	}
-	if !mem.SuperRole.Can(core.EditRoles) {
-		log.Printf("UserID: %v, GroupID: %v, UpdateRole: Insufficient privileges, perm: %v",
-			user.ID, group.ID, mem.SuperRole.Permissions)
-		http.Error(wr, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
-		return
-	}
+	var msg string
 	name := req.PostFormValue("rolename")
 	editMem := req.PostFormValue("editmembers") == "true"
 	editChores := req.PostFormValue("editchores") == "true"
 	editGroup := req.PostFormValue("editgroup") == "true"
 	editRoles := req.PostFormValue("editroles") == "true"
 	getsChores := req.PostFormValue("getschores") == "true"
-
-	msg := messages.Group{}
-	ok := true
-	roleID, _ := strconv.ParseUint(ps.ByName("roleID"), 10, 64)
-	s.gs.GetRoles(group)
-	role := group.FindRole(roleID)
-	if role == nil {
-		http.Error(wr, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-		return
-	} else if role.Name == "Owner" || role.Name == "Admin" || role.Name == "Default" {
-		msg.General = "Cannot make changes to Owner, Admin, or Default roles"
-		ok = false
-	} else if !validateGroupName(name, &msg) {
-		ok = false
+	roleID, e := strconv.ParseUint(ps.ByName("roleID"), 10, 64)
+	if e != nil {
+		msg = "Invalid request"
+	} else if e := validateGroupName(name); e != nil {
+		msg = e.Error()
 	} else {
+		role := core.Role{ID: roleID, Group: group}
 		role.Name = name
 		role.GetsChores = getsChores
 		role.Set(core.EditMembers, editMem)
 		role.Set(core.EditChores, editChores)
 		role.Set(core.EditGroup, editGroup)
 		role.Set(core.EditRoles, editRoles)
-		if e := s.gs.UpdateRole(role); e != nil {
-			log.Printf("UserID: %v, GroupID: %v, UpdateRole: Error: %s", user.ID, group.ID, e.Error())
-			ok = false
-			msg.General = "Failed to update role due to an unexpected error"
+		if e := s.gs.UpdateRole(&role, user); e != nil {
+			msg = e.Error()
 		}
 	}
-	if !ok {
-		s.gs.GetMemberships(role)
-		s.vs.UpdateRoleFail(wr, user, group, role, &msg)
-	} else {
-		url := fmt.Sprintf("/groups/%v/update/role/%v", group.ID, roleID)
-		http.Redirect(wr, req, url, 302)
+	if msg != "" {
+		SetFlash(wr, "genError", []byte(msg))
 	}
+	url := fmt.Sprintf("/groups/%v/update/role/%v", group.ID, roleID)
+	http.Redirect(wr, req, url, 302)
 }
 
 func (s *groupService) GroupAccess(handler func(wr http.ResponseWriter, req *http.Request,
@@ -294,13 +201,17 @@ func (s *groupService) GroupAccess(handler func(wr http.ResponseWriter, req *htt
 			http.Error(wr, e.Error(), http.StatusInternalServerError)
 			return
 		}
-		s.gs.GetMemberships(&group)
 		var mem *core.Membership
-		for i := range group.Memberships {
-			if group.Memberships[i].User.ID == user.ID {
-				mem = &group.Memberships[i]
-				s.gs.GetRoles(mem)
-			}
+		if e := s.gs.GetMemberships(&group); e != nil {
+			log.Printf("Web.GroupAccess: %s", e.Error())
+			http.Error(wr, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		mem = group.FindMember(user.ID)
+		if e := s.gs.GetRoles(mem); e != nil {
+			log.Printf("Web.GroupAccess: %s", e.Error())
+			http.Error(wr, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
 		}
 		if mem == nil || !mem.SuperRole.CanEdit() {
 			var msg string

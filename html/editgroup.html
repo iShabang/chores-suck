@@ -1,12 +1,12 @@
 {{ define "body" }}
-{{ with .Msg }}<p>{{ .Name }}</p>{{end}}
+{{ with .NameError }}<p>{{ . }}</p>{{end}}
 <div>
     <form action="/groups/{{.Group.ID}}" method="post">
         <input type="text" name="groupname" id="groupname" value="{{.Group.Name}}">
         <input type="submit" value="Update Name">
     </form>
 </div>
-{{ with .Msg }}<p>{{ .Member }}</p>{{ end }}
+{{ with .MemError }}<p>{{ . }}</p>{{ end }}
 <h3>Members</h3>
 {{ range .Group.Memberships }}
 <div>
