@@ -383,6 +383,12 @@ func (s *Storage) UpdateRole(role *core.Role) error {
 	return e
 }
 
+func (s *Storage) DeleteRole(role *core.Role) error {
+	query := `DELETE FROM roles where id = $1`
+	_, e := s.Db.Exec(query, role.ID)
+	return e
+}
+
 func (s *Storage) DeleteMember(mem *core.Membership) error {
 	query := `DELETE FROM memberships WHERE group_id = $1 AND user_id = $2`
 	_, e := s.Db.Exec(query, mem.Group.ID, mem.User.ID)

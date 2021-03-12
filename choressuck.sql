@@ -13,8 +13,8 @@ create table groups (
 
 create table memberships (
     joined_at timestamp not null,
-    user_id integer references users(id),
-    group_id integer references groups(id),
+    user_id integer references users(id) on delete cascade,
+    group_id integer references groups(id) on delete cascade,
     PRIMARY KEY (user_id, group_id)
 );
 
@@ -22,13 +22,13 @@ create table roles (
     id serial primary key,
     name varchar(255) not null,
     permissions integer,
-    gets_chores boolean
-    group_id integer references groups(id)
+    gets_chores boolean,
+    group_id integer references groups(id) ON DELETE CASCADE
 );
 
 create table role_assignments (
-    role_id integer references roles(id),
-    user_id integer references users(id) 
+    role_id integer references roles(id) ON DELETE CASCADE,
+    user_id integer references users(id) ON DELETE CASCADE 
 );
 
 create table chores (
@@ -36,7 +36,7 @@ create table chores (
     description varchar(255),
     name varchar (255) not null,
     duration integer,
-    group_id integer references groups(id)
+    group_id integer references groups(id) ON DELETE CASCADE
 );
 
 create table chore_assignments (
@@ -44,8 +44,8 @@ create table chore_assignments (
     date_assigned timestamp not null,
     date_complete timestamp,
     date_due timestamp,
-    chore_id integer references chores(id),
-    user_id integer references users(id),
+    chore_id integer references chores(id) ON DELETE CASCADE,
+    user_id integer references users(id) ON DELETE CASCADE,
     PRIMARY KEY (chore_id, user_id)
 );
 
@@ -53,5 +53,5 @@ create table sessions (
     uuid  not null primary key,
     values varchar,
     created timestamp not null,
-    user_id integer references users(id)
+    user_id integer references users(id) ON DELETE CASCADE
 );

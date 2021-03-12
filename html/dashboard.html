@@ -15,7 +15,7 @@
 {{ range .User.Memberships }}
 <div class="groupListRow">
     <ul class="groupList" style="list-style:none;">
-        <li>{{ .Group.Name }}</li>
+        <li><a href="/groups/update/{{.Group.ID}}">{{ .Group.Name }}</a></li>
     </ul>
 </div>
 {{ else }}

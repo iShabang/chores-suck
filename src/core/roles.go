@@ -2,6 +2,8 @@ package core
 
 import (
 	"errors"
+	"fmt"
+	"log"
 )
 
 type RoleRepository interface {
@@ -10,6 +12,7 @@ type RoleRepository interface {
 	GetRoles(t interface{}) error
 	GetRole(role *Role) error
 	UpdateRole(role *Role) error
+	DeleteRole(role *Role) error
 }
 
 type RoleService interface {
@@ -17,6 +20,7 @@ type RoleService interface {
 	AddMember(role *Role, username string, user *User) error
 	GetRole(role *Role) error
 	Update(role *Role, newRole *Role, user *User) error
+	Delete(role *Role) error
 }
 
 type roleService struct {
@@ -32,21 +36,7 @@ func NewRoleService(re RoleRepository, u UserService) RoleService {
 }
 
 func (s *roleService) RemoveMember(role *Role, userID uint64, user *User) error {
-	mem := role.Group.FindMember(user.ID)
-	if e := s.repo.GetRoles(mem); e != nil {
-		return errors.New("An unexpected error occurred")
-	}
-	if !mem.SuperRole.Can(EditRoles) {
-		return errors.New("You do not have permission to edit role members")
-	}
-	if e := s.repo.GetRoles(role.Group); e != nil {
-		return errors.New("An unexpected error occurred")
-	}
-	oldRole := role.Group.FindRole(role.ID)
-	if oldRole == nil {
-		return errors.New("Invalid request")
-	}
-	if oldRole.Name == "Owner" {
+	if role.Name == "Owner" {
 		return errors.New("Cannot remove owner")
 	}
 	if e := s.repo.RemoveMember(role.ID, userID); e != nil {
@@ -56,26 +46,14 @@ func (s *roleService) RemoveMember(role *Role, userID uint64, user *User) error 
 }
 
 func (s *roleService) AddMember(role *Role, username string, user *User) error {
-	authMem := role.Group.FindMember(user.ID)
-	if !authMem.SuperRole.Can(EditMembers) {
-		return errors.New("You do not have permission to add members!")
+	if role.Name == "Owner" {
+		return errors.New("There can only be one owner")
 	}
-	if e := s.repo.GetRoles(role.Group); e != nil {
-		return errors.New("An unexpected error occurred")
-	}
-	oldRole := role.Group.FindRole(role.ID)
-	if oldRole == nil {
-		return errors.New("Invalid request")
-	}
-	newUser := User{Username: username}
-	if e := s.us.GetUserByName(&newUser); e != nil {
-		return errors.New("Member not found")
-	}
-	mem := role.Group.FindMember(newUser.ID)
+	mem := role.Group.FindMember(username)
 	if mem == nil {
 		return errors.New("Member not found")
 	}
-	if e := s.repo.AddMember(role.ID, newUser.ID); e != nil {
+	if e := s.repo.AddMember(role.ID, mem.User.ID); e != nil {
 		return errors.New("An unexpected error occurred")
 	}
 	return nil
@@ -104,4 +82,16 @@ func (s *roleService) Update(role *Role, newRole *Role, user *User) error {
 	}
 	return nil
 
+}
+
+func (s *roleService) Delete(role *Role) error {
+	if role.Name == "Owner" || role.Name == "Admin" || role.Name == "Default" {
+		msg := fmt.Sprintf("Cannot delete %s role", role.Name)
+		return errors.New(msg)
+	}
+	if e := s.repo.DeleteRole(role); e != nil {
+		log.Printf("Core: RoleService: Delete: %s", e.Error())
+		return errors.New("An unexpected error occurred")
+	}
+	return nil
 }

@@ -40,10 +40,19 @@ func (g *Group) FindRole(id uint64) *Role {
 	return nil
 }
 
-func (g *Group) FindMember(id uint64) *Membership {
-	for i := range g.Memberships {
-		if g.Memberships[i].User.ID == id {
-			return &g.Memberships[i]
+func (g *Group) FindMember(value interface{}) *Membership {
+	switch v := value.(type) {
+	case uint64:
+		for i := range g.Memberships {
+			if g.Memberships[i].User.ID == v {
+				return &g.Memberships[i]
+			}
+		}
+	case string:
+		for i := range g.Memberships {
+			if g.Memberships[i].User.Username == v {
+				return &g.Memberships[i]
+			}
 		}
 	}
 	return nil

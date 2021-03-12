@@ -39,6 +39,8 @@ func (s *roleService) Update(wr http.ResponseWriter, req *http.Request,
 		s.delMember(wr, req, user, role)
 	} else if submit = req.PostFormValue("submit_3"); submit != "" {
 		s.addMember(wr, req, user, role)
+	} else if submit = req.PostFormValue("submit_4"); submit != "" {
+		s.delete(wr, req, user, role)
 	}
 }
 
@@ -100,6 +102,18 @@ func (s *roleService) delMember(wr http.ResponseWriter, req *http.Request,
 		SetFlash(wr, "genError", []byte(msg))
 	}
 	url := fmt.Sprintf("/roles/update/%v", role.ID)
+	http.Redirect(wr, req, url, 302)
+}
+
+func (s *roleService) delete(wr http.ResponseWriter, req *http.Request,
+	user *core.User, role *core.Role) {
+	if e := s.rs.Delete(role); e != nil {
+		SetFlash(wr, "genError", []byte(e.Error()))
+		url := fmt.Sprintf("/roles/update/%v", role.ID)
+		http.Redirect(wr, req, url, 302)
+		return
+	}
+	url := fmt.Sprintf("/groups/update/%v", role.Group.ID)
 	http.Redirect(wr, req, url, 302)
 }
 
