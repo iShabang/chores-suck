@@ -70,7 +70,7 @@ func (s *userService) CreateUser(wr http.ResponseWriter, req *http.Request) {
 	}
 
 	if !ok {
-		http.Redirect(wr, req, "/new/user", 302)
+		http.Redirect(wr, req, "/register", 302)
 		return
 	}
 

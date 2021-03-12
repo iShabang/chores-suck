@@ -364,6 +364,19 @@ func (s *Storage) GetMemberRoles(member *core.Membership) error {
 
 }
 
+func (s *Storage) GetRole(role *core.Role) error {
+	query := `
+	SELECT name, permissions, gets_chores, group_id
+	FROM roles WHERE id = $1`
+	role.Group = &core.Group{}
+	e := s.Db.QueryRow(query, role.ID).Scan(&role.Name, &role.Permissions, &role.GetsChores, &role.Group.ID)
+	if e == sql.ErrNoRows {
+		return nil
+	} else {
+		return e
+	}
+}
+
 func (s *Storage) UpdateRole(role *core.Role) error {
 	query := `UPDATE roles SET (name, permissions, gets_chores) = ($1, $2, $3) WHERE id = $4`
 	_, e := s.Db.Exec(query, role.Name, role.Permissions, role.GetsChores, role.ID)

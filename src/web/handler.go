@@ -34,25 +34,21 @@ func NewServices(a AuthService, v ViewService, g GroupService, u UserService, r 
 //Handler creates and returns a new http.Handler with the request handlers and functions pre-registered/routed
 func Handler(s *Services) http.Handler {
 	ro := httprouter.New()
-	ro.GET("/groups/:groupID", s.groupMW(s.views.EditGroupForm))
-	ro.GET("/groups/:groupID/add/role", s.groupMW(s.views.NewRoleForm))
-	ro.GET("/groups/:groupID/update/role/:roleID", s.groupMW(s.views.UpdateRoleForm))
-	ro.POST("/groups/:groupID", s.groupMW(s.groups.EditGroup))
-	ro.POST("/groups/:groupID/remove/user/:userID", s.groupMW(s.groups.DeleteMember))
-	ro.POST("/groups/:groupID/add/user", s.groupMW(s.groups.AddMember))
-	ro.POST("/groups/:groupID/add/role", s.groupMW(s.groups.AddRole))
-	ro.POST("/groups/:groupID/update/role/:roleID", s.groupMW(s.groups.UpdateRole))
-	ro.POST("/groups/:groupID/update/role/:roleID/remove/user/:userID", s.groupMW(s.roles.RemoveMember))
-	ro.POST("/groups/:groupID/update/role/:roleID/add/user", s.groupMW(s.roles.AddMember))
-	ro.HandlerFunc("GET", "/login", s.views.LoginForm)
-	ro.HandlerFunc("POST", "/login", s.auth.Login)
-	ro.HandlerFunc("GET", "/logout", s.auth.Logout)
-	ro.HandlerFunc("POST", "/new/user", s.users.CreateUser)
-	ro.HandlerFunc("GET", "/dashboard", s.authorize(s.views.Dashboard))
-	ro.HandlerFunc("GET", "/new/user", s.views.RegisterForm)
-	ro.HandlerFunc("GET", "/new/group", s.authorize(s.views.NewGroupForm))
-	ro.HandlerFunc("POST", "/new/group", s.authorize(s.groups.CreateGroup))
+	ro.GET("/groups/update/:groupID", s.groupMW(s.views.EditGroupForm))
+	ro.GET("/roles/create/:groupID", s.groupMW(s.views.NewRoleForm))
+	ro.GET("/roles/update/:roleID", s.roleMW(s.views.UpdateRoleForm))
+	ro.POST("/groups/update/:groupID", s.groupMW(s.groups.UpdateGroup))
+	ro.POST("/roles/create/:groupID", s.groupMW(s.groups.AddRole))
+	ro.POST("/roles/update/:roleID", s.roleMW(s.roles.Update))
 	ro.HandlerFunc("GET", "/", s.views.Index)
+	ro.HandlerFunc("GET", "/login", s.views.LoginForm)
+	ro.HandlerFunc("GET", "/logout", s.auth.Logout)
+	ro.HandlerFunc("GET", "/dashboard", s.authorize(s.views.Dashboard))
+	ro.HandlerFunc("GET", "/register", s.views.RegisterForm)
+	ro.HandlerFunc("GET", "/groups/create", s.authorize(s.views.NewGroupForm))
+	ro.HandlerFunc("POST", "/login", s.auth.Login)
+	ro.HandlerFunc("POST", "/register", s.users.CreateUser)
+	ro.HandlerFunc("POST", "/groups/create", s.authorize(s.groups.CreateGroup))
 	return ro
 }
 
@@ -88,4 +84,8 @@ func (s *Services) authorizeParam(handler func(wr http.ResponseWriter, req *http
 
 func (s *Services) groupMW(handler func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)) httprouter.Handle {
 	return s.authorizeParam(s.groups.GroupAccess(handler))
+}
+
+func (s *Services) roleMW(handler func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, role *core.Role)) httprouter.Handle {
+	return s.authorizeParam(s.roles.RoleMW(handler))
 }

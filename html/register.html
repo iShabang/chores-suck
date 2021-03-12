@@ -1,6 +1,6 @@
 {{define "body"}}
 <div class="regContainer">
-    <form action="/new/user" method="post">
+    <form action="" method="post">
         {{ if .NameError }}<p class="ErrorMsg">{{ .NameError }}</p>{{end}}
         <input type="text" id="username" name="username" placeholder="Username..." value="{{ .Username }}">
         {{ if .EmailError }}<p class="ErrorMsg">{{ .EmailError }}</p>{{end}}

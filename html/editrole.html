@@ -1,7 +1,7 @@
 {{define "body"}}
 {{if .Error }}<p>{{.Error}}</p>{{end}}
 <div>
-    <form action="/groups/{{.Group.ID}}/update/role/{{.Role.ID}}" method="post">
+    <form action="" method="post">
         {{with .Role}}
         <input type="text" name="rolename" id="rolename" value="{{.Name}}">
         <input type="checkbox" name="editmembers" id="editmembers" value="true" {{if .Can 0}}checked{{end}}>
@@ -14,7 +14,7 @@
         <label for="editroles">Edit Roles</label>
         <input type="checkbox" name="getschores" id="getschores" value="true" {{ if .GetsChores }}checked{{end}}>
         <label for="getschores">Gets Chores</label>
-        <input type="submit" value="Update">
+        <input type="submit" name="submit_1" value="Update">
         {{end}}
     </form>
 </div>
@@ -24,20 +24,21 @@
 {{range .Role.Members}}
 <div>
     <p>{{.User.Username}}</p>
-    <form action="/groups/{{$g}}/update/role/{{$r}}/remove/user/{{.User.ID}}" method="post">
-        <input type="submit" value="Remove">
+    <form action="" method="post">
+        <input type="text" name="user_id" value="{{.User.ID}}" hidden>
+        <input type="submit" name="submit_2" value="Remove">
     </form>
 </div>
 {{end}}
 <div>
-    <form action="/groups/{{$g}}/update/role/{{$r}}/add/user" method="post">
+    <form action="" method="post">
         <input type="text" name="username" id="username" placeholder="Username...">
-        <input type="submit" value="Add">
+        <input type="submit" name="submit_3" value="Add">
     </form>
 </div>
 <div>
-    <form action="/groups/{{$g}}/delete/role/{{$r}}" method="post">
-        <input type="submit" value="Delete Role">
+    <form action="/roles/delete/{{$r}}" method="post">
+        <input type="submit" name="submit_4" value="Delete Role">
     </form>
 </div>
 {{end}}

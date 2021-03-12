@@ -1,9 +1,9 @@
 {{ define "body" }}
 {{ with .NameError }}<p>{{ . }}</p>{{end}}
 <div>
-    <form action="/groups/{{.Group.ID}}" method="post">
+    <form action="" method="post">
         <input type="text" name="groupname" id="groupname" value="{{.Group.Name}}">
-        <input type="submit" value="Update Name">
+        <input type="submit" name="submit_1" value="Update Name">
     </form>
 </div>
 {{ with .MemError }}<p>{{ . }}</p>{{ end }}
@@ -11,24 +11,25 @@
 {{ range .Group.Memberships }}
 <div>
     <p>{{ .User.Username }}</p>
-    <form action="/groups/{{ .Group.ID }}/remove/user/{{ .User.ID }}" method="post">
-        <input type="submit" value="Remove">
+    <form action="" method="post">
+        <input type="text" name="user_id" value="{{.User.ID}}" hidden>
+        <input type="submit" name="submit_2" value="Remove Member">
     </form>
 </div>
 {{ end }}
 <div>
-    <form action="/groups/{{ .Group.ID }}/add/user" method="post">
+    <form action="" method="post">
         <input type="text" name="username" id="username" placeholder="Username...">
-        <input type="submit" value="Add">
+        <input type="submit" name="submit_3" value="Add Member">
     </form>
 </div>
 <h3>Roles</h3>
-<a href="/groups/{{ .Group.ID }}/add/role">Create Role</a>
+<a href="/roles/create/{{.Group.ID}}">Create Role</a>
 {{ $g := .Group.ID }}
 {{ range .Group.Roles }}
 <div>
     <p>{{ .Name }}</p>
-    <a href="/groups/{{$g}}/update/role/{{.ID}}">Edit</a>
+    <a href="/roles/update/{{.ID}}">Edit</a>
 </div>
 {{ end }}
 {{ end }}

@@ -18,11 +18,8 @@ var (
 
 type GroupService interface {
 	CreateGroup(wr http.ResponseWriter, req *http.Request, uid uint64)
-	EditGroup(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)
-	DeleteMember(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)
-	AddMember(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)
+	UpdateGroup(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)
 	AddRole(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)
-	UpdateRole(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)
 	GroupAccess(handler func(wr http.ResponseWriter, req *http.Request,
 		ps httprouter.Params, user *core.User, group *core.Group)) authParamHandle
 }
@@ -51,7 +48,7 @@ func (s *groupService) CreateGroup(wr http.ResponseWriter, req *http.Request, ui
 	}
 	if e = validateGroupName(groupName); e != nil {
 		SetFlash(wr, "nameError", []byte(e.Error()))
-		http.Redirect(wr, req, "/new/group", 302)
+		http.Redirect(wr, req, "/groups/create", 302)
 		return
 	}
 	e = s.gs.CreateGroup(groupName, &user)
@@ -62,58 +59,17 @@ func (s *groupService) CreateGroup(wr http.ResponseWriter, req *http.Request, ui
 	http.Redirect(wr, req, "/dashboard", 302)
 }
 
-func (s *groupService) EditGroup(wr http.ResponseWriter, req *http.Request,
+func (s *groupService) UpdateGroup(wr http.ResponseWriter, req *http.Request,
 	ps httprouter.Params, user *core.User, group *core.Group) {
-	groupName := req.PostFormValue("groupname")
-	if e := validateGroupName(groupName); e != nil {
-		SetFlash(wr, "nameError", []byte(e.Error()))
+	if submit := req.PostFormValue("submit_1"); submit != "" {
+		s.updateName(wr, req, ps, user, group)
+	} else if submit := req.PostFormValue("submit_2"); submit != "" {
+		s.delMember(wr, req, ps, user, group)
+	} else if submit := req.PostFormValue("submit_3"); submit != "" {
+		s.addMember(wr, req, ps, user, group)
 	} else {
-		group.Name = groupName
-		e := s.gs.UpdateGroup(group, user)
-		if e != nil {
-			SetFlash(wr, "genError", []byte("An unexpected error occurred"))
-		}
+		log.Print("Failed to find submit value")
 	}
-	http.Redirect(wr, req, fmt.Sprintf("/groups/%v", group.ID), 302)
-}
-
-func (s *groupService) DeleteMember(wr http.ResponseWriter, req *http.Request,
-	ps httprouter.Params, user *core.User, group *core.Group) {
-	userID, e := strconv.ParseUint(ps.ByName("userID"), 10, 64)
-	msg := ""
-	if e != nil {
-		msg = "Invalid request"
-	} else {
-		delUser := core.User{ID: userID}
-		delMem := core.Membership{User: &delUser, Group: group}
-		if e = s.gs.DeleteMember(&delMem, user); e != nil {
-			msg = e.Error()
-		}
-	}
-	if msg != "" {
-		SetFlash(wr, "memError", []byte(msg))
-	}
-	http.Redirect(wr, req, fmt.Sprintf("/groups/%v", group.ID), 302)
-}
-
-func (s *groupService) AddMember(wr http.ResponseWriter, req *http.Request,
-	ps httprouter.Params, user *core.User, group *core.Group) {
-	msg := ""
-	uname := req.PostFormValue("username")
-	userNew := core.User{Username: uname}
-	if e := s.us.GetUserByName(&userNew); e != nil {
-		msg = "User not found"
-	} else {
-		memNew := core.Membership{User: &userNew, Group: group}
-		if e := s.gs.AddMember(&memNew, user); e != nil {
-			msg = e.Error()
-		}
-	}
-	if msg != "" {
-		SetFlash(wr, "memError", []byte(msg))
-	}
-	url := fmt.Sprintf("/groups/%v", group.ID)
-	http.Redirect(wr, req, url, 302)
 }
 
 func (s *groupService) AddRole(wr http.ResponseWriter, req *http.Request,
@@ -140,54 +96,75 @@ func (s *groupService) AddRole(wr http.ResponseWriter, req *http.Request,
 	}
 	if msg != "" {
 		SetFlash(wr, "genError", []byte(msg))
-		url := fmt.Sprintf("/groups/%v/add/role", group.ID)
+		url := fmt.Sprintf("/roles/create/%v", group.ID)
 		http.Redirect(wr, req, url, 302)
 	} else {
-		url := fmt.Sprintf("/groups/%v", group.ID)
+		url := fmt.Sprintf("/groups/update/%v", group.ID)
 		http.Redirect(wr, req, url, 302)
 	}
 }
 
-func (s *groupService) UpdateRole(wr http.ResponseWriter, req *http.Request,
-	ps httprouter.Params, user *core.User, group *core.Group) {
-	var msg string
-	name := req.PostFormValue("rolename")
-	editMem := req.PostFormValue("editmembers") == "true"
-	editChores := req.PostFormValue("editchores") == "true"
-	editGroup := req.PostFormValue("editgroup") == "true"
-	editRoles := req.PostFormValue("editroles") == "true"
-	getsChores := req.PostFormValue("getschores") == "true"
-	roleID, e := strconv.ParseUint(ps.ByName("roleID"), 10, 64)
-	if e != nil {
-		msg = "Invalid request"
-	} else if e := validateGroupName(name); e != nil {
-		msg = e.Error()
+func (s *groupService) updateName(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group) {
+	groupName := req.PostFormValue("groupname")
+	if e := validateGroupName(groupName); e != nil {
+		SetFlash(wr, "nameError", []byte(e.Error()))
 	} else {
-		role := core.Role{ID: roleID, Group: group}
-		role.Name = name
-		role.GetsChores = getsChores
-		role.Set(core.EditMembers, editMem)
-		role.Set(core.EditChores, editChores)
-		role.Set(core.EditGroup, editGroup)
-		role.Set(core.EditRoles, editRoles)
-		if e := s.gs.UpdateRole(&role, user); e != nil {
+		group.Name = groupName
+		e := s.gs.UpdateGroup(group, user)
+		if e != nil {
+			SetFlash(wr, "genError", []byte("An unexpected error occurred"))
+		}
+	}
+	http.Redirect(wr, req, fmt.Sprintf("/groups/update/%v", group.ID), 302)
+}
+
+func (s *groupService) addMember(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group) {
+	msg := ""
+	uname := req.PostFormValue("username")
+	userNew := core.User{Username: uname}
+	if e := s.us.GetUserByName(&userNew); e != nil {
+		msg = "User not found"
+	} else {
+		memNew := core.Membership{User: &userNew, Group: group}
+		if e := s.gs.AddMember(&memNew, user); e != nil {
 			msg = e.Error()
 		}
 	}
 	if msg != "" {
-		SetFlash(wr, "genError", []byte(msg))
+		SetFlash(wr, "memError", []byte(msg))
 	}
-	url := fmt.Sprintf("/groups/%v/update/role/%v", group.ID, roleID)
+	url := fmt.Sprintf("/groups/update/%v", group.ID)
 	http.Redirect(wr, req, url, 302)
+}
+
+func (s *groupService) delMember(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group) {
+	userID, e := strconv.ParseUint(req.PostFormValue("user_id"), 10, 64)
+	msg := ""
+	if e != nil {
+		msg = "Invalid request"
+	} else {
+		delUser := core.User{ID: userID}
+		delMem := core.Membership{User: &delUser, Group: group}
+		if e = s.gs.DeleteMember(&delMem, user); e != nil {
+			msg = e.Error()
+		}
+	}
+	if msg != "" {
+		SetFlash(wr, "memError", []byte(msg))
+	}
+	http.Redirect(wr, req, fmt.Sprintf("/groups/update/%v", group.ID), 302)
 }
 
 func (s *groupService) GroupAccess(handler func(wr http.ResponseWriter, req *http.Request,
 	ps httprouter.Params, user *core.User, group *core.Group)) authParamHandle {
 	return func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, uid uint64) {
+		var groupID uint64
 		groupID, e := strconv.ParseUint(ps.ByName("groupID"), 10, 64)
 		if e != nil {
-			http.Error(wr, e.Error(), http.StatusInternalServerError)
-			return
+			if groupID, e = strconv.ParseUint(req.FormValue("group_id"), 10, 64); e != nil {
+				http.Error(wr, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+				return
+			}
 		}
 		group := core.Group{ID: groupID}
 		e = s.gs.GetGroup(&group)

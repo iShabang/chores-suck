@@ -7,7 +7,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -27,7 +26,7 @@ type ViewService interface {
 	NewGroupForm(http.ResponseWriter, *http.Request, uint64)
 	EditGroupForm(http.ResponseWriter, *http.Request, httprouter.Params, *core.User, *core.Group)
 	NewRoleForm(http.ResponseWriter, *http.Request, httprouter.Params, *core.User, *core.Group)
-	UpdateRoleForm(http.ResponseWriter, *http.Request, httprouter.Params, *core.User, *core.Group)
+	UpdateRoleForm(http.ResponseWriter, *http.Request, httprouter.Params, *core.User, *core.Role)
 }
 
 type viewService struct {
@@ -237,33 +236,7 @@ func (s *viewService) NewRoleForm(wr http.ResponseWriter, req *http.Request,
 }
 
 func (s *viewService) UpdateRoleForm(wr http.ResponseWriter, req *http.Request,
-	ps httprouter.Params, user *core.User, group *core.Group) {
-	s.users.GetMemberships(user)
-	s.groups.GetRoles(group)
-	mem := findMembership(user, group.ID)
-	s.groups.GetRoles(mem)
-	if !mem.SuperRole.Can(core.EditRoles) {
-		log.Printf("UserID: %v, GroupID: %v, UpdateRoleForm: Member cannot edit roles. Perm: %v",
-			user.ID, group.ID, mem.SuperRole.Permissions)
-		http.Error(wr, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
-		return
-	}
-	roleID, e := strconv.ParseUint(ps.ByName("roleID"), 10, 64)
-	if e != nil {
-		log.Print(e.Error())
-	}
-	var role *core.Role
-	for i := range group.Roles {
-		if group.Roles[i].ID == roleID {
-			role = &group.Roles[i]
-			break
-		}
-	}
-	if role == nil {
-		log.Printf("UserID: %v, GroupID: %v, UpdateRoleForm: Role not found", user.ID, group.ID)
-		http.Error(wr, "An unexpected error occurred", http.StatusInternalServerError)
-		return
-	}
+	ps httprouter.Params, user *core.User, role *core.Role) {
 	s.groups.GetMemberships(role)
 	var msg string
 	if data, e := GetFlash(wr, req, "genError"); data != nil {
@@ -278,12 +251,11 @@ func (s *viewService) UpdateRoleForm(wr http.ResponseWriter, req *http.Request,
 		Error string
 	}{
 		User:  user,
-		Group: group,
+		Group: role.Group,
 		Role:  role,
 		Error: msg,
 	}
 	executeTemplate(wr, model, "../html/editrole.html")
-
 }
 
 func executeTemplate(wr http.ResponseWriter, model interface{}, files ...string) error {
