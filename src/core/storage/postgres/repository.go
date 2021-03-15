@@ -90,9 +90,8 @@ func (s *Storage) GetChores(t interface{}) error {
 	switch v := t.(type) {
 	case *core.User:
 		return s.GetUserChores(v)
-	// TODO: Implement GetGroupChores
-	//case *core.Group:
-	//	return s.GetGroupChores(v)
+	case *core.Group:
+		return s.GetGroupChores(v)
 	default:
 		return errors.ErrType
 	}
@@ -131,6 +130,33 @@ func (s *Storage) GetUserChores(user *core.User) error {
 		user.Chores = append(user.Chores, c)
 	}
 	return nil
+}
+
+func (s *Storage) GetGroupChores(group *core.Group) error {
+	query := `
+	SELECT id, name, description, duration
+	FROM chores WHERE group_id = $1`
+	rows, _ := s.Db.Query(query, group.ID)
+	defer rows.Close()
+	for rows.Next() {
+		ch := core.Chore{Group: group}
+		if e := rows.Scan(&ch.ID, &ch.Name, &ch.Description, &ch.Duration); e != nil {
+			if e == sql.ErrNoRows {
+				return nil
+			}
+			return e
+		}
+		group.Chores = append(group.Chores, ch)
+	}
+	return nil
+}
+
+func (s *Storage) CreateChore(chore *core.Chore) error {
+	query := `
+	INSERT INTO chores (name, description, duration, group_id)
+	VALUES($1,$2,$3,$4) RETURNING id`
+	_, e := s.Db.Exec(query, chore.Name, chore.Description, chore.Duration, chore.Group.ID)
+	return e
 }
 
 func (s *Storage) GetGroupByID(group *core.Group) error {

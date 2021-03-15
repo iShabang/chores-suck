@@ -18,16 +18,18 @@ type Services struct {
 	groups GroupService
 	users  UserService
 	roles  RoleService
+	chores ChoreService
 }
 
 // NewServices creates a new Services object
-func NewServices(a AuthService, v ViewService, g GroupService, u UserService, r RoleService) *Services {
+func NewServices(a AuthService, v ViewService, g GroupService, u UserService, r RoleService, c ChoreService) *Services {
 	return &Services{
 		auth:   a,
 		views:  v,
 		groups: g,
 		users:  u,
 		roles:  r,
+		chores: c,
 	}
 }
 
@@ -41,6 +43,7 @@ func Handler(s *Services) http.Handler {
 	ro.POST("/groups/update/:groupID", s.groupMW(s.groups.UpdateGroup))
 	ro.POST("/roles/create/:groupID", s.groupMW(s.groups.AddRole))
 	ro.POST("/roles/update/:roleID", s.roleMW(s.roles.Update))
+	ro.POST("/chores/create/:groupID", s.groupMW(s.chores.Create))
 	ro.HandlerFunc("GET", "/", s.views.Index)
 	ro.HandlerFunc("GET", "/login", s.views.LoginForm)
 	ro.HandlerFunc("GET", "/logout", s.auth.Logout)

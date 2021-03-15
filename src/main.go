@@ -17,6 +17,7 @@ func main() {
 	userCore := core.NewUserService(repo)
 	groupCore := core.NewGroupService(repo)
 	roleCore := core.NewRoleService(repo, userCore)
+	choreCore := core.NewChoreService(repo)
 
 	store := sessions.NewStore(repo, []byte(os.Getenv("SESSION_KEY")))
 	auth := web.NewAuthService(userCore, store)
@@ -24,6 +25,7 @@ func main() {
 	users := web.NewUserService(userCore, views)
 	groups := web.NewGroupService(groupCore, userCore, views)
 	roles := web.NewRoleService(groupCore, roleCore, userCore, views)
-	handler := web.Handler(web.NewServices(auth, views, groups, users, roles))
+	chores := web.NewChoreService(choreCore)
+	handler := web.Handler(web.NewServices(auth, views, groups, users, roles, chores))
 	log.Fatal(http.ListenAndServe(":8080", context.ClearHandler(handler)))
 }
