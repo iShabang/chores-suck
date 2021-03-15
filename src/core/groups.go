@@ -18,6 +18,7 @@ type GroupRepository interface {
 	UpdateGroup(group *Group) error
 	DeleteMember(mem *Membership) error
 	UpdateRole(role *Role) error
+	GetChores(t interface{}) error
 }
 
 type GroupService interface {
@@ -34,6 +35,7 @@ type GroupService interface {
 	AddMember(mem *Membership, user *User) error
 	AddRole(role *Role, user *User) error
 	UpdateRole(role *Role, user *User) error
+	GetChores(group *Group) error
 }
 
 type groupService struct {
@@ -239,6 +241,13 @@ func (s *groupService) UpdateRole(role *Role, user *User) error {
 		return errors.New("Cannot make changes to Owner, Admin, or Default roles")
 	}
 	if e := s.repo.UpdateRole(role); e != nil {
+		return errors.New("An unexpected error occurred")
+	}
+	return nil
+}
+
+func (s *groupService) GetChores(group *Group) error {
+	if e := s.repo.GetChores(group); e != nil {
 		return errors.New("An unexpected error occurred")
 	}
 	return nil
