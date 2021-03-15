@@ -115,7 +115,7 @@ func (s *Storage) GetUserChores(user *core.User) error {
 
 	for rows.Next() {
 		ca := core.ChoreAssignment{User: user}
-		c := core.Chore{User: user}
+		c := core.Chore{}
 		g := core.Group{}
 
 		err = rows.Scan(&ca.Complete, &ca.DateAssigned, &ca.DateComplete, &ca.DateDue,
@@ -130,7 +130,6 @@ func (s *Storage) GetUserChores(user *core.User) error {
 		c.Group = &g
 		user.Chores = append(user.Chores, c)
 	}
-
 	return nil
 }
 
