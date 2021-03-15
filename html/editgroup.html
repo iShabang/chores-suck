@@ -32,4 +32,13 @@
     <a href="/roles/update/{{.ID}}">Edit</a>
 </div>
 {{ end }}
+<h3>Chores</h3>
+<a href="/chores/create/{{.Group.ID}}">Add Chore</a>
+{{ range .Group.Chores }}
+<div>
+    <p>{{ .Name }}</p>
+    <p>{{ .Description }}</p>
+    <p>{{ .Duration }} Minutes</p>
+</div>
+{{ end }}
 {{ end }}
