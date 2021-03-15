@@ -1,4 +1,5 @@
 {{ define "body" }}
+{{with .Error}}<p>{{.}}</p>{{end}}
 <form action="" method="post">
     <input type="text" name="chore_name" placeholder="Chore name">
     <input type="text" name="chore_desc" placeholder="Description...">

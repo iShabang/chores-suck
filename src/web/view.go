@@ -261,6 +261,10 @@ func (s *viewService) UpdateRoleForm(wr http.ResponseWriter, req *http.Request,
 
 func (s *viewService) NewChoreForm(wr http.ResponseWriter, req *http.Request,
 	ps httprouter.Params, user *core.User, group *core.Group) {
+	var msg string
+	if data, _ := GetFlash(wr, req, "genError"); data != nil {
+		msg = string(data)
+	}
 	d := make([]int, 24)
 	for i := range d {
 		d[i] = (i + 1) * 5
@@ -269,10 +273,12 @@ func (s *viewService) NewChoreForm(wr http.ResponseWriter, req *http.Request,
 		Durations []int
 		Group     *core.Group
 		User      *core.User
+		Error     string
 	}{
 		Durations: d,
 		Group:     group,
 		User:      user,
+		Error:     msg,
 	}
 	executeTemplate(wr, model, "../html/newchore.html")
 }
