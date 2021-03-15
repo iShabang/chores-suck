@@ -3,7 +3,7 @@
 <form action="" method="post">
     <input type="text" name="chore_name" placeholder="Chore name">
     <input type="text" name="chore_desc" placeholder="Description...">
-    <select name="times" id="times">
+    <select name="chore_dur" id="times">
         {{ range .Durations }}
         <option value="{{.}}">{{.}}</option>
         {{ end }}
