@@ -9,7 +9,6 @@ type Chore struct {
 	Name        string
 	Duration    int
 	Group       *Group
-	User        *User
 	Assignment  *ChoreAssignment
 }
 
