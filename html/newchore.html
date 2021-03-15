@@ -2,11 +2,12 @@
 <form action="" method="post">
     <input type="text" name="chore_name" placeholder="Chore name">
     <input type="text" name="chore_desc" placeholder="Description...">
-    <select name="times">
+    <select name="times" id="times">
         {{ range .Durations }}
-        <option value="{{.Value}}">{{.Value}} {{.Units}}</option>
+        <option value="{{.}}">{{.}}</option>
         {{ end }}
     </select>
+    <label for="times">Time to complete (minutes):</label>
 </form>
 <a href="/groups/update/{{.Group.ID}}"
 {{ end }}
