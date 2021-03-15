@@ -184,6 +184,9 @@ func (s *viewService) EditGroupForm(wr http.ResponseWriter, req *http.Request,
 	if e := s.groups.GetRoles(group); e != nil {
 		log.Printf("UserID: %v, GroupID: %v, EditGroupForm: Error: %s", user.ID, group.ID, e.Error())
 	}
+	if e := s.groups.GetChores(group); e != nil {
+		log.Print("EditGroupForm: Failed to get chores")
+	}
 	var nameErr string
 	var memErr string
 	if data, _ := GetFlash(wr, req, "nameError"); data != nil {
