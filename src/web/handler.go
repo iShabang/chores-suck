@@ -37,6 +37,7 @@ func Handler(s *Services) http.Handler {
 	ro.GET("/groups/update/:groupID", s.groupMW(s.views.EditGroupForm))
 	ro.GET("/roles/create/:groupID", s.groupMW(s.views.NewRoleForm))
 	ro.GET("/roles/update/:roleID", s.roleMW(s.views.UpdateRoleForm))
+	ro.GET("/chores/create/:groupID", s.groupMW(s.views.NewChoreForm))
 	ro.POST("/groups/update/:groupID", s.groupMW(s.groups.UpdateGroup))
 	ro.POST("/roles/create/:groupID", s.groupMW(s.groups.AddRole))
 	ro.POST("/roles/update/:roleID", s.roleMW(s.roles.Update))

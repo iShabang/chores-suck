@@ -27,6 +27,7 @@ type ViewService interface {
 	EditGroupForm(http.ResponseWriter, *http.Request, httprouter.Params, *core.User, *core.Group)
 	NewRoleForm(http.ResponseWriter, *http.Request, httprouter.Params, *core.User, *core.Group)
 	UpdateRoleForm(http.ResponseWriter, *http.Request, httprouter.Params, *core.User, *core.Role)
+	NewChoreForm(http.ResponseWriter, *http.Request, httprouter.Params, *core.User, *core.Group)
 }
 
 type viewService struct {
@@ -256,6 +257,24 @@ func (s *viewService) UpdateRoleForm(wr http.ResponseWriter, req *http.Request,
 		Error: msg,
 	}
 	executeTemplate(wr, model, "../html/editrole.html")
+}
+
+func (s *viewService) NewChoreForm(wr http.ResponseWriter, req *http.Request,
+	ps httprouter.Params, user *core.User, group *core.Group) {
+	d := make([]int, 24)
+	for i := range d {
+		d[i] = (i + 1) * 5
+	}
+	model := struct {
+		Durations []int
+		Group     *core.Group
+		User      *core.User
+	}{
+		Durations: d,
+		Group:     group,
+		User:      user,
+	}
+	executeTemplate(wr, model, "../html/newchore.html")
 }
 
 func executeTemplate(wr http.ResponseWriter, model interface{}, files ...string) error {
