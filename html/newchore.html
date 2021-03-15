@@ -1,0 +1,12 @@
+{{ define "body" }}
+<form action="" method="post">
+    <input type="text" name="chore_name" placeholder="Chore name">
+    <input type="text" name="chore_desc" placeholder="Description...">
+    <select name="times">
+        {{ range .Durations }}
+        <option value="{{.Value}}">{{.Value}} {{.Units}}</option>
+        {{ end }}
+    </select>
+</form>
+<a href="/groups/update/{{.Group.ID}}"
+{{ end }}
