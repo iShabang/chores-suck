@@ -1,18 +1,12 @@
 package chores
 
 import (
+	"chores-suck/core"
 	"fmt"
 	"math/rand"
 	"sort"
 	"time"
 )
-
-// Chore holds information for a chore
-type Chore struct {
-	Name     string
-	Minutes  uint16
-	Assignee uint64
-}
 
 // Person holds information for a person in the context of chores
 type Person struct {
@@ -24,7 +18,7 @@ type Person struct {
 // Randomize randomly distributes a set of chores to a set of people.
 // Each person will have a minimum amount of chores to work on based
 // on the time of each chore.
-func Randomize(c []Chore, p []Person) {
+func Randomize(c []core.Chore, p []core.User) {
 	/* Fisher-Yates Shuffle Algorithm
 	for i = n-1; i>0; i--
 		j = random number from 0 <= j <= i
@@ -40,9 +34,12 @@ func Randomize(c []Chore, p []Person) {
 	// Find the average score of all the chores
 	var minScore uint32
 	for i := range c {
-		minScore += uint32(c[i].Minutes / 5)
+		minScore += uint32(c[i].Duration / 5)
 	}
 	minScore = minScore / uint32(len(p))
+
+	// Generate a map of users to scores
+	scores := make(map[uint64]int)
 
 	var rIndex int
 	allChecked := false
@@ -52,46 +49,42 @@ func Randomize(c []Chore, p []Person) {
 			allChecked = true
 			rIndex = 0
 		}
-		if uint32(p[rIndex].Score) < minScore {
-			c[i].Assignee = p[rIndex].ID
-			p[rIndex].Score += c[i].Minutes / 5
-		}
-		if allChecked {
-			c[i].Assignee = p[rIndex].ID
-			p[rIndex].Score += c[i].Minutes / 5
+		if uint32(scores[p[rIndex].ID]) < minScore || allChecked {
+			c[i].Assignment.User = &p[rIndex]
+			scores[p[rIndex].ID] += c[i].Duration / 5
 		}
 		rIndex++
 	}
 }
 
 // Rotate rotates the assigned chores amongst the people.
-func Rotate(c []Chore, p []Person) {
+func Rotate(c []core.Chore, u []core.User) {
 	// Rotate the chores amongst the roommates.
 	// The roommates must already have chores assigned.
 	// The first roommate in the list gets the last roommates chores
 	// the second roommate gets the first roommates chores
-	sort.Slice(p, func(i, j int) bool {
-		return p[i].ID < p[j].ID
+	sort.Slice(u, func(i, j int) bool {
+		return u[i].ID < u[j].ID
 	})
 
-	rmap := make(map[uint64]uint64)
-	for i := range p {
+	rmap := make(map[uint64]*core.User)
+	for i := range u {
 		j := i + 1
-		if j >= len(p) {
+		if j >= len(u) {
 			j = 0
 		}
-		rmap[p[i].ID] = p[j].ID
+		rmap[u[i].ID] = &u[j]
 	}
 
 	for i := range c {
-		c[i].Assignee = rmap[c[i].Assignee]
+		c[i].Assignment.User = rmap[c[i].Assignment.User.ID]
 	}
 }
 
-func printChores(c []Chore) string {
+func printChores(c []core.Chore) string {
 	var s string
 	for i := range c {
-		s += fmt.Sprintf("%s\t%v\n", c[i].Name, c[i].Assignee)
+		s += fmt.Sprintf("%s\t%v\n", c[i].Name, c[i].Assignment.User.Username)
 	}
 	return s
 }
