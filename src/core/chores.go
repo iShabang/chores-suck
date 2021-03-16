@@ -7,10 +7,12 @@ import (
 type ChoreRepository interface {
 	CreateChore(*Chore) error
 	GetChores(interface{}) error
+	GetChore(*Chore) error
 }
 
 type ChoreService interface {
 	Create(*Chore) error
+	GetChore(*Chore) error
 }
 
 type choreService struct {
@@ -34,6 +36,13 @@ func (s *choreService) Create(ch *Chore) error {
 	}
 	if e := s.repo.CreateChore(ch); e != nil {
 		return errors.New("An unexpected error occurred")
+	}
+	return nil
+}
+
+func (s *choreService) GetChore(ch *Chore) error {
+	if e := s.repo.GetChore(ch); e != nil {
+		return e
 	}
 	return nil
 }
