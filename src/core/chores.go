@@ -10,11 +10,13 @@ type ChoreRepository interface {
 	GetChores(interface{}) error
 	GetChore(*Chore) error
 	UpdateChore(*Chore) error
+	DeleteChore(*Chore) error
 }
 
 type ChoreService interface {
 	Create(*Chore) error
 	Update(ch *Chore, new *Chore) error
+	Delete(ch *Chore) error
 	GetChore(*Chore) error
 }
 
@@ -64,6 +66,14 @@ func (s *choreService) Update(ch *Chore, new *Chore) error {
 	}
 	if e := s.repo.UpdateChore(new); e != nil {
 		log.Printf("ChoreService: Update: Failed to update: %s", e.Error())
+		return errors.New("An unexpected error occurred")
+	}
+	return nil
+}
+
+func (s *choreService) Delete(ch *Chore) error {
+	if e := s.repo.DeleteChore(ch); e != nil {
+		log.Printf("ChoreService: Delete: Operation Failed: %s", e.Error())
 		return errors.New("An unexpected error occurred")
 	}
 	return nil

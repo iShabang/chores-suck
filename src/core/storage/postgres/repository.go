@@ -175,6 +175,12 @@ func (s *Storage) UpdateChore(ch *core.Chore) error {
 	return e
 }
 
+func (s *Storage) DeleteChore(ch *core.Chore) error {
+	query := `DELETE FROM chores WHERE id = $1`
+	_, e := s.Db.Exec(query, ch.ID)
+	return e
+}
+
 func (s *Storage) GetGroupByID(group *core.Group) error {
 	query := `
 	SELECT name FROM groups WHERE id = $1`
