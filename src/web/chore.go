@@ -59,6 +59,25 @@ func (s *choreService) Create(wr http.ResponseWriter, req *http.Request,
 }
 
 func (s *choreService) Update(wr http.ResponseWriter, req *http.Request, us *core.User, ch *core.Chore) {
+	if req.PostFormValue("submit_1") != "" {
+		s.update(wr, req, us, ch)
+	} else if req.PostFormValue("submit_2") != "" {
+		s.delete(wr, req, us, ch)
+	} else {
+		http.Error(wr, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+	}
+}
+
+func (s *choreService) delete(wr http.ResponseWriter, req *http.Request, us *core.User, ch *core.Chore) {
+	if e := s.cs.Delete(ch); e != nil {
+		SetFlash(wr, "genError", []byte(e.Error()))
+		http.Redirect(wr, req, fmt.Sprintf("/chores/update/%v", ch.ID), 302)
+		return
+	}
+	http.Redirect(wr, req, fmt.Sprintf("/groups/update/%v", ch.Group.ID), 302)
+}
+
+func (s *choreService) update(wr http.ResponseWriter, req *http.Request, us *core.User, ch *core.Chore) {
 	var msg string
 	choreName := req.PostFormValue("chore_name")
 	choreDesc := req.PostFormValue("chore_desc")
