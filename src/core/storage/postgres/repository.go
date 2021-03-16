@@ -164,7 +164,7 @@ func (s *Storage) GetChore(ch *core.Chore) error {
 	SELECT name, description, duration, group_id
 	FROM chores WHERE id = $1`
 	ch.Group = &core.Group{}
-	return s.Db.QueryRow(query, ch.ID).Scan(&ch.Name, &ch.Duration, &ch.Duration, &ch.Group.ID)
+	return s.Db.QueryRow(query, ch.ID).Scan(&ch.Name, &ch.Description, &ch.Duration, &ch.Group.ID)
 }
 
 func (s *Storage) GetGroupByID(group *core.Group) error {
