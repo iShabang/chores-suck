@@ -53,8 +53,10 @@ func (s *choreService) Create(wr http.ResponseWriter, req *http.Request,
 	}
 	if msg != "" {
 		SetFlash(wr, "genError", []byte(msg))
+		url := fmt.Sprintf("/chores/create/%v", group.ID)
+		http.Redirect(wr, req, url, 302)
 	}
-	url := fmt.Sprintf("/chores/create/%v", group.ID)
+	url := fmt.Sprintf("/groups/update/%v", group.ID)
 	http.Redirect(wr, req, url, 302)
 }
 
