@@ -1,0 +1,13 @@
+{{ define "body" }}
+<form action="" method="post">
+    <input type="text" name="chore_name" value="{{.Chore.Name}}">
+    <input type="text" name="chore_desc" value="{{.Chore.Description}}">
+    {{$d := .Chore.Duration}}
+    <select name="chore_dur">
+        {{range .Durations}}
+        <option value="{{.}}"{{if eq . $d}}selected{{end}}>{{.}}</option>
+        {{end}}
+    </select>
+    <input type="submit" name="submit_1" value="Submit">
+</form>
+{{ end }}
