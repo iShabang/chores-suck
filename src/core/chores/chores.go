@@ -1,4 +1,4 @@
-package chores
+package dist
 
 import (
 	"chores-suck/core"
@@ -7,13 +7,6 @@ import (
 	"sort"
 	"time"
 )
-
-// Person holds information for a person in the context of chores
-type Person struct {
-	Name  string
-	Score uint16
-	ID    uint64
-}
 
 // Randomize randomly distributes a set of chores to a set of people.
 // Each person will have a minimum amount of chores to work on based
@@ -87,10 +80,4 @@ func printChores(c []core.Chore) string {
 		s += fmt.Sprintf("%s\t%v\n", c[i].Name, c[i].Assignment.User.Username)
 	}
 	return s
-}
-
-func printRoommates(r []Person) {
-	for i := range r {
-		fmt.Printf("%s\t%v\n", r[i].Name, r[i].Score)
-	}
 }
