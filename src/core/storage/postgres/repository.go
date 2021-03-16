@@ -167,6 +167,14 @@ func (s *Storage) GetChore(ch *core.Chore) error {
 	return s.Db.QueryRow(query, ch.ID).Scan(&ch.Name, &ch.Description, &ch.Duration, &ch.Group.ID)
 }
 
+func (s *Storage) UpdateChore(ch *core.Chore) error {
+	query := `
+	UPDATE chores SET (name, description, duration) = ($1, $2, $3)
+	WHERE id = $4`
+	_, e := s.Db.Exec(query, ch.Name, ch.Description, ch.Duration, ch.ID)
+	return e
+}
+
 func (s *Storage) GetGroupByID(group *core.Group) error {
 	query := `
 	SELECT name FROM groups WHERE id = $1`
