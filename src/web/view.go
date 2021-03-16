@@ -28,6 +28,7 @@ type ViewService interface {
 	NewRoleForm(http.ResponseWriter, *http.Request, httprouter.Params, *core.User, *core.Group)
 	UpdateRoleForm(http.ResponseWriter, *http.Request, httprouter.Params, *core.User, *core.Role)
 	NewChoreForm(http.ResponseWriter, *http.Request, httprouter.Params, *core.User, *core.Group)
+	UpdateChoreForm(http.ResponseWriter, *http.Request, *core.User, *core.Chore)
 }
 
 type viewService struct {
@@ -268,10 +269,7 @@ func (s *viewService) NewChoreForm(wr http.ResponseWriter, req *http.Request,
 	if data, _ := GetFlash(wr, req, "genError"); data != nil {
 		msg = string(data)
 	}
-	d := make([]int, 24)
-	for i := range d {
-		d[i] = (i + 1) * 5
-	}
+	d := getDurations()
 	model := struct {
 		Durations []int
 		Group     *core.Group
@@ -284,6 +282,21 @@ func (s *viewService) NewChoreForm(wr http.ResponseWriter, req *http.Request,
 		Error:     msg,
 	}
 	executeTemplate(wr, model, "../html/newchore.html")
+}
+
+func (s *viewService) UpdateChoreForm(wr http.ResponseWriter, req *http.Request,
+	user *core.User, chore *core.Chore) {
+	d := getDurations()
+	model := struct {
+		Durations []int
+		Chore     *core.Chore
+		User      *core.User
+	}{
+		Durations: d,
+		Chore:     chore,
+		User:      user,
+	}
+	executeTemplate(wr, model, "../html/updatechore.html")
 }
 
 func executeTemplate(wr http.ResponseWriter, model interface{}, files ...string) error {
@@ -316,4 +329,12 @@ func findPermission(mem *core.Membership, action core.PermBit) bool {
 		}
 	}
 	return false
+}
+
+func getDurations() []int {
+	d := make([]int, 24)
+	for i := range d {
+		d[i] = (i + 1) * 5
+	}
+	return d
 }

@@ -25,7 +25,7 @@ func main() {
 	users := web.NewUserService(userCore, views)
 	groups := web.NewGroupService(groupCore, userCore, views)
 	roles := web.NewRoleService(groupCore, roleCore, userCore, views)
-	chores := web.NewChoreService(choreCore)
+	chores := web.NewChoreService(choreCore, groupCore, userCore)
 	handler := web.Handler(web.NewServices(auth, views, groups, users, roles, chores))
 	log.Fatal(http.ListenAndServe(":8080", context.ClearHandler(handler)))
 }

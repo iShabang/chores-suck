@@ -40,6 +40,7 @@ func Handler(s *Services) http.Handler {
 	ro.GET("/roles/create/:groupID", s.groupMW(s.views.NewRoleForm))
 	ro.GET("/roles/update/:roleID", s.roleMW(s.views.UpdateRoleForm))
 	ro.GET("/chores/create/:groupID", s.groupMW(s.views.NewChoreForm))
+	ro.GET("/chores/update/:choreID", s.choreMW(s.views.UpdateChoreForm))
 	ro.POST("/groups/update/:groupID", s.groupMW(s.groups.UpdateGroup))
 	ro.POST("/roles/create/:groupID", s.groupMW(s.groups.AddRole))
 	ro.POST("/roles/update/:roleID", s.roleMW(s.roles.Update))
@@ -92,4 +93,8 @@ func (s *Services) groupMW(handler func(wr http.ResponseWriter, req *http.Reques
 
 func (s *Services) roleMW(handler func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, role *core.Role)) httprouter.Handle {
 	return s.authorizeParam(s.roles.RoleMW(handler))
+}
+
+func (s *Services) choreMW(handler func(wr http.ResponseWriter, req *http.Request, us *core.User, ch *core.Chore)) httprouter.Handle {
+	return s.authorizeParam(s.chores.ChoreMW(handler))
 }
