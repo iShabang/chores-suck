@@ -4,7 +4,7 @@ import "time"
 
 // Chore describes properties of a chore
 type Chore struct {
-	ID          int
+	ID          uint64
 	Description string
 	Name        string
 	Duration    int
