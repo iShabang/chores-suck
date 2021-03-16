@@ -248,6 +248,7 @@ func (s *groupService) UpdateRole(role *Role, user *User) error {
 
 func (s *groupService) GetChores(group *Group) error {
 	if e := s.repo.GetChores(group); e != nil {
+		log.Printf("Web: GroupService: GetChores: %s", e.Error())
 		return errors.New("An unexpected error occurred")
 	}
 	return nil

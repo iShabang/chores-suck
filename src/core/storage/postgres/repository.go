@@ -134,18 +134,27 @@ func (s *Storage) GetUserChores(user *core.User) error {
 
 func (s *Storage) GetGroupChores(group *core.Group) error {
 	query := `
-	SELECT id, name, description, duration
-	FROM chores WHERE group_id = $1`
+	SELECT c.id, c.name, c.description, c.duration,
+	ca.complete, ca.date_assigned, ca.date_complete, ca.date_due, ca.user_id
+	FROM chores c
+	INNER JOIN chore_assignments ca ON ca.chore_id = c.id 
+	WHERE c.group_id = $1`
 	rows, _ := s.Db.Query(query, group.ID)
 	defer rows.Close()
 	for rows.Next() {
 		ch := core.Chore{Group: group}
-		if e := rows.Scan(&ch.ID, &ch.Name, &ch.Description, &ch.Duration); e != nil {
+		u := core.User{}
+		ca := core.ChoreAssignment{}
+		if e := rows.Scan(&ch.ID, &ch.Name, &ch.Description, &ch.Duration,
+			&ca.Complete, &ca.DateAssigned, &ca.DateComplete, &ca.DateDue, &u.ID); e != nil {
 			if e == sql.ErrNoRows {
 				return nil
 			}
 			return e
 		}
+		ca.Chore = &ch
+		ca.User = &u
+		ch.Assignment = &ca
 		group.Chores = append(group.Chores, ch)
 	}
 	return nil
