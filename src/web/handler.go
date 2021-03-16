@@ -45,6 +45,7 @@ func Handler(s *Services) http.Handler {
 	ro.POST("/roles/create/:groupID", s.groupMW(s.groups.AddRole))
 	ro.POST("/roles/update/:roleID", s.roleMW(s.roles.Update))
 	ro.POST("/chores/create/:groupID", s.groupMW(s.chores.Create))
+	ro.POST("/chores/update/:choreID", s.choreMW(s.chores.Update))
 	ro.HandlerFunc("GET", "/", s.views.Index)
 	ro.HandlerFunc("GET", "/login", s.views.LoginForm)
 	ro.HandlerFunc("GET", "/logout", s.auth.Logout)

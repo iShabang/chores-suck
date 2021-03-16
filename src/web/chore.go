@@ -12,6 +12,7 @@ import (
 
 type ChoreService interface {
 	Create(http.ResponseWriter, *http.Request, httprouter.Params, *core.User, *core.Group)
+	Update(http.ResponseWriter, *http.Request, *core.User, *core.Chore)
 	ChoreMW(handler func(http.ResponseWriter, *http.Request, *core.User, *core.Chore)) authParamHandle
 }
 
@@ -55,6 +56,27 @@ func (s *choreService) Create(wr http.ResponseWriter, req *http.Request,
 	}
 	url := fmt.Sprintf("/chores/create/%v", group.ID)
 	http.Redirect(wr, req, url, 302)
+}
+
+func (s *choreService) Update(wr http.ResponseWriter, req *http.Request, us *core.User, ch *core.Chore) {
+	var msg string
+	choreName := req.PostFormValue("chore_name")
+	choreDesc := req.PostFormValue("chore_desc")
+	choreDur, e := strconv.Atoi(req.PostFormValue("chore_dur"))
+	newChore := core.Chore{ID: ch.ID, Name: choreName, Description: choreDesc, Duration: choreDur}
+	if e != nil {
+		http.Error(wr, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+	if e := validateGroupName(choreName); e != nil {
+		msg = e.Error()
+	} else if e := s.cs.Update(ch, &newChore); e != nil {
+		msg = e.Error()
+	}
+	if msg != "" {
+		SetFlash(wr, "genError", []byte(msg))
+	}
+	http.Redirect(wr, req, fmt.Sprintf("/chores/update/%v", ch.ID), 302)
 }
 
 func (s *choreService) ChoreMW(handler func(http.ResponseWriter, *http.Request, *core.User, *core.Chore)) authParamHandle {

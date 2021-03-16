@@ -17,7 +17,7 @@ func main() {
 	userCore := core.NewUserService(repo)
 	groupCore := core.NewGroupService(repo)
 	roleCore := core.NewRoleService(repo, userCore)
-	choreCore := core.NewChoreService(repo)
+	choreCore := core.NewChoreService(repo, groupCore)
 
 	store := sessions.NewStore(repo, []byte(os.Getenv("SESSION_KEY")))
 	auth := web.NewAuthService(userCore, store)

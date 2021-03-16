@@ -286,15 +286,21 @@ func (s *viewService) NewChoreForm(wr http.ResponseWriter, req *http.Request,
 
 func (s *viewService) UpdateChoreForm(wr http.ResponseWriter, req *http.Request,
 	user *core.User, chore *core.Chore) {
+	var msg string
+	if data, _ := GetFlash(wr, req, "genError"); data != nil {
+		msg = string(data)
+	}
 	d := getDurations()
 	model := struct {
 		Durations []int
 		Chore     *core.Chore
 		User      *core.User
+		Error     string
 	}{
 		Durations: d,
 		Chore:     chore,
 		User:      user,
+		Error:     msg,
 	}
 	executeTemplate(wr, model, "../html/updatechore.html")
 }
