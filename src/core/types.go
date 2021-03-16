@@ -57,6 +57,24 @@ func (g *Group) FindMember(value interface{}) *Membership {
 	return nil
 }
 
+func (g *Group) FindChore(value interface{}) *Chore {
+	switch v := value.(type) {
+	case uint64:
+		for i, c := range g.Chores {
+			if v == c.ID {
+				return &g.Chores[i]
+			}
+		}
+	case string:
+		for i, c := range g.Chores {
+			if v == c.Name {
+				return &g.Chores[i]
+			}
+		}
+	}
+	return nil
+}
+
 // Membership relates a User to a specific group
 type Membership struct {
 	JoinedAt    time.Time
