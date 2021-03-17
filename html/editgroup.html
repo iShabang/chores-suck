@@ -37,7 +37,7 @@
 {{ range .Group.Chores }}
 <div>
     <p>{{ .Name }}</p>
-    {{with .Assignment}}<p>{{.User.Name}}</p>{{end}}
+    {{with .Assignment}}<p>{{.User.Username}}</p>{{end}}
     <a href="/chores/update/{{.ID}}">Edit</a>
 </div>
 {{ end }}
