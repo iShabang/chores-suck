@@ -34,12 +34,12 @@ func NewStorage() *Storage {
 		Db: db,
 	}
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(fmt.Sprintf("Storage: %s", err))
 	}
 
 	err = db.Ping()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(fmt.Sprintf("Storage: %s", err))
 	}
 	return s
 }
