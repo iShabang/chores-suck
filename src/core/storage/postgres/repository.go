@@ -7,6 +7,7 @@ import (
 	_ "github.com/lib/pq" //Required for compilation. Functionality is wrapped using database/sql
 
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -135,26 +136,42 @@ func (s *Storage) GetUserChores(user *core.User) error {
 func (s *Storage) GetGroupChores(group *core.Group) error {
 	query := `
 	SELECT c.id, c.name, c.description, c.duration,
-	ca.complete, ca.date_assigned, ca.date_complete, ca.date_due, ca.user_id
+	ca.complete, ca.date_assigned, ca.date_complete, ca.date_due, ca.user_id,
+	u.uname
 	FROM chores c
-	INNER JOIN chore_assignments ca ON ca.chore_id = c.id 
+	LEFT JOIN chore_assignments ca ON ca.chore_id = c.id 
+	LEFT JOIN users u ON u.id = ca.user_id
 	WHERE c.group_id = $1`
 	rows, _ := s.Db.Query(query, group.ID)
 	defer rows.Close()
 	for rows.Next() {
+		var complete sql.NullBool
+		var dateAssigned sql.NullTime
+		var dateComplete sql.NullTime
+		var dateDue sql.NullTime
+		var userID sql.NullInt64
+		var userName sql.NullString
 		ch := core.Chore{Group: group}
-		u := core.User{}
-		ca := core.ChoreAssignment{}
 		if e := rows.Scan(&ch.ID, &ch.Name, &ch.Description, &ch.Duration,
-			&ca.Complete, &ca.DateAssigned, &ca.DateComplete, &ca.DateDue, &u.ID); e != nil {
+			&complete, &dateAssigned, &dateComplete, &dateDue, &userID, &userName); e != nil {
 			if e == sql.ErrNoRows {
 				return nil
 			}
 			return e
 		}
-		ca.Chore = &ch
-		ca.User = &u
-		ch.Assignment = &ca
+		if userID.Valid {
+			u := core.User{}
+			ca := core.ChoreAssignment{}
+			ca.Complete = complete.Bool
+			ca.DateAssigned = dateAssigned.Time
+			ca.DateComplete = dateComplete.Time
+			ca.DateDue = dateDue.Time
+			u.ID = uint64(userID.Int64)
+			u.Username = userName.String
+			ca.Chore = &ch
+			ca.User = &u
+			ch.Assignment = &ca
+		}
 		group.Chores = append(group.Chores, ch)
 	}
 	return nil
