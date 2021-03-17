@@ -184,9 +184,11 @@ func (s *viewService) EditGroupForm(wr http.ResponseWriter, req *http.Request,
 	ps httprouter.Params, user *core.User, group *core.Group) {
 	if e := s.groups.GetRoles(group); e != nil {
 		log.Printf("UserID: %v, GroupID: %v, EditGroupForm: Error: %s", user.ID, group.ID, e.Error())
+		return
 	}
 	if e := s.groups.GetChores(group); e != nil {
 		log.Print("EditGroupForm: Failed to get chores")
+		return
 	}
 	var nameErr string
 	var memErr string
