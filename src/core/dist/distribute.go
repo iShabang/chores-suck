@@ -11,7 +11,7 @@ import (
 // Randomize randomly distributes a set of chores to a set of people.
 // Each person will have a minimum amount of chores to work on based
 // on the time of each chore.
-func Randomize(c []core.Chore, p []core.User) {
+func Randomize(c []core.Chore, p []core.Membership) {
 	/* Fisher-Yates Shuffle Algorithm
 	for i = n-1; i>0; i--
 		j = random number from 0 <= j <= i
@@ -42,9 +42,9 @@ func Randomize(c []core.Chore, p []core.User) {
 			allChecked = true
 			rIndex = 0
 		}
-		if uint32(scores[p[rIndex].ID]) < minScore || allChecked {
-			c[i].Assignment.User = &p[rIndex]
-			scores[p[rIndex].ID] += c[i].Duration / 5
+		if uint32(scores[p[rIndex].User.ID]) < minScore || allChecked {
+			c[i].Assignment.User = p[rIndex].User
+			scores[p[rIndex].User.ID] += c[i].Duration / 5
 		}
 		rIndex++
 	}
