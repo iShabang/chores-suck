@@ -3,6 +3,8 @@ package postgres
 import (
 	"chores-suck/core"
 	"chores-suck/core/storage/errors"
+	"strconv"
+	"strings"
 
 	_ "github.com/lib/pq" //Required for compilation. Functionality is wrapped using database/sql
 
@@ -198,6 +200,35 @@ func (s *Storage) UpdateChore(ch *core.Chore) error {
 	UPDATE chores SET (name, description, duration) = ($1, $2, $3)
 	WHERE id = $4`
 	_, e := s.Db.Exec(query, ch.Name, ch.Description, ch.Duration, ch.ID)
+	return e
+}
+
+func (s *Storage) InsertAssignments(ca []core.ChoreAssignment) error {
+	args := make([]interface{}, 0, len(ca)*6)
+	argStr := make([]string, 0, len(ca))
+	for i := range ca {
+		argStr = append(argStr, fmt.Sprintf("($%v,$%v,$%v,$%v,$%v,$%v)", i*6+1, i*6+2, i*6+3, i*6+4, i*6+5, i*6+6))
+		args = append(args, ca[i].Complete)
+		args = append(args, ca[i].DateAssigned)
+		args = append(args, ca[i].DateComplete)
+		args = append(args, ca[i].DateDue)
+		args = append(args, ca[i].Chore.ID)
+		args = append(args, ca[i].User.ID)
+	}
+	query := fmt.Sprintf(`INSERT INTO chore_assignments
+	(complete, date_assigned, date_complete, date_due, chore_id, user_id)
+	VALUES %s`, strings.Join(argStr, ","))
+	_, e := s.Db.Exec(query, args...)
+	return e
+}
+
+func (s *Storage) DeleteAssignments(ca []core.ChoreAssignment) error {
+	cids := make([]string, 0, len(ca))
+	for i := range ca {
+		cids = append(cids, strconv.FormatUint(ca[i].Chore.ID, 10))
+	}
+	query := fmt.Sprintf(`DELETE FROM chore_assignments ca WHERE ca.chore_id IN (%s)`, strings.Join(cids, ","))
+	_, e := s.Db.Exec(query)
 	return e
 }
 
