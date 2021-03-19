@@ -4,7 +4,6 @@ import (
 	"errors"
 	"log"
 	"math/rand"
-	"sort"
 	"time"
 )
 
@@ -24,6 +23,7 @@ type ChoreService interface {
 	Delete(ch *Chore) error
 	GetChore(*Chore) error
 	Randomize(g *Group) error
+	Rotate(g *Group) error
 }
 
 type choreService struct {
@@ -86,7 +86,6 @@ func (s *choreService) Delete(ch *Chore) error {
 }
 
 func (s *choreService) Randomize(g *Group) error {
-	//Store old assignments
 	oldCa := make([]ChoreAssignment, 0, len(g.Chores))
 	newCa := make([]ChoreAssignment, 0, len(g.Chores))
 	for i := range g.Chores {
@@ -101,26 +100,30 @@ func (s *choreService) Randomize(g *Group) error {
 	}
 	// TODO: only pass members that get chores
 	randomize(g.Chores, g.Memberships)
-	failed := false
 	for i := range g.Chores {
 		newCa = append(newCa, *g.Chores[i].Assignment)
-		if newCa[i].User == nil {
-			log.Printf("Missing user for chore: %v", g.Chores[i].ID)
-			failed = true
-		}
-	}
-	if failed {
-		return errors.New("Failed to distribute chores")
 	}
 	if e := s.repo.DeleteAssignments(oldCa); e != nil {
-		// return error message
 		log.Printf("Core: ChoreService: Randomize: failed to delete assignments: %s", e.Error())
 		return errors.New("An unexpected error occurred")
 	}
-	//Update the database
 	if e := s.repo.InsertAssignments(newCa); e != nil {
-		//return error message
 		log.Printf("Core: ChoreService: Randomize: failed to insert assignments: %s", e.Error())
+		return errors.New("An unexpected error occurred")
+	}
+	return nil
+}
+
+func (s *choreService) Rotate(g *Group) error {
+	newCa := rotate(g.Chores, g.Memberships)
+	oldCa := make([]ChoreAssignment, 0, len(g.Chores))
+	for i := range g.Chores {
+		oldCa = append(oldCa, *g.Chores[i].Assignment)
+	}
+	if e := s.repo.DeleteAssignments(oldCa); e != nil {
+		return errors.New("An unexpected error occurred")
+	}
+	if e := s.repo.InsertAssignments(newCa); e != nil {
 		return errors.New("An unexpected error occurred")
 	}
 	return nil
@@ -169,25 +172,24 @@ func randomize(c []Chore, p []Membership) {
 }
 
 // Rotate rotates the assigned chores amongst the people.
-func rotate(c []Chore, u []User) {
+func rotate(c []Chore, m []Membership) []ChoreAssignment {
 	// Rotate the chores amongst the roommates.
 	// The roommates must already have chores assigned.
 	// The first roommate in the list gets the last roommates chores
 	// the second roommate gets the first roommates chores
-	sort.Slice(u, func(i, j int) bool {
-		return u[i].ID < u[j].ID
-	})
-
+	assignments := make([]ChoreAssignment, 0, len(c))
 	rmap := make(map[uint64]*User)
-	for i := range u {
+	for i := range m {
 		j := i + 1
-		if j >= len(u) {
+		if j >= len(m) {
 			j = 0
 		}
-		rmap[u[i].ID] = &u[j]
+		rmap[m[i].User.ID] = m[j].User
 	}
-
 	for i := range c {
-		c[i].Assignment.User = rmap[c[i].Assignment.User.ID]
+		ca := ChoreAssignment{Chore: &c[i], DateAssigned: time.Now().UTC()}
+		ca.User = rmap[c[i].Assignment.User.ID]
+		assignments = append(assignments, ca)
 	}
+	return assignments
 }

@@ -69,6 +69,8 @@ func (s *groupService) UpdateGroup(wr http.ResponseWriter, req *http.Request,
 		s.addMember(wr, req, ps, user, group)
 	} else if submit := req.PostFormValue("submit_4"); submit != "" {
 		s.random(wr, req, ps, user, group)
+	} else if submit := req.PostFormValue("submit_5"); submit != "" {
+		s.rotate(wr, req, ps, user, group)
 	} else {
 		log.Print("Failed to find submit value")
 	}
@@ -162,6 +164,19 @@ func (s *groupService) random(wr http.ResponseWriter, req *http.Request, _ httpr
 	if e := s.gs.GetChores(g); e != nil {
 		msg = e.Error()
 	} else if e := s.cs.Randomize(g); e != nil {
+		msg = e.Error()
+	}
+	if msg != "" {
+		SetFlash(wr, "choreError", []byte(msg))
+	}
+	http.Redirect(wr, req, fmt.Sprintf("/groups/update/%v", g.ID), 302)
+}
+
+func (s *groupService) rotate(wr http.ResponseWriter, req *http.Request, _ httprouter.Params, u *core.User, g *core.Group) {
+	var msg string
+	if e := s.gs.GetChores(g); e != nil {
+		msg = e.Error()
+	} else if e := s.cs.Rotate(g); e != nil {
 		msg = e.Error()
 	}
 	if msg != "" {
