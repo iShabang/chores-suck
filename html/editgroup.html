@@ -32,10 +32,11 @@
     <a href="/roles/update/{{.ID}}">Edit</a>
 </div>
 {{ end }}
+{{ with .ChoreError }}<p>{{ . }}</p>{{end}}
 <h3>Chores</h3>
 <a href="/chores/create/{{.Group.ID}}">Add Chore</a>
-<form action="/chores/random/{{.Group.ID}}" method="post">
-    <input type="submit" value="Randomize">
+<form action="" method="post">
+    <input type="submit" name="submit_4" value="Randomize">
 </form>
 {{ range .Group.Chores }}
 <div>

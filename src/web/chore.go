@@ -13,7 +13,6 @@ import (
 type ChoreService interface {
 	Create(http.ResponseWriter, *http.Request, httprouter.Params, *core.User, *core.Group)
 	Update(http.ResponseWriter, *http.Request, *core.User, *core.Chore)
-	Random(http.ResponseWriter, *http.Request, httprouter.Params, *core.User, *core.Group)
 	ChoreMW(handler func(http.ResponseWriter, *http.Request, *core.User, *core.Chore)) authParamHandle
 }
 
@@ -100,19 +99,6 @@ func (s *choreService) update(wr http.ResponseWriter, req *http.Request, us *cor
 	}
 	http.Redirect(wr, req, fmt.Sprintf("/chores/update/%v", ch.ID), 302)
 }
-func (s *choreService) Random(wr http.ResponseWriter, req *http.Request, _ httprouter.Params, u *core.User, g *core.Group) {
-	var msg string
-	if e := s.gs.GetChores(g); e != nil {
-		msg = e.Error()
-	} else if e := s.cs.Randomize(g); e != nil {
-		msg = e.Error()
-	}
-	if msg != "" {
-		SetFlash(wr, "genError", []byte(msg))
-	}
-	http.Redirect(wr, req, fmt.Sprintf("/groups/update/%v", g.ID), 302)
-}
-
 func (s *choreService) ChoreMW(handler func(http.ResponseWriter, *http.Request, *core.User, *core.Chore)) authParamHandle {
 	return func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, userID uint64) {
 		//Get Chore

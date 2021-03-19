@@ -192,22 +192,28 @@ func (s *viewService) EditGroupForm(wr http.ResponseWriter, req *http.Request,
 	}
 	var nameErr string
 	var memErr string
+	var choreErr string
 	if data, _ := GetFlash(wr, req, "nameError"); data != nil {
 		nameErr = string(data)
 	}
 	if data, _ := GetFlash(wr, req, "memError"); data != nil {
 		memErr = string(data)
 	}
+	if data, _ := GetFlash(wr, req, "choreError"); data != nil {
+		choreErr = string(data)
+	}
 	model := struct {
-		User      *core.User
-		Group     *core.Group
-		NameError string
-		MemError  string
+		User       *core.User
+		Group      *core.Group
+		NameError  string
+		MemError   string
+		ChoreError string
 	}{
-		User:      user,
-		Group:     group,
-		NameError: nameErr,
-		MemError:  memErr,
+		User:       user,
+		Group:      group,
+		NameError:  nameErr,
+		MemError:   memErr,
+		ChoreError: choreErr,
 	}
 	err := executeTemplate(wr, model, "../html/editgroup.html")
 	if err != nil {

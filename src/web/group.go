@@ -27,14 +27,14 @@ type GroupService interface {
 type groupService struct {
 	gs core.GroupService
 	us core.UserService
-	vs ViewService
+	cs core.ChoreService
 }
 
-func NewGroupService(g core.GroupService, u core.UserService, v ViewService) GroupService {
+func NewGroupService(g core.GroupService, u core.UserService, c core.ChoreService) GroupService {
 	return &groupService{
 		gs: g,
 		us: u,
-		vs: v,
+		cs: c,
 	}
 }
 
@@ -67,6 +67,8 @@ func (s *groupService) UpdateGroup(wr http.ResponseWriter, req *http.Request,
 		s.delMember(wr, req, ps, user, group)
 	} else if submit := req.PostFormValue("submit_3"); submit != "" {
 		s.addMember(wr, req, ps, user, group)
+	} else if submit := req.PostFormValue("submit_4"); submit != "" {
+		s.random(wr, req, ps, user, group)
 	} else {
 		log.Print("Failed to find submit value")
 	}
@@ -153,6 +155,19 @@ func (s *groupService) delMember(wr http.ResponseWriter, req *http.Request, ps h
 		SetFlash(wr, "memError", []byte(msg))
 	}
 	http.Redirect(wr, req, fmt.Sprintf("/groups/update/%v", group.ID), 302)
+}
+
+func (s *groupService) random(wr http.ResponseWriter, req *http.Request, _ httprouter.Params, u *core.User, g *core.Group) {
+	var msg string
+	if e := s.gs.GetChores(g); e != nil {
+		msg = e.Error()
+	} else if e := s.cs.Randomize(g); e != nil {
+		msg = e.Error()
+	}
+	if msg != "" {
+		SetFlash(wr, "choreError", []byte(msg))
+	}
+	http.Redirect(wr, req, fmt.Sprintf("/groups/update/%v", g.ID), 302)
 }
 
 func (s *groupService) GroupAccess(handler func(wr http.ResponseWriter, req *http.Request,

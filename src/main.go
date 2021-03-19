@@ -23,7 +23,7 @@ func main() {
 	auth := web.NewAuthService(userCore, store)
 	views := web.NewViewService(store, userCore, auth, groupCore)
 	users := web.NewUserService(userCore, views)
-	groups := web.NewGroupService(groupCore, userCore, views)
+	groups := web.NewGroupService(groupCore, userCore, choreCore)
 	roles := web.NewRoleService(groupCore, roleCore, userCore, views)
 	chores := web.NewChoreService(choreCore, groupCore, userCore)
 	handler := web.Handler(web.NewServices(auth, views, groups, users, roles, chores))
