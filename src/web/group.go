@@ -22,6 +22,8 @@ type GroupService interface {
 	AddRole(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, user *core.User, group *core.Group)
 	GroupAccess(handler func(wr http.ResponseWriter, req *http.Request,
 		ps httprouter.Params, user *core.User, group *core.Group)) authParamHandle
+	GroupView(handler func(wr http.ResponseWriter, req *http.Request,
+		ps httprouter.Params, user *core.User, group *core.Group)) authParamHandle
 }
 
 type groupService struct {
@@ -188,36 +190,18 @@ func (s *groupService) rotate(wr http.ResponseWriter, req *http.Request, _ httpr
 func (s *groupService) GroupAccess(handler func(wr http.ResponseWriter, req *http.Request,
 	ps httprouter.Params, user *core.User, group *core.Group)) authParamHandle {
 	return func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, uid uint64) {
-		var groupID uint64
-		groupID, e := strconv.ParseUint(ps.ByName("groupID"), 10, 64)
+		u, g, e := s.groupMW(req, ps, uid)
 		if e != nil {
-			if groupID, e = strconv.ParseUint(req.FormValue("group_id"), 10, 64); e != nil {
-				http.Error(wr, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			if se, ok := e.(*StatusError); ok {
+				log.Printf("GroupAccess: %s", se.Error())
+				http.Error(wr, se.Error(), se.Code)
 				return
 			}
 		}
-		group := core.Group{ID: groupID}
-		e = s.gs.GetGroup(&group)
-		if e != nil {
-			http.Error(wr, e.Error(), http.StatusInternalServerError)
-			return
-		}
-		user := core.User{ID: uid}
-		e = s.us.GetUserByID(&user)
-		if e != nil {
-			http.Error(wr, e.Error(), http.StatusInternalServerError)
-			return
-		}
-		var mem *core.Membership
-		if e := s.gs.GetMemberships(&group); e != nil {
-			log.Printf("Web.GroupAccess: %s", e.Error())
-			http.Error(wr, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-		mem = group.FindMember(user.ID)
+		mem := g.FindMember(u.ID)
 		if e := s.gs.GetRoles(mem); e != nil {
 			log.Printf("Web.GroupAccess: %s", e.Error())
-			http.Error(wr, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			http.Error(wr, "Internal server error", 500)
 			return
 		}
 		if mem == nil || !mem.SuperRole.CanEdit() {
@@ -227,11 +211,56 @@ func (s *groupService) GroupAccess(handler func(wr http.ResponseWriter, req *htt
 			} else {
 				msg = "Member has insufficient privileges"
 			}
-			log.Printf("UserID: %v, GroupID: %v, GroupAccess: %s", user.ID, group.ID, msg)
-			http.Error(wr, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+			log.Printf("UserID: %v, GroupID: %v, GroupAccess: %s", u.ID, g.ID, msg)
+			http.Error(wr, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
-
-		handler(wr, req, ps, &user, &group)
+		handler(wr, req, ps, u, g)
 	}
+}
+
+func (s *groupService) GroupView(handler func(wr http.ResponseWriter, req *http.Request,
+	ps httprouter.Params, user *core.User, group *core.Group)) authParamHandle {
+	return func(wr http.ResponseWriter, req *http.Request, ps httprouter.Params, uid uint64) {
+		u, g, e := s.groupMW(req, ps, uid)
+		if e != nil {
+			if se, ok := e.(*StatusError); ok {
+				log.Printf("GroupView: %s", se.Error())
+				http.Error(wr, http.StatusText(se.Code), se.Code)
+			}
+			http.Error(wr, "Internal server error", 500)
+			return
+		}
+		mem := g.FindMember(u.ID)
+		if mem == nil {
+			http.Error(wr, "unauthorized", http.StatusUnauthorized)
+			log.Printf("GroupView: User: %v, not member of group: %v", u.ID, g.ID)
+			return
+		}
+		handler(wr, req, ps, u, g)
+	}
+}
+
+func (s *groupService) groupMW(req *http.Request, ps httprouter.Params, uid uint64) (*core.User, *core.Group, error) {
+	var groupID uint64
+	groupID, e := strconv.ParseUint(ps.ByName("groupID"), 10, 64)
+	if e != nil {
+		if groupID, e = strconv.ParseUint(req.FormValue("group_id"), 10, 64); e != nil {
+			return nil, nil, &StatusError{Err: e, Code: http.StatusBadRequest}
+		}
+	}
+	group := core.Group{ID: groupID}
+	e = s.gs.GetGroup(&group)
+	if e != nil {
+		return nil, nil, &StatusError{Err: e, Code: http.StatusInternalServerError}
+	}
+	user := core.User{ID: uid}
+	e = s.us.GetUserByID(&user)
+	if e != nil {
+		return nil, nil, &StatusError{Err: e, Code: http.StatusInternalServerError}
+	}
+	if e := s.gs.GetMemberships(&group); e != nil {
+		return nil, nil, &StatusError{Err: e, Code: http.StatusInternalServerError}
+	}
+	return &user, &group, nil
 }
