@@ -34,6 +34,9 @@
 {{ end }}
 <h3>Chores</h3>
 <a href="/chores/create/{{.Group.ID}}">Add Chore</a>
+<form action="/chores/random/{{.Group.ID}}" method="post">
+    <input type="submit" value="Randomize">
+</form>
 {{ range .Group.Chores }}
 <div>
     <p>{{ .Name }}</p>
