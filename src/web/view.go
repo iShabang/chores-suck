@@ -48,13 +48,7 @@ func NewViewService(s *sessions.Store, u core.UserService, a AuthService, g core
 }
 
 func (s *viewService) Index(wr http.ResponseWriter, req *http.Request) {
-	var t *template.Template
-	t, err := template.ParseFiles("../html/index.html", "../html/navbar.html", "../html/head.html")
-	if err != nil {
-		handleError(internalError(err), wr)
-		return
-	}
-	err = t.ExecuteTemplate(wr, "index", nil)
+	err := executeTemplate(wr, nil, "../html/index.html")
 	if err != nil {
 		handleError(internalError(err), wr)
 		return

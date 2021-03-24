@@ -4,6 +4,7 @@ import (
 	"chores-suck/core"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -55,7 +56,20 @@ func Handler(s *Services) http.Handler {
 	ro.HandlerFunc("POST", "/login", s.auth.Login)
 	ro.HandlerFunc("POST", "/register", s.users.CreateUser)
 	ro.HandlerFunc("POST", "/groups/create", s.authorize(s.groups.CreateGroup))
+	ro.GET("/public/*filepath", s.fileServer)
 	return ro
+}
+
+func (s *Services) fileServer(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	path := p.ByName("filepath")
+	if path == "" {
+		http.Error(w, "Not found", 404)
+	}
+	str := make([]string, 0, 2)
+	str = append(str, "public")
+	str = append(str, path)
+	path = strings.Join(str, "")
+	http.ServeFile(w, r, path)
 }
 
 /////////////////////////////////////////////////////////////////
