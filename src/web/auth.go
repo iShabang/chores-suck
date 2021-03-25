@@ -57,8 +57,8 @@ func (s *authService) Login(wr http.ResponseWriter, req *http.Request) {
 		u := core.User{Username: n, Password: p}
 		e = s.checkCredentials(&u)
 		if e == ErrNotAuthorized {
-			// TODO: Resend login form with error message
-			handleError(authError(e), wr)
+			SetFlash(wr, "genError", []byte("Invalid username/password"))
+			http.Redirect(wr, req, "/login", 302)
 			return
 		} else if e != nil {
 			handleError(internalError(e), wr)
