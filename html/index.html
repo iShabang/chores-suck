@@ -1,21 +1,19 @@
-{{ define "index" }}
-<!DOCTYPE html>
-<html lang="en">
-{{ template "head" }}
-<body>
-    {{ template "navbar" }}
+{{ define "body" }}
+<section class="bg-green">
+<div class="hero split">
     <div class="herobox">
         <h2>Keep it Clean.<br>Keep it Fair.</h2>
+        <img src="public/assets/dishes.jpg">
     </div>
-    <div class="regBox">
+    <div class="regbox">
         <form action="/register" method="post">
             <input type="text" id="username" name="username" placeholder="Username...">
             <input type="text" id="email" name="email" placeholder="Email...">
             <input type="password" id="pword" name="pword" placeholder="Password">
             <input type="password" id="pwordConf" name="pwordConf" placeholder="Confirm Password">
-            <input type="submit" id="submit" name="submit" value="Sign Up">
+            <input type="submit" class="button" id="submit" name="submit" value="Sign Up">
         </form>
     </div>
-</body>
-</html>
+</div>
+</section>
 {{ end }}

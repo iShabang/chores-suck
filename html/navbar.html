@@ -1,14 +1,8 @@
 {{ define "navbar" }}
-<div class="navbar">
-    <h2><a href="/dashboard" style="text-decoration: none;">Chores Suck</a></h2>
-    <ul>
-        {{ if . }}
-        <li>Welcome {{.Username}}!</li>
-        <li><a href="/logout">Logout</a></li>
-        {{ else }}
-        <li><a href="/register">Sign Up</a></li>
-        <li><a href="/login">Login</a></li>
-        {{ end }}
-    </ul>
+<div class="navbar bg-dark">
+    <div class="container nav-inner">
+        <h2><a href="/dashboard" style="text-decoration: none;">Chores Suck</a></h2>
+        <a href="/login">Login</a>
+    </div>
 </div>
 {{ end }}
