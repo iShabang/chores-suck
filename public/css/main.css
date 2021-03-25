@@ -24,10 +24,18 @@ body {
     background-color: var(--clr-primary-600);
 }
 
+form input {
+    padding: 0.5em 0.5em;
+    border-radius: 5px;
+    border: none;
+}
+
 .button {
     color: var(--clr-primary-300);
     background-color: var(--clr-primary-600);
     font-size: 1.5rem;
+    border: none;
+    border-radius: 5px;
 }
 
 .button:hover {
@@ -52,6 +60,10 @@ body {
     background-color: var(--clr-primary-200)
 }
 
+.bg-blue {
+    background-color: var(--clr-secondary-500)
+}
+
 .split {
     display: flex;
     flex-direction: column;
@@ -64,6 +76,10 @@ body {
     .split > * {
         flex-basis: 100%;
     }
+}
+
+.error {
+    color: red;
 }
 
 /**********************************************************/
@@ -144,9 +160,6 @@ footer {
 
 .regbox form input {
     width: 100%;
-    padding: 0.5em 0.5em;
-    border-radius: 5px;
-    border: none;
 }
 
 @media (min-width: 40em) {
@@ -162,4 +175,32 @@ footer {
         width: 80%;
 
     }
+}
+
+/**********************************************************/
+/* LOGIN PAGE STYLES */
+/**********************************************************/
+.login-container {
+    height: 100vh;
+    width: 100vw;
+    position: relative;
+}
+
+.login-content {
+    width: min(30%, 30rem);
+    position: absolute;
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.login-container form {
+    display: flex;
+    flex-direction: column;
+    padding: 2em;
+    border-radius: 5px;
+}
+
+.login-container form > * + * {
+    margin-top: 1em;
 }

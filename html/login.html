@@ -1,10 +1,12 @@
 {{define "body"}}
-{{ if .Error }}<p>{{ .Error }}</p>{{ end }}
-<div class="loginContainer">
-    <form action="/login" method="post">
-        <input type="text" id="username" name="username" placeholder="Username...">
-        <input type="password" id="pword" name="pword" placeholder="Password...">
-        <input type="submit" id="submit" name="submit" value="Login">
-    </form>
+<div class="login-container bg-green">
+    <div class="login-content">
+        {{ if .Error }}<div class="error"><p>{{ .Error }}</p></div>{{ end }}
+        <form action="/login" method="post" class="bg-blue">
+            <input type="text" id="username" name="username" placeholder="Username...">
+            <input type="password" id="pword" name="pword" placeholder="Password...">
+            <input class="button" type="submit" id="submit" name="submit" value="Login">
+        </form>
+    </div>
 </div>
 {{end}}
