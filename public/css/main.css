@@ -181,26 +181,40 @@ footer {
 /* LOGIN PAGE STYLES */
 /**********************************************************/
 .login-container {
-    height: 100vh;
-    width: 100vw;
-    position: relative;
+    width: 100%;
 }
 
 .login-content {
-    width: min(30%, 30rem);
-    position: absolute;
-    top: 10%;
-    left: 50%;
-    transform: translateX(-50%);
+    width: 100%;
 }
 
-.login-container form {
+.login-content form {
     display: flex;
     flex-direction: column;
     padding: 2em;
-    border-radius: 5px;
 }
 
-.login-container form > * + * {
+.login-content form > * + * {
     margin-top: 1em;
+}
+
+@media (min-width: 40em) {
+    .login-container {
+        height: 100vh;
+        width: 100vw;
+        position: relative;
+    }
+
+    .login-content {
+        width: min(30%, 30rem);
+        position: absolute;
+        top: 10%;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .login-content form {
+        border-radius: 5px;
+    }
+
 }
