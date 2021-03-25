@@ -1,0 +1,165 @@
+/**********************************************************/
+/* GENERAL STYLING
+/**********************************************************/
+:root {
+    --clr-primary-200: #CDD1C4;
+    --clr-primary-300: #E8C547;
+    --clr-primary-600: #4D5061;
+    --clr-secondary-500: #5C80BC;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body, h1, h2, h3, p {
+    margin: 0;
+}
+
+a {
+    text-decoration: none;
+}
+
+body {
+    background-color: var(--clr-primary-600);
+}
+
+.button {
+    color: var(--clr-primary-300);
+    background-color: var(--clr-primary-600);
+    font-size: 1.5rem;
+}
+
+.button:hover {
+    color: var(--clr-primary-600);
+    background-color: var(--clr-primary-300);
+}
+
+.container {
+    width: 90%;
+    margin-inline: auto;
+}
+
+.container--narrow {
+    max-width: 20rem;
+}
+
+.bg-dark {
+    background-color: var(--clr-primary-600);
+}
+
+.bg-green {
+    background-color: var(--clr-primary-200)
+}
+
+.split {
+    display: flex;
+    flex-direction: column;
+}
+
+@media (min-width: 40em) {
+    .split {
+        flex-direction: row;
+    }
+    .split > * {
+        flex-basis: 100%;
+    }
+}
+
+/**********************************************************/
+/* NAV STYLES */
+/**********************************************************/
+.navbar {
+    padding: 1em 0;
+}
+
+.nav-inner{
+    display: flex;
+    align-items: center;
+}
+
+.nav-inner h2 {
+    flex-basis: 100%;
+}
+
+.nav-inner a {
+    flex-basis: 100%;
+    color: var(--clr-primary-300);
+    text-align: right;
+}
+
+/**********************************************************/
+/* FOOTER STYLES */
+/**********************************************************/
+footer {
+    height: 10em;
+}
+
+/**********************************************************/
+/* INDEX PAGE STYLES */
+/**********************************************************/
+.herobox {
+    position: relative;
+    width: 100%;
+    height: 20em;
+}
+
+.herobox h2 {
+    position: absolute;
+    color: white;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%);
+    z-index: 5;
+}
+
+.herobox img {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+.regbox {
+    background-color: var(--clr-secondary-500);
+    height: 100%;
+    width: 100%;
+    align-self: center;
+    display: flex;
+    align-items: center;
+}
+
+.regbox form {
+    border-radius: 5px;
+    width: 100%;
+    padding: 2em 2em;
+    margin-inline: auto;
+}
+
+.regbox form > * + * {
+    margin-top: 1em;
+}
+
+.regbox form input {
+    width: 100%;
+    padding: 0.5em 0.5em;
+    border-radius: 5px;
+    border: none;
+}
+
+@media (min-width: 40em) {
+    .hero {
+        height: min(100vh, 50rem);
+        width: min(100%,80rem);
+        margin-inline: auto;
+    }
+    .herobox {
+        height: 100%;
+    }
+    .regbox form {
+        width: 80%;
+
+    }
+}
