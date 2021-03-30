@@ -74,6 +74,10 @@ form input {
     gap: 1em;
 }
 
+.split--wrap {
+    flex-wrap: wrap;
+}
+
 .ptop1 {
     padding-top: 1em;
 }
@@ -92,20 +96,23 @@ form input {
     .split {
         flex-direction: row;
     }
-    .split > * {
-        flex-basis: 100%;
-    }
 }
 
 .error {
     color: red;
 }
 
+.pointer {
+    cursor: pointer;
+}
+
 #disp1 {
+    width: 100%;
     display: block;
 }
 
 #disp2 {
+    width: 100%;
     display: none;
 }
 
@@ -261,6 +268,8 @@ footer {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 1em;
+    padding: 1.8em;
 }
 
 .group-box a {
@@ -296,7 +305,8 @@ footer {
 
 @media (min-width: 40em) {
     .chore-box {
-        width: min(60%,1rem);
+        width: 12em;
+        margin-inline: 0;
     }
 
     .dash-layout {
@@ -307,5 +317,4 @@ footer {
     .sidebar {
         flex-direction: column;
     }
-
 }
