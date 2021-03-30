@@ -1,25 +1,36 @@
 {{ define "body" }}
-<h2>Chores</h2>
-{{ range .User.Chores }}
-<div class="choreListRow">
-    <ul class="choreList" style="list-style: none;">
-        <li style="display: inline">{{ .Name }}</li>
-        <li style="display: inline">{{ .Group.Name }}</li>
-        <li style="display: inline">Due: {{ .Assignment.DateDue }}</li>
-    </ul>
-</div>
-{{ else }}
-<p>No more chores to do. Nice!</p>
-{{ end }}
-<h2>Groups</h2>
-{{ range .User.Memberships }}
-<div class="groupListRow">
-    <ul class="groupList" style="list-style:none;">
-        <li><a href="/groups/update/{{.Group.ID}}">{{ .Group.Name }}</a></li>
-    </ul>
-</div>
-{{ else }}
-<p>Oh no! Looks like you aren't a member of any groups.</p>
-{{ end }}
-<a href="/groups/create">CreateGroup</a>
+<main>
+    <section class="bg-green dash-layout">
+        <div class="sidebar bg-dark">
+            <h2 id="side-chores" onclick="sidebarClick('side-chores','side-groups','disp2','disp1')">Chores</h2>
+            <h2 id="side-groups" onclick="sidebarClick('side-groups','side-chores','disp1','disp2')">Groups</h2>
+        </div>
+        <div id="disp1">
+            <div class="container split split--gap ptop1 pbot1 psides1">
+                {{ range .User.Chores }}
+                <div class="chore-box bg-blue">
+                    <h3>{{ .Name }}</h3>
+                    <p>{{ .Group.Name }}</p>
+                    <p>Due: {{ .Assignment.DateDue.Month }} {{.Assignment.DateDue.Day}}, {{.Assignment.DateDue.Year}}</p>
+                </div>
+                {{ else }}
+                <p>No more chores to do. Nice!</p>
+                {{ end }}
+            </div>
+        </div>
+        <div id="disp2">
+            <div class="container split split--gap">
+                {{ range .User.Memberships }}
+                <div class="chore-box group-box bg-blue">
+                    <div class="group-icon bg-dark"></div>
+                    <h3><a href="/groups/update/{{.Group.ID}}">{{ .Group.Name }}</a></h3>
+                </div>
+                {{ else }}
+                <p>Oh no! Looks like you aren't a member of any groups.</p>
+                {{ end }}
+            </div>
+            <a href="/groups/create">CreateGroup</a>
+        </div>
+    </section>
+</main>
 {{end}}
