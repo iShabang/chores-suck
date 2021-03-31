@@ -107,7 +107,7 @@ form input {
 }
 
 .fill {
-    height: 100vh;
+    min-height: 100vh;
     width: 100vw;
 }
 
@@ -203,8 +203,8 @@ footer {
 
 @media (min-width: 40em) {
     .hero {
-        height: min(100vh, 50rem);
-        width: min(100%,80rem);
+        height: 100vh;
+        width: 100vw;
         margin-inline: auto;
     }
     .herobox {
