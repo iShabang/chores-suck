@@ -1,51 +1,72 @@
 {{ define "body" }}
-{{ with .NameError }}<p>{{ . }}</p>{{end}}
-<div>
-    <form action="" method="post">
-        <input type="text" name="groupname" id="groupname" value="{{.Group.Name}}">
-        <input type="submit" name="submit_1" value="Update Name">
-    </form>
+<div class="bg-green dash-layout fill">
+    <div class="sidebar bg-dark">
+        <h2 id="s1" class="pointer s-head psides1" onclick="sideClick('s1','disp1')">General</h2>
+        <h2 id="s2" class="pointer s-head psides1" onclick="sideClick('s2','disp2')">Members</h2>
+        <h2 id="s3" class="pointer s-head psides1" onclick="sideClick('s3','disp3')">Roles</h2>
+        <h2 id="s4" class="pointer s-head psides1" onclick="sideClick('s4','disp4')">Chores</h2>
+    </div>
+    <div>
+        <section id="disp1" class="v-content">
+            {{ with .NameError }}<p>{{ . }}</p>{{end}}
+            <div>
+                <form action="" method="post">
+                    <input type="text" name="groupname" id="groupname" value="{{.Group.Name}}">
+                    <input type="submit" name="submit_1" value="Update Name">
+                </form>
+            </div>
+        </section>
+
+        <section id="disp2" class="v-content">
+            {{ with .MemError }}<p>{{ . }}</p>{{ end }}
+            <h3>Members</h3>
+            {{ range .Group.Memberships }}
+            <div>
+                <p>{{ .User.Username }}</p>
+                <form action="" method="post">
+                    <input type="text" name="user_id" value="{{.User.ID}}" hidden>
+                    <input type="submit" name="submit_2" value="Remove Member">
+                </form>
+            </div>
+            {{ end }}
+            <div>
+                <form action="" method="post">
+                    <input type="text" name="username" id="username" placeholder="Username...">
+                    <input type="submit" name="submit_3" value="Add Member">
+                </form>
+            </div>
+        </section>
+
+        <section id="disp3" class="v-content">
+            <h3>Roles</h3>
+            <a href="/roles/create/{{.Group.ID}}">Create Role</a>
+            {{ $g := .Group.ID }}
+            {{ range .Group.Roles }}
+            <div>
+                <p>{{ .Name }}</p>
+                <a href="/roles/update/{{.ID}}">Edit</a>
+            </div>
+            {{ end }}
+        </section>
+
+        <section id="disp4" class="v-content">
+            {{ with .ChoreError }}<p>{{ . }}</p>{{end}}
+            <h3>Chores</h3>
+            <a href="/chores/create/{{.Group.ID}}">Add Chore</a>
+            <form action="" method="post">
+                <input type="submit" name="submit_4" value="Randomize">
+            </form>
+            <form action="" method="post">
+                <input type="submit" name="submit_5" value="Rotate">
+            </form>
+            {{ range .Group.Chores }}
+            <div>
+                <p>{{ .Name }}</p>
+                {{with .Assignment}}<p>{{.User.Username}}</p>{{end}}
+                <a href="/chores/update/{{.ID}}">Edit</a>
+            </div>
+            {{ end }}
+        </section>
+    </div>
 </div>
-{{ with .MemError }}<p>{{ . }}</p>{{ end }}
-<h3>Members</h3>
-{{ range .Group.Memberships }}
-<div>
-    <p>{{ .User.Username }}</p>
-    <form action="" method="post">
-        <input type="text" name="user_id" value="{{.User.ID}}" hidden>
-        <input type="submit" name="submit_2" value="Remove Member">
-    </form>
-</div>
-{{ end }}
-<div>
-    <form action="" method="post">
-        <input type="text" name="username" id="username" placeholder="Username...">
-        <input type="submit" name="submit_3" value="Add Member">
-    </form>
-</div>
-<h3>Roles</h3>
-<a href="/roles/create/{{.Group.ID}}">Create Role</a>
-{{ $g := .Group.ID }}
-{{ range .Group.Roles }}
-<div>
-    <p>{{ .Name }}</p>
-    <a href="/roles/update/{{.ID}}">Edit</a>
-</div>
-{{ end }}
-{{ with .ChoreError }}<p>{{ . }}</p>{{end}}
-<h3>Chores</h3>
-<a href="/chores/create/{{.Group.ID}}">Add Chore</a>
-<form action="" method="post">
-    <input type="submit" name="submit_4" value="Randomize">
-</form>
-<form action="" method="post">
-    <input type="submit" name="submit_5" value="Rotate">
-</form>
-{{ range .Group.Chores }}
-<div>
-    <p>{{ .Name }}</p>
-    {{with .Assignment}}<p>{{.User.Username}}</p>{{end}}
-    <a href="/chores/update/{{.ID}}">Edit</a>
-</div>
-{{ end }}
 {{ end }}

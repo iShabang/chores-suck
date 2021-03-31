@@ -121,6 +121,16 @@ form input {
     display: none;
 }
 
+#disp3 {
+    width: 100%;
+    display: none;
+}
+
+#disp4 {
+    width: 100%;
+    display: none;
+}
+
 /**********************************************************/
 /* NAV STYLES */
 /**********************************************************/
@@ -298,12 +308,12 @@ footer {
     gap: 1em;
 }
 
-#side-chores {
+#s1 {
     background-color: var(--clr-primary-200);
     padding: 0 1em;
 }
 
-#side-groups {
+#s2 {
     background-color: var(--clr-primary-600);
     padding: 0 1em;
 }
@@ -321,4 +331,11 @@ footer {
     .sidebar {
         flex-direction: column;
     }
+}
+
+/**********************************************************/
+/* UPDATE GROUP PAGE STYLES */
+/**********************************************************/
+#s-gen {
+    background-color: var(--clr-primary-200);
 }

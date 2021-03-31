@@ -2,10 +2,10 @@
 <main>
     <section class="bg-green dash-layout fill">
         <div class="sidebar bg-dark">
-            <h2 id="side-chores" class="pointer" onclick="sidebarClick('side-chores','side-groups','disp2','disp1')">Chores</h2>
-            <h2 id="side-groups" class="pointer" onclick="sidebarClick('side-groups','side-chores','disp1','disp2')">Groups</h2>
+            <h2 id="s1" class="pointer s-head psides1" onclick="sideClick('s1','disp1')">Chores</h2>
+            <h2 id="s2" class="pointer s-head psides1" onclick="sideClick('s2','disp2')">Groups</h2>
         </div>
-        <div id="disp1">
+        <div id="disp1" class="v-content">
             <div class="container split split--gap ptop1 pbot1 psides1">
                 {{ range .User.Chores }}
                 <div class="chore-box bg-blue pointer">
@@ -18,7 +18,7 @@
                 {{ end }}
             </div>
         </div>
-        <div id="disp2">
+        <div id="disp2" class="v-content">
             <div class="container split split--gap split--wrap ptop1 pbot1 psides1">
                 {{ range .User.Memberships }}
                 <a href="/groups/update/{{.Group.ID}}" class="chore-box group-box bg-blue pointer">
