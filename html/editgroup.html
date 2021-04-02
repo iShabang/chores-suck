@@ -8,64 +8,91 @@
     </div>
     <div>
         <section id="disp1" class="v-content">
-            {{ with .NameError }}<p>{{ . }}</p>{{end}}
-            <div>
-                <form action="" method="post">
-                    <input type="text" name="groupname" id="groupname" value="{{.Group.Name}}">
-                    <input type="submit" name="submit_1" value="Update Name">
+            {{ with .NameError }}<p class="error">{{ . }}</p>{{end}}
+            <div class="psides1 ptop1">
+                <form action="" class="gen-form" method="post">
+                    <div>
+                        <label for="groupname">Name:</label>
+                        <input type="text" name="groupname" id="groupname" value="{{.Group.Name}}">
+                    </div>
+                    <input type="submit" name="submit_1" class="button" value="Save">
                 </form>
             </div>
         </section>
 
         <section id="disp2" class="v-content">
-            {{ with .MemError }}<p>{{ . }}</p>{{ end }}
-            <h3>Members</h3>
-            {{ range .Group.Memberships }}
-            <div>
-                <p>{{ .User.Username }}</p>
-                <form action="" method="post">
-                    <input type="text" name="user_id" value="{{.User.ID}}" hidden>
-                    <input type="submit" name="submit_2" value="Remove Member">
-                </form>
-            </div>
-            {{ end }}
-            <div>
-                <form action="" method="post">
-                    <input type="text" name="username" id="username" placeholder="Username...">
-                    <input type="submit" name="submit_3" value="Add Member">
-                </form>
+            <div class="gen-form psides1 ptop1">
+                {{ with .MemError }}<p class="error">{{ . }}</p>{{ end }}
+                <div>
+                    <form action="" method="post">
+                        <input type="text" name="username" id="username" placeholder="Username...">
+                        <input type="submit" class="button mleft1" name="submit_3" value="Add Member">
+                    </form>
+                </div>
+                {{ range .Group.Memberships }}
+                <div class="split split--gap">
+                    <div class="bg-blue psides1 center-vert round member split split--gap">
+                        <div class="circle circle--small bg-dark"></div>
+                        <p>{{ .User.Username }}</p>
+                    </div>
+                    <form action="" method="post" class="split center">
+                        <input type="text" name="user_id" value="{{.User.ID}}" hidden>
+                        <button type="submit" name="submit_2" class="font-medium pointer no-border cross-outer bg-dark">
+                            <div class="cross-hor bg-yellow"></div>
+                        </button>
+                    </form>
+                </div>
+                {{ end }}
             </div>
         </section>
 
         <section id="disp3" class="v-content">
-            <h3>Roles</h3>
-            <a href="/roles/create/{{.Group.ID}}">Create Role</a>
-            {{ $g := .Group.ID }}
-            {{ range .Group.Roles }}
-            <div>
-                <p>{{ .Name }}</p>
-                <a href="/roles/update/{{.ID}}">Edit</a>
+            <div class="ptop1 pbot1 psides1 gen-form">
+                <a href="/roles/create/{{.Group.ID}}" class="split split--gap">
+                    <p class="fc-black">New</p>
+                    <div class="bg-dark cross-outer">
+                        <div class="cross-vert bg-yellow"></div>
+                        <div class="cross-hor bg-yellow"></div>
+                    </div>
+                </a>
+                {{ $g := .Group.ID }}
+                {{ range .Group.Roles }}
+                <div class="split split--gap">
+                    <a href="/roles/update/{{.ID}}">
+                        <div class="bg-blue center round member split split--gap">
+                            <p>{{ .Name }}</p>
+                        </div>
+                    </a>
+                </div>
+                {{ end }}
             </div>
-            {{ end }}
         </section>
 
         <section id="disp4" class="v-content">
-            {{ with .ChoreError }}<p>{{ . }}</p>{{end}}
-            <h3>Chores</h3>
-            <a href="/chores/create/{{.Group.ID}}">Add Chore</a>
-            <form action="" method="post">
-                <input type="submit" name="submit_4" value="Randomize">
-            </form>
-            <form action="" method="post">
-                <input type="submit" name="submit_5" value="Rotate">
-            </form>
-            {{ range .Group.Chores }}
-            <div>
-                <p>{{ .Name }}</p>
-                {{with .Assignment}}<p>{{.User.Username}}</p>{{end}}
-                <a href="/chores/update/{{.ID}}">Edit</a>
+            <div class="gen-form ptop1 pbot1 psides1">
+                {{ with .ChoreError }}<p class="error">{{ . }}</p>{{end}}
+                <a href="/chores/create/{{.Group.ID}}" class="split split--gap">
+                    <p class="fc-black">New</p>
+                    <div class="bg-dark cross-outer">
+                        <div class="cross-vert bg-yellow"></div>
+                        <div class="cross-hor bg-yellow"></div>
+                    </div>
+                </a>
+                <form action="" method="post">
+                    <button class="pointer button" type="submit" name="submit_4">Randomize</button>
+                </form>
+                <form action="" method="post">
+                    <button class="pointer button" type="submit" name="submit_5">Rotate</button>
+                </form>
+                {{ range .Group.Chores }}
+                <a href="/chores/update/{{.ID}}">
+                    <div class="member round bg-blue center-vert">
+                        <p>{{ .Name }}</p>
+                        {{with .Assignment}}<p class="fc-black">Assignee: {{.User.Username}}</p>{{end}}
+                    </div>
+                </a>
+                {{ end }}
             </div>
-            {{ end }}
         </section>
     </div>
 </div>

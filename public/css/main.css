@@ -34,7 +34,6 @@ form input {
 .button {
     color: var(--clr-primary-300);
     background-color: var(--clr-primary-600);
-    font-size: 1.5rem;
     border: none;
     border-radius: 5px;
 }
@@ -65,6 +64,10 @@ form input {
     background-color: var(--clr-secondary-500)
 }
 
+.bg-yellow {
+    background-color: var(--clr-primary-300);
+}
+
 .split {
     display: flex;
     flex-direction: column;
@@ -86,9 +89,21 @@ form input {
     padding-bottom: 1em;
 }
 
+.pright1 {
+    padding-right: 1em;
+}
+
+.pleft1 {
+    padding-left: 1em;
+}
+
 .psides1 {
     padding-left: 1em;
     padding-right: 1em;
+}
+
+.mleft1 {
+    margin-left: 1em;
 }
 
 
@@ -110,6 +125,64 @@ form input {
     min-height: 100vh;
     width: 100vw;
 }
+
+.sidebar {
+    display: flex;
+    flex-direction: row;
+    gap: 1em;
+}
+
+@media (min-width: 40em) {
+    .sidebar {
+        flex-direction: column;
+    }
+}
+
+.center {
+    align-items: center;
+    justify-content: center;
+}
+
+.center-vert {
+    align-items: center;
+}
+
+.round {
+    border-radius: 5px;
+}
+
+.circle {
+    height: 1.5em;
+    width: 1.5em;
+    border-radius: 50%;
+}
+
+.fc-yellow {
+    color: var(--clr-primary-300);
+}
+
+.fc-black {
+    color: black;
+}
+
+.font-medium {
+    font-size: 1.5em;
+}
+
+.no-border {
+    border: none;
+}
+
+#s1 {
+    background-color: var(--clr-primary-200);
+    padding: 0 1em;
+}
+
+#s2 {
+    background-color: var(--clr-primary-600);
+    padding: 0 1em;
+}
+
 
 #disp1 {
     width: 100%;
@@ -302,22 +375,6 @@ footer {
     flex-direction: column;
 }
 
-.sidebar {
-    display: flex;
-    flex-direction: row;
-    gap: 1em;
-}
-
-#s1 {
-    background-color: var(--clr-primary-200);
-    padding: 0 1em;
-}
-
-#s2 {
-    background-color: var(--clr-primary-600);
-    padding: 0 1em;
-}
-
 @media (min-width: 40em) {
     .chore-box {
         width: 12em;
@@ -328,14 +385,59 @@ footer {
         flex-direction: row;
     }
 
-    .sidebar {
-        flex-direction: column;
-    }
 }
 
 /**********************************************************/
 /* UPDATE GROUP PAGE STYLES */
 /**********************************************************/
-#s-gen {
-    background-color: var(--clr-primary-200);
+.gen-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5em;
+}
+
+.gen-form label {
+    padding-right: 1em;
+}
+
+.member {
+    width: 20vw;
+    color: white;
+    font-size: 1.2em;
+    padding: 0.5em;
+}
+
+.plus {
+    border-radius: 50%;
+    height: 1.8em;
+    width: 1.8em;
+    font-size: 1.5em;
+    display: flex;
+    align-items: center;
+    text-align: center;
+}
+
+.cross-vert {
+    height: 90%;
+    width: 10%;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%);
+}
+
+.cross-hor {
+    height: 10%;
+    width: 90%;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%);
+}
+
+.cross-outer {
+    border-radius: 50%;
+    height: 1.2em;
+    width: 1.2em;
+    position: relative;
 }
