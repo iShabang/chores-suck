@@ -1,6 +1,11 @@
 {{ define "navbar" }}
 <div class="navbar bg-dark">
     <div class="container nav-inner">
+        <div class="hamburger mright1">
+            <div class="ham-bar bg-yellow"></div>
+            <div class="ham-bar bg-yellow"></div>
+            <div class="ham-bar bg-yellow"></div>
+        </div>
         <h2><a href="/dashboard" style="text-decoration: none;">Chores Suck</a></h2>
         {{if .}}
         <a href="/logout">Logout</a>
