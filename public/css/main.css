@@ -43,6 +43,11 @@ form input {
     background-color: var(--clr-primary-300);
 }
 
+.button--pad {
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+}
+
 .container {
     width: 90%;
     margin-inline: auto;
@@ -430,6 +435,25 @@ footer {
     padding-right: 1em;
 }
 
+.gen-input {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.gen-input label {
+    width: 20%;
+}
+
+.gen-input input[type=text]{
+    width: 80%;
+}
+
+.gen-input input[type=submit] {
+    width: 40%;
+}
+
 .member {
     width: 100%;
     color: white;
@@ -440,6 +464,10 @@ footer {
 @media (min-width: 40em) {
     .member {
         max-width: 15rem;
+    }
+
+    .gen-form {
+        max-width: 20rem;
     }
 }
 

@@ -10,11 +10,11 @@
         {{ with .NameError }}<p class="error">{{ . }}</p>{{end}}
         <div class="psides1 ptop1">
             <form action="" class="gen-form" method="post">
-                <div>
+                <div class="gen-input">
                     <label for="groupname">Name:</label>
                     <input type="text" name="groupname" id="groupname" value="{{.Group.Name}}">
                 </div>
-                <input type="submit" name="submit_1" class="button" value="Save">
+                <input type="submit" name="submit_1" class="button pointer" value="Save">
             </form>
         </div>
     </section>
@@ -23,9 +23,9 @@
         <div class="gen-form psides1 ptop1">
             {{ with .MemError }}<p class="error">{{ . }}</p>{{ end }}
             <div>
-                <form action="" method="post">
+                <form action="" method="post" class="gen-input">
                     <input type="text" name="username" id="username" placeholder="Username...">
-                    <input type="submit" class="button mleft1" name="submit_3" value="Add Member">
+                    <input type="submit" class="button pointer" name="submit_3" value="Add">
                 </form>
             </div>
             {{ range .Group.Memberships }}
@@ -74,10 +74,10 @@
                 </div>
             </a>
             <form action="" method="post">
-                <button class="pointer button" type="submit" name="submit_4" value="randomize">Randomize</button>
+                <button class="pointer button button--pad" type="submit" name="submit_4" value="randomize">Randomize</button>
             </form>
             <form action="" method="post">
-                <button class="pointer button" type="submit" name="submit_5" value="rotate">Rotate</button>
+                <button class="pointer button button--pad" type="submit" name="submit_5" value="rotate">Rotate</button>
             </form>
             {{ range .Group.Chores }}
             <a href="/chores/update/{{.ID}}">
