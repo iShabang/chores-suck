@@ -17,3 +17,10 @@ function sideClick(sel,show) {
     //show the selected content
     document.getElementById(show).style.display = 'block';
 }
+
+function hamburger(hide,show) {
+    //hide
+    document.getElementById(hide).style.display = 'none';
+    //show
+    document.getElementById(show).style.display = 'flex';
+}

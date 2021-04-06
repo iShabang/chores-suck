@@ -146,13 +146,13 @@ form input {
 
 .sidebar {
     display: none;
+    flex-direction: column;
     gap: 1em;
 }
 
 @media (min-width: 40em) {
     .sidebar {
         display: flex;
-        flex-direction: column;
     }
 }
 
