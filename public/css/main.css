@@ -156,6 +156,10 @@ form input {
     }
 }
 
+.show-flex {
+    display: flex;
+}
+
 .hamburger {
     width: 10%;
     display: flex;
@@ -461,6 +465,11 @@ footer {
     padding: 0.5em;
 }
 
+.member--clickable:hover {
+    border-color: var(--clr-primary-300);
+    border-style: solid;
+}
+
 @media (min-width: 40em) {
     .member {
         max-width: 15rem;
@@ -504,4 +513,12 @@ footer {
     height: 1.2em;
     width: 1.2em;
     position: relative;
+}
+
+.cross-outer:hover {
+    background-color: var(--clr-primary-300);
+}
+
+.cross-outer:hover > * {
+    background-color: var(--clr-primary-600);
 }

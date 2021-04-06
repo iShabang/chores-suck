@@ -18,9 +18,6 @@ function sideClick(sel,show) {
     document.getElementById(show).style.display = 'block';
 }
 
-function hamburger(hide,show) {
-    //hide
-    document.getElementById(hide).style.display = 'none';
-    //show
-    document.getElementById(show).style.display = 'flex';
+function hamburger(nav) {
+    document.getElementById(nav).classList.toggle('show-flex')
 }
