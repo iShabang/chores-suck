@@ -39,7 +39,7 @@
     <div id="disp2" class="v-content">
         <div class="gen-form ptop1 pbot1 psides1">
             <div>
-                <form action="" method="post">
+                <form action="" method="post" class="gen-input">
                     <input type="text" name="username" id="username" placeholder="Username...">
                     <input type="submit" name="submit_3" value="Add" class="button pointer">
                 </form>
@@ -47,7 +47,7 @@
             {{range .Role.Members}}
             <div class="row row--gap">
                 <div class="bg-blue psides1 center-vert round member">
-                    <p>{{.User.Username}}</p>
+                    <p class="text-center">{{.User.Username}}</p>
                 </div>
                 <form action="" method="post" class="split center">
                     <input type="text" name="user_id" value="{{.User.ID}}" hidden>
@@ -59,7 +59,7 @@
             {{end}}
             <div>
                 <form action="" method="post">
-                    <input type="submit" name="submit_4" value="Delete Role" class="button pointer">
+                    <input type="submit" name="submit_4" value="Delete Role" class="button pointer w100">
                 </form>
             </div>
         </div>

@@ -144,6 +144,10 @@ form input {
     width: 100vw;
 }
 
+.w100 {
+    width: 100%;
+}
+
 .sidebar {
     display: none;
     flex-direction: column;

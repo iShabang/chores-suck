@@ -57,7 +57,7 @@
             {{ $g := .Group.ID }}
             {{ range .Group.Roles }}
             <a href="/roles/update/{{.ID}}" class="bg-blue center round member member--clickable">
-                <p>{{ .Name }}</p>
+                <p class="text-center">{{ .Name }}</p>
             </a>
             {{ end }}
         </div>
