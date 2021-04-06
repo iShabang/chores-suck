@@ -1,45 +1,68 @@
 {{define "body"}}
-{{if .Error }}<p>{{.Error}}</p>{{end}}
-<div>
-    <form action="" method="post">
-        {{with .Role}}
-        <input type="text" name="rolename" id="rolename" value="{{.Name}}">
-        <input type="checkbox" name="editmembers" id="editmembers" value="true" {{if .Can 0}}checked{{end}}>
-        <label for="editmembers">Edit Members</label>
-        <input type="checkbox" name="editchores" id="editchores" value="true" {{if .Can 1}}checked{{end}}>
-        <label for="editchores">Edit Chores</label>
-        <input type="checkbox" name="editgroup" id="editgroup" value="true" {{if .Can 2}}checked{{end}}>
-        <label for="editgroup">Edit Group</label>
-        <input type="checkbox" name="editroles" id="editroles" value="true" {{if .Can 3}}checked{{end}}>
-        <label for="editroles">Edit Roles</label>
-        <input type="checkbox" name="getschores" id="getschores" value="true" {{ if .GetsChores }}checked{{end}}>
-        <label for="getschores">Gets Chores</label>
-        <input type="submit" name="submit_1" value="Update">
-        {{end}}
-    </form>
-</div>
-<h3>Members</h3>
 {{$g := .Group.ID}}
 {{$r := .Role.ID}}
-{{range .Role.Members}}
-<div>
-    <p>{{.User.Username}}</p>
-    <form action="" method="post">
-        <input type="text" name="user_id" value="{{.User.ID}}" hidden>
-        <input type="submit" name="submit_2" value="Remove">
-    </form>
+<div class="bg-green dash-layout fill">
+    <div id="sidebar" class="sidebar bg-dark">
+        <h2 id="s1" class="pointer s-head psides1" onclick="sideClick('s1','disp1')">General</h2>
+        <h2 id="s2" class="pointer s-head psides1" onclick="sideClick('s2','disp2')">Members</h2>
+        <a href="/groups/update/{{$g}}" class="text-center">Back</a>
+    </div>
+    <div id="disp1" class="v-content">
+        {{if .Error }}<p>{{.Error}}</p>{{end}}
+        <form action="" method="post" class="gen-form ptop1 pbot1 psides1">
+            {{with .Role}}
+            <input type="text" name="rolename" id="rolename" value="{{.Name}}">
+            <div class="row row--gap">
+                <input type="checkbox" name="editmembers" id="editmembers" value="true" {{if .Can 0}}checked{{end}}>
+                <label for="editmembers">Edit Members</label>
+            </div>
+            <div class="row row--gap">
+                <input type="checkbox" name="editchores" id="editchores" value="true" {{if .Can 1}}checked{{end}}>
+                <label for="editchores">Edit Chores</label>
+            </div>
+            <div class="row row--gap">
+                <input type="checkbox" name="editgroup" id="editgroup" value="true" {{if .Can 2}}checked{{end}}>
+                <label for="editgroup">Edit Group</label>
+            </div>
+            <div class="row row--gap">
+                <input type="checkbox" name="editroles" id="editroles" value="true" {{if .Can 3}}checked{{end}}>
+                <label for="editroles">Edit Roles</label>
+            </div>
+            <div class="row row--gap">
+                <input type="checkbox" name="getschores" id="getschores" value="true" {{ if .GetsChores }}checked{{end}}>
+                <label for="getschores">Gets Chores</label>
+            </div>
+            <input type="submit" name="submit_1" value="Update" class="button">
+            {{end}}
+        </form>
+    </div>
+    <div id="disp2" class="v-content">
+        <div class="gen-form ptop1 pbot1 psides1">
+            <div>
+                <form action="" method="post">
+                    <input type="text" name="username" id="username" placeholder="Username...">
+                    <input type="submit" name="submit_3" value="Add" class="button pointer">
+                </form>
+            </div>
+            {{range .Role.Members}}
+            <div class="row row--gap">
+                <div class="bg-blue psides1 center-vert round member">
+                    <p>{{.User.Username}}</p>
+                </div>
+                <form action="" method="post" class="split center">
+                    <input type="text" name="user_id" value="{{.User.ID}}" hidden>
+                    <button type="submit" name="submit_2" value="Remove" class="font-medium pointer no-border cross-outer bg-dark">
+                        <div class="cross-hor bg-yellow"></div>
+                    </button>
+                </form>
+            </div>
+            {{end}}
+            <div>
+                <form action="" method="post">
+                    <input type="submit" name="submit_4" value="Delete Role" class="button pointer">
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
-{{end}}
-<div>
-    <form action="" method="post">
-        <input type="text" name="username" id="username" placeholder="Username...">
-        <input type="submit" name="submit_3" value="Add">
-    </form>
-</div>
-<div>
-    <form action="" method="post">
-        <input type="submit" name="submit_4" value="Delete Role">
-    </form>
-</div>
-<a href="/groups/update/{{$g}}">Back</a>
 {{end}}

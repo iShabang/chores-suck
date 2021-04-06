@@ -178,6 +178,10 @@ form input {
     height: 2px;
 }
 
+.text-center {
+    text-align: center;
+}
+
 .center {
     align-items: center;
     justify-content: center;
