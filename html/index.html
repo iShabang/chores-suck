@@ -1,19 +1,22 @@
 {{ define "body" }}
-<section class="bg-green">
-<div class="hero split">
-    <div class="herobox">
-        <h2>Keep it Clean.<br>Keep it Fair.</h2>
-        <img src="public/assets/dishes.jpg">
-    </div>
-    <div class="regbox">
-        <form action="/register" method="post">
-            <input type="text" id="username" name="username" placeholder="Username...">
-            <input type="text" id="email" name="email" placeholder="Email...">
-            <input type="password" id="pword" name="pword" placeholder="Password">
-            <input type="password" id="pwordConf" name="pwordConf" placeholder="Confirm Password">
-            <input type="submit" class="button" id="submit" name="submit" value="Sign Up">
-        </form>
-    </div>
+<div class="index-layout">
+    <section class="index-hero">
+        <img src="public/assets/hero.jpg" alt="">
+        <div class="hero-overlay">
+            <h2>Keep It Fair.<br>Keep It Clean.</h2>
+        </div>
+    </section>
+    <section class="index-organized">
+        <h3>Organized</h3>
+        <p>Multiple people in one space can sometimes be  a cleaning nightmare. With a little bit of organization and teamwork, you can quickly transform a consistent mess into a fresh, tidy place to live. </p>
+    </section>
+    <section class="index-fair">
+        <h3>Fair</h3>
+        <p>Easily setup a pile of chores and randomly assign them to residents. Don’t like the chores you were assigned? No problem! You can rotate out the chores as often as you like. Clean doesn’t mean unfair!</p>
+    </section>
+    <section class="index-sign">
+        <h3>Try it out for yourself!</h3>
+        <a href="/register">Sign Up</a>
+    </section>
 </div>
-</section>
 {{ end }}

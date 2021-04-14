@@ -1,17 +1,13 @@
 {{ define "navbar" }}
-<div class="navbar bg-dark">
-    <div class="container nav-inner">
-        <div id="hamburger" class="hamburger mright1 pointer" onclick="hamburger('sidebar')">
-            <div class="ham-bar bg-yellow"></div>
-            <div class="ham-bar bg-yellow"></div>
-            <div class="ham-bar bg-yellow"></div>
-        </div>
-        <h2><a href="/dashboard" style="text-decoration: none;">Chores Suck</a></h2>
-        {{if .}}
-        <a href="/logout">Logout</a>
-        {{else}}
-        <a href="/login">Login</a>
-        {{end}}
+<div class="navbar">
+    <div class="logo">
+        <img src="public/assets/logo.svg">
+        <p>A Tidy Flat</p>
     </div>
+    {{if .}}
+    <a href="/logout" class="nav-button">Logout</a>
+    {{else}}
+    <a href="/login" class="nav-button">Login</a>
+    {{end}}
 </div>
 {{ end }}
