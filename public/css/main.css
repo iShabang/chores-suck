@@ -160,7 +160,7 @@ form input {
     }
 }
 
-.show-flex {
+.flex {
     display: flex;
 }
 
@@ -193,6 +193,10 @@ form input {
 
 .center-vert {
     align-items: center;
+}
+
+.center-hori {
+    justify-content: center;
 }
 
 .round {
@@ -466,6 +470,14 @@ footer {
     width: 40%;
 }
 
+.gen-input textarea {
+    width: 80%;
+}
+
+.gen-input select {
+    width: 80%;
+}
+
 .member {
     width: 100%;
     color: white;
@@ -484,7 +496,7 @@ footer {
     }
 
     .gen-form {
-        max-width: 20rem;
+        max-width: 30rem;
     }
 }
 
@@ -529,4 +541,17 @@ footer {
 
 .cross-outer:hover > * {
     background-color: var(--clr-primary-600);
+}
+
+/**********************************************************/
+/* UPDATE CHORE PAGE STYLES */
+/**********************************************************/
+.text-box {
+    height: 15em;
+    width: 20em;
+}
+
+.back-btn {
+    padding: 0.5em 0;
+    
 }

@@ -19,5 +19,5 @@ function sideClick(sel,show) {
 }
 
 function hamburger(nav) {
-    document.getElementById(nav).classList.toggle('show-flex')
+    document.getElementById(nav).classList.toggle('flex')
 }
