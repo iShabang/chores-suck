@@ -169,3 +169,33 @@ a {
     color: white;
 }
 
+@media (min-width: 40em) {
+    .index-layout {
+        grid-template-columns: 1.5fr 1fr;
+        grid-template-rows: 1.5fr 1fr;
+        row-gap: 0;
+    }
+
+    .hero-overlay {
+        justify-content: flex-start;
+    }
+
+    .hero-overlay h2 {
+        margin-left: 10%;
+    }
+
+    .index-organized {
+        align-self: center;
+        width: 80%;
+    }
+
+    .index-fair {
+        align-self: center;
+        width: 80%;
+    }
+
+    .index-sign {
+        justify-content: space-evenly;
+    }
+}
+
