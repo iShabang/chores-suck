@@ -1,12 +1,19 @@
 {{define "body"}}
-<div class="login-container bg-green">
-    <div class="login-content">
+<div class="login-container">
+    <div class="login-form">
+        <h2>Login</h2>
         {{ if .Error }}<div class="error"><p>{{ .Error }}</p></div>{{ end }}
-        <form action="/login" method="post" class="bg-blue">
-            <input type="text" id="username" name="username" placeholder="Username...">
-            <input type="password" id="pword" name="pword" placeholder="Password...">
+        <form action="/login" method="post">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username">
+            <label for="password">Password:</label>
+            <input type="password" id="pword" name="pword">
             <input class="button" type="submit" id="submit" name="submit" value="Login">
         </form>
+    </div>
+    <div class="login-overlay">
+        <img src="public/assets/dishes.jpg" alt="">
+        <img src="public/assets/paper-trash.jpg" class="mobile-hide" alt="">
     </div>
 </div>
 {{end}}
