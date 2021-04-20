@@ -223,6 +223,9 @@ func (s *Storage) InsertAssignments(ca []core.ChoreAssignment) error {
 }
 
 func (s *Storage) DeleteAssignments(ca []core.ChoreAssignment) error {
+	if len(ca) < 1 {
+		return nil
+	}
 	cids := make([]string, 0, len(ca))
 	for i := range ca {
 		cids = append(cids, strconv.FormatUint(ca[i].Chore.ID, 10))
