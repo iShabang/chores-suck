@@ -23,6 +23,7 @@ html, body {
 
 a {
     text-decoration: none;
+    color: var(--clr-text-prim);
 }
 
 /**********************************************************/
@@ -35,7 +36,7 @@ a {
 .navbar {
     height: 2.4375rem;
     width: 90%;
-    margin-inline: auto;
+    margin: 0 auto;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -115,7 +116,7 @@ a {
 .index-organized {
     font-size: 0.6875rem;
     width: 90%;
-    margin-inline: auto;
+    margin: 0 auto;
 }
 
 .index-organized h3 {
@@ -125,7 +126,7 @@ a {
 
 .index-fair {
     width: 90%;
-    margin-inline: auto;
+    margin: 0 auto;
     font-size: 0.6875rem;
 }
 
@@ -207,7 +208,7 @@ a {
 /**********************************************************/
 .login-form {
     width: 80%;
-    margin-inline: auto;
+    margin: 0 auto;
     margin-bottom: 2.125rem;
 }
 
@@ -306,7 +307,7 @@ a {
 
     .login-form {
         width: min(40%,25rem);
-        margin-inline: 0;
+        margin: 0 auto;
         align-self: center;
     }
 
@@ -341,7 +342,7 @@ a {
 /**********************************************************/
 .dash-cont {
     width: 87.5%;
-    margin-inline: auto;
+    margin: 0 auto;
     color: var(--clr-text-prim);
 }
 
