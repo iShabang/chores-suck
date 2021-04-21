@@ -1,39 +1,46 @@
 {{ define "body" }}
-<main>
-    <section class="bg-green dash-layout fill">
-        <div class="sidebar bg-dark">
-            <h2 id="s1" class="pointer s-head psides1" onclick="sideClick('s1','disp1')">Chores</h2>
-            <h2 id="s2" class="pointer s-head psides1" onclick="sideClick('s2','disp2')">Groups</h2>
+<section id="first" class="hidable show dash-cont">
+    <h2>My Chores</h2>
+    {{/* Inefficient algorithm utilized for simplicity sake. However, no one person should be
+        assigned more than a handful of chores, so the performance impact is negligible. This is
+        not designed for large amounts of groups and chores as the run time is
+        O(groups * chores). If a more efficient approach is required in the future,
+        then this will need to be resolved on the backend using Go instead of the template
+        language.*/}}
+    {{ $chores := .User.Chores}}
+    {{ range .User.Memberships }}
+    {{ $name := .Group.Name }}
+    <div class="chore-list">
+        <h3>{{$name}}</h3>
+        {{ range $chores }}
+        {{ if eq $name .Group.Name }}
+        <div class="chore-cont">
+            <div class="circle-btn"></div>
+            <p>{{.Name}}</p>
         </div>
-        <div id="disp1" class="v-content">
-            <div class="container split split--gap ptop1 pbot1 psides1">
-                {{ range .User.Chores }}
-                <div class="chore-box bg-blue pointer">
-                    <h3>{{ .Name }}</h3>
-                    <p>{{ .Group.Name }}</p>
-                    <p>Due: {{ .Assignment.DateDue.Month }} {{.Assignment.DateDue.Day}}, {{.Assignment.DateDue.Year}}</p>
-                </div>
-                {{ else }}
-                <p>No more chores to do. Nice!</p>
-                {{ end }}
-            </div>
-        </div>
-        <div id="disp2" class="v-content">
-            <div class="container split split--gap split--wrap ptop1 pbot1 psides1">
-                {{ range .User.Memberships }}
-                <a href="/groups/update/{{.Group.ID}}" class="chore-box group-box bg-blue pointer">
-                    <div class="group-icon bg-dark"></div>
-                    <h3>{{ .Group.Name }}</h3>
-                </a>
-                {{ else }}
-                <p>Oh no! Looks like you aren't a member of any groups.</p>
-                {{ end }}
-                <a href="/groups/create" class="chore-box group-box bg-blue pointer">
-                    <div class="group-icon bg-dark"></div>
-                    <h3>New</h3>
-                </a>
-            </div>
-        </div>
-    </section>
-</main>
+        {{ end }}
+        {{ end }}
+    </div>
+    {{ end }}
+</section>
+<section id="second" class="hidable dash-cont">
+    <h2>My Groups</h2>
+    <div class="group-list">
+        {{ range .User.Memberships }}
+        <a class="group-cont" href="/groups/update/{{.Group.ID}}">
+            {{ .Group.Name }}
+        </a>
+        {{ else }}
+        <p>Oh no! Looks like you aren't a member of any groups.</p>
+        {{ end }}
+        <a href="/groups/create" class="group-cont">
+            New
+        </a>
+    </div>
+</section>
+<div class="mobile-nav">
+    <div id="chore-btn" class="mobile-nav-btn"></div>
+    <div id="group-btn" class="mobile-nav-btn"></div>
+    <div class="mobile-nav-btn"></div>
+</div>
 {{end}}

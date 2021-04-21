@@ -25,6 +25,9 @@ a {
     text-decoration: none;
 }
 
+/**********************************************************/
+/* UTILITY
+/**********************************************************/
 
 /**********************************************************/
 /* NAV BAR
@@ -311,4 +314,115 @@ a {
         font-size: 9rem;
         text-align: left;
     }
+}
+/**********************************************************/
+/* MOBILE NAV
+/**********************************************************/
+.mobile-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    height: 6.875vh;
+    width: 100vw;
+    background-color: var(--clr-bg-dark);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.mobile-nav-btn {
+    background-color: white;
+    height: 4.53125vh;
+    width: 4.53125vh;
+}
+
+/**********************************************************/
+/* DASHBOARD
+/**********************************************************/
+.dash-cont {
+    width: 87.5%;
+    margin-inline: auto;
+    color: var(--clr-text-prim);
+}
+
+.dash-cont h2 {
+    font-weight: 500;
+    font-size: 1.5rem;
+    margin: 1rem 0;
+}
+
+.dash-cont a:visited {
+    color: var(--clr-text-prim);
+}
+
+.chore-list {
+    margin-bottom: 2rem;
+}
+
+.chore-list > * {
+    margin-bottom: 0.625rem;
+}
+
+.chore-list h3 {
+    font-weight: 300;
+    font-size: 1.125rem;
+}
+
+.chore-cont {
+    width: 100%;
+    height: 6.40625vh;
+    background-color: white;
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--clr-text-prim);
+    display: flex;
+    align-items: center;
+}
+
+.chore-cont p {
+    font-weight: 400;
+    font-size: 1.125rem;
+}
+
+.circle-btn {
+    background-color: white;
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--clr-text-prim);
+    border-radius: 50%;
+    height: 20px;
+    width: 20px;
+    margin-right: 1.5rem;
+    margin-left: 1rem;
+    cursor: pointer;
+}
+
+.circle-btn:hover {
+    background-color: var(--clr-bg-dark);
+}
+
+.group-list > * {
+    margin-bottom: 0.625rem;
+}
+
+.group-cont {
+    height: 8.4375vh;
+    width: 100%;
+    background-color: white;
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--clr-text-prim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.125rem;
+    font-weight: 400;
+}
+
+.group-cont:hover {
+    background-color: var(--clr-bg-dark);
+}
+
+.group-cont:visited:hover {
+    color: white;
 }
