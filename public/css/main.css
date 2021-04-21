@@ -337,6 +337,37 @@ a {
     width: 4.53125vh;
 }
 
+@media (min-width: 40em) {
+    .mobile-nav {
+        display: none;
+    }
+}
+
+/**********************************************************/
+/* DESKTOP NAV
+/**********************************************************/
+.desktop-nav {
+    display: none;
+}
+
+.desktop-nav p {
+    padding: 1.78125rem 1.28125rem;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.desktop-nav p:hover {
+    background-color: var(--clr-bg-dark);
+    color: white;
+}
+
+@media (min-width: 40em) {
+    .desktop-nav {
+        display: flex;
+        justify-content: space-between;
+    }
+}
+
 /**********************************************************/
 /* DASHBOARD
 /**********************************************************/
@@ -350,6 +381,7 @@ a {
     font-weight: 500;
     font-size: 1.5rem;
     margin: 1rem 0;
+    text-align: left;
 }
 
 .dash-cont a:visited {
@@ -426,4 +458,14 @@ a {
 
 .group-cont:visited:hover {
     color: white;
+}
+
+@media (min-width: 40em) {
+    .dash-cont {
+        width: 45.7292%;
+    }
+
+    .dash-cont h2 {
+        text-align: center;
+    }
 }

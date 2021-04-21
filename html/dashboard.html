@@ -1,4 +1,9 @@
 {{ define "body" }}
+<div class="desktop-nav dash-cont">
+    <p id="chore-btn">Chores</p>
+    <p id="group-btn">Groups</p>
+    <p>Account</p>
+</div>
 <section id="first" class="hidable dash-cont">
     <h2>My Chores</h2>
     {{/* Inefficient algorithm utilized for simplicity sake. However, no one person should be
@@ -39,8 +44,8 @@
     </div>
 </section>
 <div class="mobile-nav">
-    <div id="chore-btn" class="mobile-nav-btn"></div>
-    <div id="group-btn" class="mobile-nav-btn"></div>
+    <div id="mob-chore-btn" class="mobile-nav-btn"></div>
+    <div id="mob-group-btn" class="mobile-nav-btn"></div>
     <div class="mobile-nav-btn"></div>
 </div>
 {{end}}

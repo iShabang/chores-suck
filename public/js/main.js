@@ -23,3 +23,5 @@ function display(showElem) {
 setupShow()
 document.getElementById('chore-btn').addEventListener('click', function() {display('first');});
 document.getElementById('group-btn').addEventListener('click', function() {display('second');});
+document.getElementById('mob-chore-btn').addEventListener('click', function() {display('first');});
+document.getElementById('mob-group-btn').addEventListener('click', function() {display('second');});
