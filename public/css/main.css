@@ -558,3 +558,44 @@ a {
         height: 48.055vh;
     }
 }
+
+/**********************************************************/
+/* GROUP PAGE
+/**********************************************************/
+.group-title {
+    font-weight: 500;
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.group-layout {
+    width: 85%;
+    margin: 0 auto;
+}
+
+.group-layout button {
+    background-color: var(--clr-bg-dark);
+    color: white;
+    border-style: none;
+    border-width: 1px;
+    border-color: var(--clr-text-prim);
+    border-radius: 0;
+    width: 100%;
+    height: 5.78125vh;
+    font-weight: 400;
+    font-size: 1rem;
+}
+
+.group-layout button:hover {
+    background-color: white;
+    color: var(--clr-text-prim);
+    border-style: solid;
+}
+
+.group-layout-cont {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
