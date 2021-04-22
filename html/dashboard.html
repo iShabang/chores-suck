@@ -38,14 +38,29 @@
         {{ else }}
         <p>Oh no! Looks like you aren't a member of any groups.</p>
         {{ end }}
-        <a href="/groups/create" class="group-cont">
-            New
-        </a>
+        <div id="new-group" class="group-cont">
+            <p>New</p>
+        </div>
     </div>
 </section>
 <div class="mobile-nav">
     <div id="mob-chore-btn" class="mobile-nav-btn"></div>
     <div id="mob-group-btn" class="mobile-nav-btn"></div>
     <div class="mobile-nav-btn"></div>
+</div>
+<div id="group-modal" class="modal">
+    <div class="modal-window">
+        <img id="close" src="/public/assets/close.svg" alt="">
+        <div class="new-group">
+            <h2>New Group</h2>
+            <form action="">
+                <label for="groupname">Name:</label>
+                <input type="text" name="groupname">
+                <input type="submit" name="submit" value="Create">
+            </form>
+            <div class="error-box">
+            </div>
+        </div>
+    </div>
 </div>
 {{end}}
