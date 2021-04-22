@@ -5,10 +5,10 @@ function hideClass(className) {
     }
 }
 
-function setupShow() {
+function setupShow(tabName) {
     hideClass('hidable');
     showElem = document.getElementById('first');
-    tab = window.sessionStorage.getItem('dashTab');
+    tab = window.sessionStorage.getItem(tabName);
     if (tab) {
         showElem = document.getElementById(tab);
     }
@@ -19,13 +19,13 @@ function setupModal() {
     hideClass('modal')
 }
 
-function showHidable(showElem) {
+function showHidable(showElem, tabName) {
     divs = document.getElementsByClassName('hidable');
     for (d of divs) {
         d.style.display = 'none';
     }
     document.getElementById(showElem).style.display = 'block';
-    window.sessionStorage.setItem('dashTab',showElem);
+    window.sessionStorage.setItem(tabName,showElem);
 }
 
 function show(showElem, display='block') {
@@ -46,10 +46,6 @@ function closeModal(modal) {
     document.getElementById('close').removeEventListener('click',function(){closeModal(modal)});
 }
 
-setupShow()
-setupModal();
-document.getElementById('chore-btn').addEventListener('click', function() {showHidable('first');});
-document.getElementById('group-btn').addEventListener('click', function() {showHidable('second');});
-document.getElementById('mob-chore-btn').addEventListener('click', function() {showHidable('first');});
-document.getElementById('mob-group-btn').addEventListener('click', function() {showHidable('second');});
-document.getElementById('new-group').addEventListener('click', function() {showModal('group-modal','flex')});
+function addHidableClick(clickId,showId, tabName) {
+    document.getElementById(clickId).addEventListener('click', function() {showHidable(showId,tabName);});
+}
