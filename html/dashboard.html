@@ -32,13 +32,13 @@
     <h2>My Groups</h2>
     <div class="group-list">
         {{ range .User.Memberships }}
-        <a class="group-cont" href="/groups/update/{{.Group.ID}}">
+        <a class="group-cont white-cont white-cont--hover border center-flex" href="/groups/update/{{.Group.ID}}">
             {{ .Group.Name }}
         </a>
         {{ else }}
         <p>Oh no! Looks like you aren't a member of any groups.</p>
         {{ end }}
-        <div id="new-group" class="group-cont">
+        <div id="new-group" class="group-cont white-cont white-cont--hover border center-flex">
             <p>New</p>
         </div>
     </div>

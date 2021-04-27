@@ -2,39 +2,41 @@
 <h2 class="group-title">Laramore</h2>
 <section id="first" class="hidable group-layout">
     <div class="group-layout-cont">
-        <button>Update Name</button>
+        <button class="">Update Name</button>
     </div>
 </section>
 
 <section id="second" class="hidable group-layout">
     <div class="group-layout-cont">
-        <button>Add</button>
-        {{ range .Group.Memberships }}
-        <div class="mem-row">
-            <div class="mem-cont">
-                <p>{{.User.Username}}</p>
+        <button class="">Add</button>
+        <div class="member-list">
+            <h3>Members</h3>
+            {{ range .Group.Memberships }}
+            <div class="mem-row">
+                <div class="mem-cont border">
+                    <div class="mem-pic circle circle--small"></div>
+                    <p>{{.User.Username}}</p>
+                </div>
+                <button class="mem-btn center-flex">Remove</button>
             </div>
-            <div class="mem-btn"></div>
+            {{ end }}
         </div>
-        {{ end }}
     </div>
 </section>
 
-<section id="third" class="hidable">
-    <div class="ptop1 pbot1 psides1 gen-form">
-        <a href="/roles/create/{{.Group.ID}}" class="row row--gap">
-            <p class="fc-black">New</p>
-            <div class="bg-dark cross-outer">
-                <div class="cross-vert bg-yellow"></div>
-                <div class="cross-hor bg-yellow"></div>
-            </div>
-        </a>
-        {{ $g := .Group.ID }}
-        {{ range .Group.Roles }}
-        <a href="/roles/update/{{.ID}}" class="bg-blue center round member member--clickable">
-            <p class="text-center">{{ .Name }}</p>
-        </a>
-        {{ end }}
+<section id="third" class="hidable group-layout">
+    <div class="group-layout-cont">
+        <button>Add</button>
+        <div class="member-list">
+            <h3>Roles</h3>
+            {{ $g := .Group.ID }}
+            {{ range .Group.Roles }}
+            <button class="white-cont white-cont--hover border">{{.Name}}</button>
+            <!--<a href="/roles/update/{{.ID}}" class="link-cont">
+                <p class="text-center">{{ .Name }}</p>
+            </a> -->
+            {{ end }}
+        </div>
     </div>
 </section>
 

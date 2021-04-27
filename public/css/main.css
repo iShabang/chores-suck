@@ -26,6 +26,23 @@ a {
     color: var(--clr-text-prim);
 }
 
+button {
+    background-color: var(--clr-bg-dark);
+    border-style: none;
+    cursor: pointer;
+    padding: 1rem 0;
+    color: white;
+    font-size: 1rem;
+}
+
+button:hover {
+    background-color: white;
+    color: var(--clr-text-prim);
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--clr-text-prim);
+}
+
 /**********************************************************/
 /* UTILITY
 /**********************************************************/
@@ -441,13 +458,6 @@ a {
 .group-cont {
     height: 8.4375vh;
     width: 100%;
-    background-color: white;
-    border-style: solid;
-    border-width: 1px;
-    border-color: var(--clr-text-prim);
-    display: flex;
-    align-items: center;
-    justify-content: center;
     font-size: 1.125rem;
     font-weight: 400;
     cursor: pointer;
@@ -574,28 +584,90 @@ a {
     margin: 0 auto;
 }
 
-.group-layout button {
-    background-color: var(--clr-bg-dark);
-    color: white;
-    border-style: none;
-    border-width: 1px;
-    border-color: var(--clr-text-prim);
-    border-radius: 0;
-    width: 100%;
-    height: 5.78125vh;
-    font-weight: 400;
-    font-size: 1rem;
-}
-
-.group-layout button:hover {
-    background-color: white;
-    color: var(--clr-text-prim);
-    border-style: solid;
-}
-
 .group-layout-cont {
     width: 100%;
     display: flex;
     flex-direction: column;
     justify-content: center;
+}
+
+.member-list {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.member-list > * {
+    margin-bottom: 1rem;
+}
+
+.member-list h3 {
+    font-weight: 300;
+    font-size: 1.25rem;
+    text-align: center;
+}
+
+.mem-row {
+    display: flex;
+    width: 100%;
+    height: 6.40625vh;
+}
+
+.mem-cont {
+    width: 65%;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    font-weight: 400;
+    font-size: 1.125rem;
+}
+
+.mem-pic {
+    background-color: white;
+    border-color: var(--clr-text-prim);
+    margin-left: 1.5rem;
+    margin-right: 1.5rem;
+}
+
+.mem-btn {
+    width: 35%;
+}
+
+.mem-btn:hover {
+    border-left: none;
+}
+
+/**** Maybe utility? ****/
+.circle {
+    border-style: solid;
+    border-width: 1px;
+    border-radius: 50%;
+}
+
+.circle--small {
+    height: 20px;
+    width: 20px;
+}
+
+.border {
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--clr-text-prim)
+}
+
+
+.center-flex {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.white-cont {
+    background-color: white;
+    color: var(--clr-text-prim);
+}
+
+.white-cont--hover:hover {
+    background-color: var(--clr-bg-dark);
+    color: white;
 }
