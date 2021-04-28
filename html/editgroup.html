@@ -40,10 +40,10 @@
     </div>
 </section>
 
-<section id="fourth" class="hidable">
-    <div class="gen-form ptop1 pbot1 psides1">
+<section id="fourth" class="hidable group-layout">
+    <div class="group-layout-cont">
         {{ with .ChoreError }}<p class="error">{{ . }}</p>{{end}}
-        <a href="/chores/create/{{.Group.ID}}" class="row row--gap">
+        <!--<a href="/chores/create/{{.Group.ID}}" class="row row--gap">
             <p class="fc-black">New</p>
             <div class="bg-dark cross-outer">
                 <div class="cross-vert bg-yellow"></div>
@@ -56,14 +56,28 @@
         <form action="" method="post">
             <button class="pointer button button--pad" type="submit" name="submit_5" value="rotate">Rotate</button>
         </form>
-        {{ range .Group.Chores }}
-        <a href="/chores/update/{{.ID}}">
-            <div class="member member--clickable round bg-blue center-vert">
-                <p>{{ .Name }}</p>
-                {{with .Assignment}}<p class="fc-black">Assignee: {{.User.Username}}</p>{{end}}
+    -->
+        <button class="marBot1rem">Randomize</button>
+        <button class="marBot1rem">Rotate</button>
+        <button>Add</button>
+        <div class="member-list">
+            <h3>Chores</h3>
+            {{ range .Group.Chores }}
+            <div class="chore-box border">
+                <div>
+                    <p class="chore-name">{{.Name}}</p>
+                    {{if .Assignment}}<p class="chore-assignee">{{.Assignment.User.Username}}</p>{{end}}
+                </div>
             </div>
-        </a>
-        {{ end }}
+            <!--<a href="/chores/update/{{.ID}}">
+                <div class="member member--clickable round bg-blue center-vert">
+                    <p>{{ .Name }}</p>
+                    {{with .Assignment}}<p class="fc-black">Assignee: {{.User.Username}}</p>{{end}}
+                </div>
+            </a>
+            -->
+            {{ end }}
+        </div>
     </div>
 </section>
 <div class="mobile-nav">
